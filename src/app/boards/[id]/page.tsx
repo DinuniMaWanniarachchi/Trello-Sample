@@ -4,8 +4,7 @@ import React, { useState } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { 
-  Trello, 
+import {  
   Search, 
   Plus, 
   Star,
@@ -180,7 +179,7 @@ const BoardPage = () => {
           <div className="flex items-center justify-between h-16">
             <div className="flex items-center space-x-4">
               <div className="flex items-center space-x-2">
-                <Trello className="h-6 w-6 text-white" />
+                {/* <Trello className="h-6 w-6 text-white" /> */}
                 <span className="text-lg font-bold text-white">Trello</span>
               </div>
               

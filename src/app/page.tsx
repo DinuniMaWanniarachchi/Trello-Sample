@@ -49,7 +49,7 @@ const HomePage = () => {
           <div className="flex items-center justify-between h-16">
             <div className="flex items-center space-x-4">
               <div className="flex items-center space-x-2">
-                <Trello className="h-8 w-8 text-white" />
+                {/* <Trello className="h-8 w-8 text-white" /> */}
                 <span className="text-xl font-bold text-white">Trello</span>
               </div>
               
