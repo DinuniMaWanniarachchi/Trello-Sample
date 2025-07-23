@@ -6,7 +6,6 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { 
   Home, 
-  Trello, 
   Search, 
   Plus, 
   Settings, 
@@ -95,7 +94,7 @@ const HomePage = () => {
                 <span>Home</span>
               </a>
               <a href="#" className="flex items-center space-x-3 text-white hover:bg-white/20 rounded-lg p-2">
-                <Trello className="h-5 w-5" />
+                {/* <Trello className="h-5 w-5" /> */}
                 <span>Boards</span>
               </a>
               <a href="#" className="flex items-center space-x-3 text-white hover:bg-white/20 rounded-lg p-2">
@@ -116,7 +115,7 @@ const HomePage = () => {
                 
                 <nav className="ml-8 space-y-1">
                   <a href="#" className="flex items-center space-x-2 text-white/80 hover:text-white text-sm">
-                    <Trello className="h-4 w-4" />
+                    {/* <Trello className="h-4 w-4" /> */}
                     <span>Boards</span>
                   </a>
                   <a href="#" className="flex items-center space-x-2 text-white/80 hover:text-white text-sm">
