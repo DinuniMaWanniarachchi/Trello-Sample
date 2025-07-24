@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -28,13 +28,13 @@ interface Card {
   title: string;
   description?: string;
   statusBadges?: StatusBadge[];
-  dueDate?: string; // Add due date field
+  dueDate?: string;
 }
 
 interface List {
   id: string;
   title: string;
-  titleColor?: 'orange' | 'blue' | 'green' | 'red' | 'purple' | 'yellow' | 'white'; // Add title color
+  titleColor?: 'orange' | 'blue' | 'green' | 'red' | 'purple' | 'yellow' | 'white';
   cards: Card[];
   statusBadge?: StatusBadge;
 }
@@ -56,7 +56,7 @@ const badgeColors = {
   gray: 'bg-gray-500/20 text-gray-300 border-gray-500/30'
 };
 
-// Color classes for title color badges (like status badges)
+// Color classes for title color badges
 const titleColorBadges = {
   orange: 'bg-orange-500/20 text-orange-300 border-orange-500/30',
   blue: 'bg-blue-500/20 text-blue-300 border-blue-500/30',
@@ -107,7 +107,7 @@ const initialBoard: Board = {
         { 
           id: 'card-3', 
           title: 'Dive into Kanban Board basics'
-        }
+        },
       ]
     },
     {
@@ -117,7 +117,7 @@ const initialBoard: Board = {
       statusBadge: { id: 'status-2', text: 'Doing (2)', color: 'blue' },
       cards: [
         { 
-          id: 'card-4', 
+          id: 'card-7', 
           title: 'Start using Kanban Board',
           statusBadges: [
             { id: 'badge-4', text: 'Ready for Dev', color: 'green' }
@@ -154,6 +154,10 @@ const BoardPage = () => {
   const [showColorPicker, setShowColorPicker] = useState(false);
   const [showDatePicker, setShowDatePicker] = useState<{[cardId: string]: boolean}>({});
   const [editingDueDate, setEditingDueDate] = useState<{[cardId: string]: string}>({});
+  const [datePickerPosition, setDatePickerPosition] = useState<{[cardId: string]: {top: number, left: number}}>({});
+  
+  const datePickerRefs = useRef<{[cardId: string]: HTMLDivElement | null}>({});
+  const calendarButtonRefs = useRef<{[cardId: string]: HTMLButtonElement | null}>({});
 
   // Helper function to format date display
   const formatDueDate = (dateString: string) => {
@@ -162,7 +166,6 @@ const BoardPage = () => {
     const tomorrow = new Date(today);
     tomorrow.setDate(tomorrow.getDate() + 1);
     
-    // Reset time for accurate comparison
     today.setHours(0, 0, 0, 0);
     tomorrow.setHours(0, 0, 0, 0);
     date.setHours(0, 0, 0, 0);
@@ -186,10 +189,43 @@ const BoardPage = () => {
     const diffTime = date.getTime() - today.getTime();
     const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
     
-    if (diffDays < 0) return 'text-red-400'; // Overdue
-    if (diffDays === 0) return 'text-orange-400'; // Due today
-    if (diffDays === 1) return 'text-yellow-400'; // Due tomorrow
-    return 'text-gray-400'; // Future dates
+    if (diffDays < 0) return 'text-red-400';
+    if (diffDays === 0) return 'text-orange-400';
+    if (diffDays === 1) return 'text-yellow-400';
+    return 'text-gray-400';
+  };
+
+  // Calculate optimal position for date picker
+  const calculateDatePickerPosition = (cardId: string) => {
+    const buttonElement = calendarButtonRefs.current[cardId];
+    if (!buttonElement) return { top: 0, left: 0 };
+
+    const buttonRect = buttonElement.getBoundingClientRect();
+    const viewportHeight = window.innerHeight;
+    const viewportWidth = window.innerWidth;
+    const pickerHeight = 180; // Approximate height of date picker
+    const pickerWidth = 240; // Approximate width of date picker
+
+    let top = buttonRect.bottom + window.scrollY + 4;
+    let left = buttonRect.left + window.scrollX;
+
+    // Check if picker would go below viewport
+    if (buttonRect.bottom + pickerHeight > viewportHeight) {
+      // Position above the button instead
+      top = buttonRect.top + window.scrollY - pickerHeight - 4;
+    }
+
+    // Check if picker would go beyond right edge
+    if (buttonRect.left + pickerWidth > viewportWidth) {
+      left = buttonRect.right + window.scrollX - pickerWidth;
+    }
+
+    // Ensure picker doesn't go beyond left edge
+    if (left < 8) {
+      left = 8;
+    }
+
+    return { top, left };
   };
 
   // Drag and Drop handlers
@@ -298,6 +334,13 @@ const BoardPage = () => {
 
   // Due date functionality
   const handleDateClick = (cardId: string, currentDate?: string) => {
+    // Close any other open date pickers
+    setShowDatePicker({});
+    
+    // Calculate position
+    const position = calculateDatePickerPosition(cardId);
+    setDatePickerPosition(prev => ({ ...prev, [cardId]: position }));
+    
     setEditingDueDate(prev => ({
       ...prev,
       [cardId]: currentDate || ''
@@ -332,6 +375,57 @@ const BoardPage = () => {
     setShowDatePicker(prev => ({ ...prev, [cardId]: false }));
     setEditingDueDate(prev => ({ ...prev, [cardId]: '' }));
   };
+
+  // Close date picker when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      const target = event.target as Element;
+      
+      // Check if click is outside any date picker
+      let clickedOutside = true;
+      Object.keys(showDatePicker).forEach(cardId => {
+        if (showDatePicker[cardId]) {
+          const pickerElement = datePickerRefs.current[cardId];
+          const buttonElement = calendarButtonRefs.current[cardId];
+          
+          if (
+            pickerElement?.contains(target) || 
+            buttonElement?.contains(target)
+          ) {
+            clickedOutside = false;
+          }
+        }
+      });
+      
+      if (clickedOutside) {
+        setShowDatePicker({});
+        setEditingDueDate({});
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, [showDatePicker]);
+
+  // Recalculate position on scroll or resize
+  useEffect(() => {
+    const handleScrollOrResize = () => {
+      Object.keys(showDatePicker).forEach(cardId => {
+        if (showDatePicker[cardId]) {
+          const position = calculateDatePickerPosition(cardId);
+          setDatePickerPosition(prev => ({ ...prev, [cardId]: position }));
+        }
+      });
+    };
+
+    window.addEventListener('scroll', handleScrollOrResize);
+    window.addEventListener('resize', handleScrollOrResize);
+    
+    return () => {
+      window.removeEventListener('scroll', handleScrollOrResize);
+      window.removeEventListener('resize', handleScrollOrResize);
+    };
+  }, [showDatePicker]);
 
   return (
     <div className="min-h-screen bg-zinc-900">
@@ -398,16 +492,14 @@ const BoardPage = () => {
                 onDrop={(e) => handleDrop(e, list.id)}
               >
 
-              {/* Updated List Header with Status Badge and Title Color Badge */}
+              {/* List Header */}
               <div className="flex items-start justify-between mb-3">
                 <div className="flex-1">
-                  {/* Status Badge */}
                   {list.statusBadge && (
                     <div className={`inline-block px-2 py-1 rounded text-xs font-medium border mb-2 ${badgeColors[list.statusBadge.color]}`}>
                       {list.statusBadge.text}
                     </div>
                   )}
-                  {/* List Title with Color Badge */}
                   <div className="flex items-center gap-2 flex-wrap">
                     {list.titleColor && (
                       <div className={`inline-block px-2 py-1 rounded text-xs font-medium border ${titleColorBadges[list.titleColor]}`}>
@@ -463,64 +555,16 @@ const BoardPage = () => {
                       )}
                       
                       <div className="flex items-center space-x-2 mt-2">
-                        {/* Calendar Button with Date Picker */}
-                        <div className="relative">
-                          <Button 
-                            variant="ghost" 
-                            size="sm" 
-                            className="h-6 w-6 p-0 text-white hover:text-blue-400"
-                            onClick={() => handleDateClick(card.id, card.dueDate)}
-                          >
-                            <Calendar className="h-3 w-3" />
-                          </Button>
-                          
-                          {/* Date Picker Dropdown */}
-                          {showDatePicker[card.id] && (
-                            <div className="absolute top-8 left-0 z-10 bg-white/90 backdrop-blur-sm border border-white/20 rounded-lg p-3 shadow-lg min-w-[200px]">
-                              <div className="space-y-2">
-                                <label className="text-xs text-gray-700 font-medium">Due Date:</label>
-                                <Input
-                                  type="date"
-                                  value={editingDueDate[card.id] || ''}
-                                  onChange={(e) => setEditingDueDate(prev => ({
-                                    ...prev,
-                                    [card.id]: e.target.value
-                                  }))}
-                                  className="text-sm"
-                                />
-                                <div className="flex space-x-2">
-                                  <Button
-                                    size="sm"
-                                    onClick={() => handleDateSave(card.id, list.id)}
-                                    className="flex-1"
-                                  >
-                                    Save
-                                  </Button>
-                                  <Button
-                                    variant="ghost"
-                                    size="sm"
-                                    onClick={() => handleDateCancel(card.id)}
-                                  >
-                                    Cancel
-                                  </Button>
-                                  {card.dueDate && (
-                                    <Button
-                                      variant="ghost"
-                                      size="sm"
-                                      onClick={() => {
-                                        setEditingDueDate(prev => ({ ...prev, [card.id]: '' }));
-                                        handleDateSave(card.id, list.id);
-                                      }}
-                                      className="text-red-600 hover:text-red-700"
-                                    >
-                                      Remove
-                                    </Button>
-                                  )}
-                                </div>
-                              </div>
-                            </div>
-                          )}
-                        </div>
+                        {/* Calendar Button */}
+                        <Button 
+                          ref={(el) => { calendarButtonRefs.current[card.id] = el}}
+                          variant="ghost" 
+                          size="sm" 
+                          className="h-6 w-6 p-0 text-white hover:text-blue-400"
+                          onClick={() => handleDateClick(card.id, card.dueDate)}
+                        >
+                          <Calendar className="h-3 w-3" />
+                        </Button>
                         
                         <Button variant="ghost" size="sm" className="h-6 w-6 p-0 text-white">
                           <User className="h-3 w-3" />
@@ -662,6 +706,74 @@ const BoardPage = () => {
           )}
         </div>
       </div>
+
+      {/* Fixed Position Date Pickers */}
+      {Object.entries(showDatePicker).map(([cardId, isVisible]) => {
+        if (!isVisible) return null;
+        
+        const position = datePickerPosition[cardId] || { top: 0, left: 0 };
+        const listId = board.lists.find(list => 
+          list.cards.some(card => card.id === cardId)
+        )?.id || '';
+
+        return (
+          <div
+            key={cardId}
+            ref={(el) => { datePickerRefs.current[cardId] = el}}
+            className="fixed z-50 bg-white/95 backdrop-blur-sm border border-white/20 rounded-lg p-3 shadow-xl"
+            style={{
+              top: `${position.top}px`,
+              left: `${position.left}px`,
+              minWidth: '240px'
+            }}
+          >
+            <div className="space-y-3">
+              <label className="text-sm text-gray-700 font-medium block">Due Date:</label>
+              <Input
+                type="date"
+                value={editingDueDate[cardId] || ''}
+                onChange={(e) => setEditingDueDate(prev => ({
+                  ...prev,
+                  [cardId]: e.target.value
+                }))}
+                className="text-sm w-full"
+                autoFocus
+              />
+              <div className="flex space-x-2">
+                <Button
+                  size="sm"
+                  onClick={() => handleDateSave(cardId, listId)}
+                  className="flex-1"
+                >
+                  Save
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => handleDateCancel(cardId)}
+                >
+                  Cancel
+                </Button>
+                {board.lists.find(list => 
+                  list.cards.some(card => card.id === cardId && card.dueDate)
+                ) && (
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => {
+                      setEditingDueDate(prev => ({ ...prev, [cardId]: '' }));
+                      handleDateSave(cardId, listId);
+                    }}
+                    className="text-red-600 hover:text-red-700"
+                  >
+                    Remove
+                  </Button>
+                )}
+              </div>
+            </div>
+          </div>
+        );
+      })}
     </div>
   );
 };
