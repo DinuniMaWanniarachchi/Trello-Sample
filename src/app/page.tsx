@@ -17,7 +17,7 @@ import {
 
 // Mock data for demonstration
 const mockBoards = [
-  { id: '1', title: 'My Trello board', workspace: 'Trello Workspace' }
+  { id: '1', title: 'My Kanban board', workspace: 'Kanban Workspace' }
 ];
 
 const HomePage = () => {
@@ -41,15 +41,15 @@ const HomePage = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-800">
+    <div className="min-h-screen bg-zinc-900">
       {/* Header */}
-      <header className="bg-white/10 backdrop-blur-sm border-b border-white/20">
+      <header className="bg-zinc-900 backdrop-blur-sm border-b border-white/20">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16">
             <div className="flex items-center space-x-4">
               <div className="flex items-center space-x-2">
                 {/* <Trello className="h-8 w-8 text-white" /> */}
-                <span className="text-xl font-bold text-white">Trello</span>
+                <span className="text-xl font-bold text-white">Kanban</span>
               </div>
               
               <nav className="hidden md:flex space-x-8">
@@ -75,10 +75,6 @@ const HomePage = () => {
                 <Plus className="h-4 w-4 mr-1" />
                 Create
               </Button>
-              
-              {/* <div className="w-8 h-8 bg-orange-500 rounded-full flex items-center justify-center text-white font-bold">
-                DV
-              </div> */}
             </div>
           </div>
         </div>
@@ -86,7 +82,7 @@ const HomePage = () => {
 
       <div className="flex">
         {/* Sidebar */}
-        <aside className="w-64 bg-white/10 backdrop-blur-sm border-r border-white/20 min-h-screen">
+        <aside className="w-64 bg-zinc-900 backdrop-blur-sm border-r border-white/20 min-h-screen">
           <div className="p-4">
             <nav className="space-y-2">
               <a href="#" className="flex items-center space-x-3 text-white hover:bg-white/20 rounded-lg p-2">
@@ -94,7 +90,6 @@ const HomePage = () => {
                 <span>Home</span>
               </a>
               <a href="#" className="flex items-center space-x-3 text-white hover:bg-white/20 rounded-lg p-2">
-                {/* <Trello className="h-5 w-5" /> */}
                 <span>Boards</span>
               </a>
               <a href="#" className="flex items-center space-x-3 text-white hover:bg-white/20 rounded-lg p-2">
@@ -110,12 +105,11 @@ const HomePage = () => {
                   <div className="w-6 h-6 bg-green-500 rounded flex items-center justify-center text-xs font-bold">
                     T
                   </div>
-                  <span className="text-sm">Trello Workspace</span>
+                  <span className="text-sm">Kanban Workspace</span>
                 </div>
                 
                 <nav className="ml-8 space-y-1">
                   <a href="#" className="flex items-center space-x-2 text-white/80 hover:text-white text-sm">
-                    {/* <Trello className="h-4 w-4" /> */}
                     <span>Boards</span>
                   </a>
                   <a href="#" className="flex items-center space-x-2 text-white/80 hover:text-white text-sm">
@@ -175,7 +169,7 @@ const HomePage = () => {
                 
                 <h3 className="text-2xl font-bold text-white mb-2">Organize anything</h3>
                 <p className="text-white/80 mb-6">
-                  Put everything in one place and start moving things forward with your first Trello board!
+                  Put everything in one place and start moving things forward with your first Kanban board!
                 </p>
                 
                 <div className="space-y-4">

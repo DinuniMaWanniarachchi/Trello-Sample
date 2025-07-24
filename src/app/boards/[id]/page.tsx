@@ -37,22 +37,22 @@ interface Board {
 // Mock data
 const initialBoard: Board = {
   id: '1',
-  title: 'My Trello board',
+  title: 'My Kanban board',
   lists: [
     {
       id: 'list-1',
-      title: 'Trello Starter Guide',
+      title: 'Kanban Starter Guide',
       cards: [
-        { id: 'card-1', title: 'New to Trello? Start here' },
+        { id: 'card-1', title: 'New to Kanban Board? Start here' },
         { id: 'card-2', title: 'Capture from email, Slack, and Teams' },
-        { id: 'card-3', title: 'Dive into Trello basics' }
+        { id: 'card-3', title: 'Dive into Kanban Board basics' }
       ]
     },
     {
       id: 'list-2',
       title: 'Today',
       cards: [
-        { id: 'card-4', title: 'Start using Trello' }
+        { id: 'card-4', title: 'Start using Kanban Board' }
       ]
     },
     {
@@ -172,15 +172,13 @@ const BoardPage = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-800">
+    <div className="min-h-screen bg-zinc-900">
       {/* Header */}
       <header className="bg-black/20 backdrop-blur-sm border-b border-white/20">
         <div className="px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16">
             <div className="flex items-center space-x-4">
               <div className="flex items-center space-x-2">
-                {/* <Trello className="h-6 w-6 text-white" /> */}
-                <span className="text-lg font-bold text-white">Trello</span>
               </div>
               
               <div className="relative">
@@ -197,10 +195,6 @@ const BoardPage = () => {
                 <Plus className="h-4 w-4 mr-1" />
                 Create
               </Button>
-              
-              {/* <div className="w-8 h-8 bg-orange-500 rounded-full flex items-center justify-center text-white font-bold text-sm">
-                DV
-              </div> */}
             </div>
           </div>
         </div>
@@ -233,16 +227,17 @@ const BoardPage = () => {
           {/* Lists */}
           {board.lists.map((list) => (
             <div 
-              key={list.id} 
-              className={`flex-shrink-0 w-72 bg-gray-100 rounded-lg p-3 ${
-                draggedOverList === list.id ? 'ring-2 ring-blue-400' : ''
-              }`}
-              onDragOver={(e) => handleDragOver(e, list.id)}
-              onDragLeave={handleDragLeave}
-              onDrop={(e) => handleDrop(e, list.id)}
-            >
+                key={list.id} 
+                className={`flex-shrink-0 w-72 bg-white/10 backdrop-blur-sm 
+                            rounded-lg p-3 border border-white/10 
+                            ${draggedOverList === list.id ? 'ring-2 ring-blue-400' : ''}`}
+                onDragOver={(e) => handleDragOver(e, list.id)}
+                onDragLeave={handleDragLeave}
+                onDrop={(e) => handleDrop(e, list.id)}
+              >
+
               <div className="flex items-center justify-between mb-3">
-                <h3 className="font-semibold text-gray-800">{list.title}</h3>
+                <h3 className="font-semibold text-gray-100">{list.title}</h3>
                 <Button variant="ghost" size="sm" className="h-6 w-6 p-0">
                   <MoreHorizontal className="h-4 w-4" />
                 </Button>
@@ -253,19 +248,22 @@ const BoardPage = () => {
                 {list.cards.map((card) => (
                   <Card 
                     key={card.id}
-                    className="cursor-move hover:shadow-md transition-shadow bg-white"
+                    className="cursor-move hover:shadow-md transition-shadow 
+                              bg-white/10 backdrop-blur-sm border border-white/10"
                     draggable
                     onDragStart={(e) => handleDragStart(e, card, list.id)}
                   >
+
                     <CardContent className="p-3">
-                      <p className="text-sm text-gray-800">{card.title}</p>
+                      <p className="text-sm text-gray-100">{card.title}</p>
                       <div className="flex items-center space-x-2 mt-2">
-                        <Button variant="ghost" size="sm" className="h-6 w-6 p-0">
+                        <Button variant="ghost" size="sm" className="h-6 w-6 p-0 text-white">
                           <Calendar className="h-3 w-3" />
                         </Button>
-                        <Button variant="ghost" size="sm" className="h-6 w-6 p-0">
+                        <Button variant="ghost" size="sm" className="h-6 w-6 p-0 text-white">
                           <User className="h-3 w-3" />
                         </Button>
+
                       </div>
                     </CardContent>
                   </Card>
@@ -314,7 +312,7 @@ const BoardPage = () => {
                 <Button 
                   variant="ghost" 
                   size="sm" 
-                  className="w-full justify-start text-gray-600 hover:bg-gray-200 hover:text-gray-800"
+                  className="w-full justify-start text-gray-100 hover:bg-gray-200 hover:text-gray-800"
                   onClick={() => setShowAddCard(prev => ({ ...prev, [list.id]: true }))}
                 >
                   <Plus className="h-4 w-4 mr-2" />
