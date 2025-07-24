@@ -25,7 +25,7 @@ interface StatusBadge {
 
 interface Card {
   id: string;
-  title: string;
+  title?: string;
   description?: string;
   statusBadges?: StatusBadge[];
   dueDate?: string;
@@ -85,8 +85,7 @@ const initialBoard: Board = {
   lists: [
     {
       id: 'list-1',
-      title: 'Kanban Starter Guide',
-      titleColor: 'blue',
+      title: '',
       statusBadge: { id: 'status-1', text: 'In Progress', color: 'orange' },
       cards: [
         { 
@@ -112,9 +111,8 @@ const initialBoard: Board = {
     },
     {
       id: 'list-2',
-      title: 'Today',
-      titleColor: 'green',
-      statusBadge: { id: 'status-2', text: 'Doing (2)', color: 'blue' },
+      title: '',
+      statusBadge: { id: 'status-2', text: 'Doing', color: 'blue' },
       cards: [
         { 
           id: 'card-7', 
@@ -127,15 +125,13 @@ const initialBoard: Board = {
     },
     {
       id: 'list-3',
-      title: 'This Week',
-      titleColor: 'purple',
-      statusBadge: { id: 'status-3', text: 'Done (3)', color: 'green' },
+      title: '',
+      statusBadge: { id: 'status-3', text: 'Done', color: 'green' },
       cards: []
     },
     {
       id: 'list-4',
-      title: 'Later',
-      titleColor: 'orange',
+      title: '',
       statusBadge: { id: 'status-4', text: 'Backlog', color: 'gray' },
       cards: []
     }
