@@ -28,6 +28,7 @@ interface Card {
   title: string;
   description?: string;
   statusBadges?: StatusBadge[];
+  dueDate?: string; // Add due date field
 }
 
 interface List {
@@ -151,6 +152,45 @@ const BoardPage = () => {
   const [selectedListColor, setSelectedListColor] = useState<keyof typeof titleColorBadges>('white');
   const [showAddList, setShowAddList] = useState(false);
   const [showColorPicker, setShowColorPicker] = useState(false);
+  const [showDatePicker, setShowDatePicker] = useState<{[cardId: string]: boolean}>({});
+  const [editingDueDate, setEditingDueDate] = useState<{[cardId: string]: string}>({});
+
+  // Helper function to format date display
+  const formatDueDate = (dateString: string) => {
+    const date = new Date(dateString);
+    const today = new Date();
+    const tomorrow = new Date(today);
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    
+    // Reset time for accurate comparison
+    today.setHours(0, 0, 0, 0);
+    tomorrow.setHours(0, 0, 0, 0);
+    date.setHours(0, 0, 0, 0);
+    
+    if (date.getTime() === today.getTime()) {
+      return 'Today';
+    } else if (date.getTime() === tomorrow.getTime()) {
+      return 'Tomorrow';
+    } else {
+      return date.toLocaleDateString('en-US', { 
+        month: 'short', 
+        day: 'numeric' 
+      });
+    }
+  };
+
+  // Helper function to get due date color
+  const getDueDateColor = (dateString: string) => {
+    const date = new Date(dateString);
+    const today = new Date();
+    const diffTime = date.getTime() - today.getTime();
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+    
+    if (diffDays < 0) return 'text-red-400'; // Overdue
+    if (diffDays === 0) return 'text-orange-400'; // Due today
+    if (diffDays === 1) return 'text-yellow-400'; // Due tomorrow
+    return 'text-gray-400'; // Future dates
+  };
 
   // Drag and Drop handlers
   const handleDragStart = (e: React.DragEvent, card: Card, listId: string) => {
@@ -254,6 +294,43 @@ const BoardPage = () => {
     setShowColorPicker(false);
     setNewListTitle('');
     setSelectedListColor('white');
+  };
+
+  // Due date functionality
+  const handleDateClick = (cardId: string, currentDate?: string) => {
+    setEditingDueDate(prev => ({
+      ...prev,
+      [cardId]: currentDate || ''
+    }));
+    setShowDatePicker(prev => ({ ...prev, [cardId]: true }));
+  };
+
+  const handleDateSave = (cardId: string, listId: string) => {
+    const dateValue = editingDueDate[cardId];
+    
+    setBoard(prevBoard => ({
+      ...prevBoard,
+      lists: prevBoard.lists.map(list =>
+        list.id === listId
+          ? {
+              ...list,
+              cards: list.cards.map(card =>
+                card.id === cardId
+                  ? { ...card, dueDate: dateValue || undefined }
+                  : card
+              )
+            }
+          : list
+      )
+    }));
+
+    setShowDatePicker(prev => ({ ...prev, [cardId]: false }));
+    setEditingDueDate(prev => ({ ...prev, [cardId]: '' }));
+  };
+
+  const handleDateCancel = (cardId: string) => {
+    setShowDatePicker(prev => ({ ...prev, [cardId]: false }));
+    setEditingDueDate(prev => ({ ...prev, [cardId]: '' }));
   };
 
   return (
@@ -375,10 +452,76 @@ const BoardPage = () => {
                       )}
                       
                       <p className="text-sm text-gray-100">{card.title}</p>
+                      
+                      {/* Due Date Display */}
+                      {card.dueDate && (
+                        <div className="mt-2">
+                          <span className={`text-xs ${getDueDateColor(card.dueDate)}`}>
+                            📅 Due {formatDueDate(card.dueDate)}
+                          </span>
+                        </div>
+                      )}
+                      
                       <div className="flex items-center space-x-2 mt-2">
-                        <Button variant="ghost" size="sm" className="h-6 w-6 p-0 text-white">
-                          <Calendar className="h-3 w-3" />
-                        </Button>
+                        {/* Calendar Button with Date Picker */}
+                        <div className="relative">
+                          <Button 
+                            variant="ghost" 
+                            size="sm" 
+                            className="h-6 w-6 p-0 text-white hover:text-blue-400"
+                            onClick={() => handleDateClick(card.id, card.dueDate)}
+                          >
+                            <Calendar className="h-3 w-3" />
+                          </Button>
+                          
+                          {/* Date Picker Dropdown */}
+                          {showDatePicker[card.id] && (
+                            <div className="absolute top-8 left-0 z-10 bg-white/90 backdrop-blur-sm border border-white/20 rounded-lg p-3 shadow-lg min-w-[200px]">
+                              <div className="space-y-2">
+                                <label className="text-xs text-gray-700 font-medium">Due Date:</label>
+                                <Input
+                                  type="date"
+                                  value={editingDueDate[card.id] || ''}
+                                  onChange={(e) => setEditingDueDate(prev => ({
+                                    ...prev,
+                                    [card.id]: e.target.value
+                                  }))}
+                                  className="text-sm"
+                                />
+                                <div className="flex space-x-2">
+                                  <Button
+                                    size="sm"
+                                    onClick={() => handleDateSave(card.id, list.id)}
+                                    className="flex-1"
+                                  >
+                                    Save
+                                  </Button>
+                                  <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    onClick={() => handleDateCancel(card.id)}
+                                  >
+                                    Cancel
+                                  </Button>
+                                  {card.dueDate && (
+                                    <Button
+                                      variant="ghost"
+                                      size="sm"
+                                      onClick={() => {
+                                        setEditingDueDate(prev => ({ ...prev, [card.id]: '' }));
+                                        handleDateSave(card.id, list.id);
+                                      }}
+                                      className="text-red-600 hover:text-red-700"
+                                    >
+                                      Remove
+                                    </Button>
+                                  )}
+                                </div>
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                        
                         <Button variant="ghost" size="sm" className="h-6 w-6 p-0 text-white">
                           <User className="h-3 w-3" />
                         </Button>
