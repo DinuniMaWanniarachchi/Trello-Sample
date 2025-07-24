@@ -112,7 +112,7 @@ const initialBoard: Board = {
     {
       id: 'list-2',
       title: '',
-      statusBadge: { id: 'status-2', text: 'Doing', color: 'blue' },
+      statusBadge: { id: 'status-2', text: 'Doing ', color: 'blue' },
       cards: [
         { 
           id: 'card-7', 
@@ -478,98 +478,89 @@ const BoardPage = () => {
         <div className="flex space-x-6 overflow-x-auto pb-6">
           {/* Lists */}
           {board.lists.map((list) => (
-            <div 
-                key={list.id} 
-                className={`flex-shrink-0 w-72 bg-white/10 backdrop-blur-sm 
-                            rounded-lg p-3 border border-white/10 
-                            ${draggedOverList === list.id ? 'ring-2 ring-blue-400' : ''}`}
-                onDragOver={(e) => handleDragOver(e, list.id)}
-                onDragLeave={handleDragLeave}
-                onDrop={(e) => handleDrop(e, list.id)}
-              >
+        <div 
+          key={list.id} 
+          className={`flex-shrink-0 w-72 bg-white/10 backdrop-blur-sm 
+                      rounded-lg p-3 border border-white/10 
+                      ${draggedOverList === list.id ? 'ring-2 ring-blue-400' : ''}`}
+          onDragOver={(e) => handleDragOver(e, list.id)}
+          onDragLeave={handleDragLeave}
+          onDrop={(e) => handleDrop(e, list.id)}
+        >
 
-              {/* List Header */}
-              <div className="flex items-start justify-between mb-3">
-                <div className="flex-1">
-                  {list.statusBadge && (
-                    <div className={`inline-block px-2 py-1 rounded text-xs font-medium border mb-2 ${badgeColors[list.statusBadge.color]}`}>
-                      {list.statusBadge.text}
+          {/* List Header */}
+          <div className="flex items-start justify-between mb-2">
+            <div className="flex-1">
+              {list.statusBadge && (
+                <div className={`inline-block px-2 py-1 rounded text-xs font-medium border mb-1 ${badgeColors[list.statusBadge.color]}`}>
+                  {list.statusBadge.text}
+                </div>
+              )}
+              {list.title && (
+                <h3 className="text-white text-lg font-semibold">
+                  {list.title}
+                </h3>
+              )}
+            </div>
+            <Button variant="ghost" size="sm" className="h-6 w-6 p-0 flex-shrink-0 ml-2">
+              <MoreHorizontal className="h-4 w-4" />
+            </Button>
+          </div>
+
+          {/* Cards */}
+          <div className="space-y-1 mb-2">
+            {list.cards.map((card) => (
+              <Card 
+                key={card.id}
+                className="cursor-move hover:shadow-md transition-shadow 
+                          bg-white/10 backdrop-blur-sm border border-white/10 p-1 max-w-sm"
+                draggable
+                onDragStart={(e) => handleDragStart(e, card, list.id)}
+              >
+                <CardContent className="p-2">
+                  {/* Card Status Badges */}
+                  {card.statusBadges && card.statusBadges.length > 0 && (
+                    <div className="flex flex-wrap gap-1 mb-1">
+                      {card.statusBadges.map((badge) => (
+                        <span 
+                          key={badge.id}
+                          className={`inline-block px-1.5 py-0.5 rounded text-xs font-medium border ${badgeColors[badge.color]}`}
+                        >
+                          {badge.text}
+                        </span>
+                      ))}
                     </div>
                   )}
-                  <div className="flex items-center gap-2 flex-wrap">
-                    {list.titleColor && (
-                      <div className={`inline-block px-2 py-1 rounded text-xs font-medium border ${titleColorBadges[list.titleColor]}`}>
-                        {list.title}
-                      </div>
-                    )}
-                    {!list.titleColor && (
-                      <h3 className="font-semibold text-gray-100">
-                        {list.title}
-                      </h3>
-                    )}
+                  
+                  <p className="text-sm text-gray-100">{card.title}</p>
+                  
+                  {/* Due Date Display */}
+                  {card.dueDate && (
+                    <div className="mt-1">
+                      <span className={`text-xs ${getDueDateColor(card.dueDate)}`}>
+                        📅 Due {formatDueDate(card.dueDate)}
+                      </span>
+                    </div>
+                  )}
+                  
+                  <div className="flex items-center space-x-2 mt-1">
+                    <Button 
+                      ref={(el) => { calendarButtonRefs.current[card.id] = el}}
+                      variant="ghost" 
+                      size="sm" 
+                      className="h-6 w-6 p-0 text-white hover:text-blue-400"
+                      onClick={() => handleDateClick(card.id, card.dueDate)}
+                    >
+                      <Calendar className="h-3 w-3" />
+                    </Button>
+                    <Button variant="ghost" size="sm" className="h-6 w-6 p-0 text-white">
+                      <User className="h-3 w-3" />
+                    </Button>
                   </div>
-                </div>
-                <Button variant="ghost" size="sm" className="h-6 w-6 p-0 flex-shrink-0 ml-2">
-                  <MoreHorizontal className="h-4 w-4" />
-                </Button>
-              </div>
-
-              {/* Cards */}
-              <div className="space-y-2 mb-3">
-                {list.cards.map((card) => (
-                  <Card 
-                    key={card.id}
-                    className="cursor-move hover:shadow-md transition-shadow 
-                              bg-white/10 backdrop-blur-sm border border-white/10"
-                    draggable
-                    onDragStart={(e) => handleDragStart(e, card, list.id)}
-                  >
-                    <CardContent className="p-3">
-                      {/* Card Status Badges */}
-                      {card.statusBadges && card.statusBadges.length > 0 && (
-                        <div className="flex flex-wrap gap-1 mb-2">
-                          {card.statusBadges.map((badge) => (
-                            <span 
-                              key={badge.id}
-                              className={`inline-block px-1.5 py-0.5 rounded text-xs font-medium border ${badgeColors[badge.color]}`}
-                            >
-                              {badge.text}
-                            </span>
-                          ))}
-                        </div>
-                      )}
-                      
-                      <p className="text-sm text-gray-100">{card.title}</p>
-                      
-                      {/* Due Date Display */}
-                      {card.dueDate && (
-                        <div className="mt-2">
-                          <span className={`text-xs ${getDueDateColor(card.dueDate)}`}>
-                            📅 Due {formatDueDate(card.dueDate)}
-                          </span>
-                        </div>
-                      )}
-                      
-                      <div className="flex items-center space-x-2 mt-2">
-                        {/* Calendar Button */}
-                        <Button 
-                          ref={(el) => { calendarButtonRefs.current[card.id] = el}}
-                          variant="ghost" 
-                          size="sm" 
-                          className="h-6 w-6 p-0 text-white hover:text-blue-400"
-                          onClick={() => handleDateClick(card.id, card.dueDate)}
-                        >
-                          <Calendar className="h-3 w-3" />
-                        </Button>
-                        
-                        <Button variant="ghost" size="sm" className="h-6 w-6 p-0 text-white">
-                          <User className="h-3 w-3" />
-                        </Button>
-                      </div>
-                    </CardContent>
-                  </Card>
-                ))}
-              </div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
 
               {/* Add Card */}
               {showAddCard[list.id] ? (
