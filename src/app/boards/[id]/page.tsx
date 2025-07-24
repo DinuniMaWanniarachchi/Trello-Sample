@@ -12,20 +12,30 @@ import {
   MoreHorizontal,
   X,
   Calendar,
-  User
+  User,
+  Palette
 } from 'lucide-react';
 
-// Mock data structure
+// Mock data structure with status badges
+interface StatusBadge {
+  id: string;
+  text: string;
+  color: 'orange' | 'blue' | 'green' | 'red' | 'purple' | 'yellow' | 'gray';
+}
+
 interface Card {
   id: string;
   title: string;
   description?: string;
+  statusBadges?: StatusBadge[];
 }
 
 interface List {
   id: string;
   title: string;
+  titleColor?: 'orange' | 'blue' | 'green' | 'red' | 'purple' | 'yellow' | 'white'; // Add title color
   cards: Card[];
+  statusBadge?: StatusBadge;
 }
 
 interface Board {
@@ -34,7 +44,40 @@ interface Board {
   lists: List[];
 }
 
-// Mock data
+// Color classes for badges
+const badgeColors = {
+  orange: 'bg-orange-500/20 text-orange-300 border-orange-500/30',
+  blue: 'bg-blue-500/20 text-blue-300 border-blue-500/30',
+  green: 'bg-green-500/20 text-green-300 border-green-500/30',
+  red: 'bg-red-500/20 text-red-300 border-red-500/30',
+  purple: 'bg-purple-500/20 text-purple-300 border-purple-500/30',
+  yellow: 'bg-yellow-500/20 text-yellow-300 border-yellow-500/30',
+  gray: 'bg-gray-500/20 text-gray-300 border-gray-500/30'
+};
+
+// Color classes for title color badges (like status badges)
+const titleColorBadges = {
+  orange: 'bg-orange-500/20 text-orange-300 border-orange-500/30',
+  blue: 'bg-blue-500/20 text-blue-300 border-blue-500/30',
+  green: 'bg-green-500/20 text-green-300 border-green-500/30',
+  red: 'bg-red-500/20 text-red-300 border-red-500/30',
+  purple: 'bg-purple-500/20 text-purple-300 border-purple-500/30',
+  yellow: 'bg-yellow-500/20 text-yellow-300 border-yellow-500/30',
+  white: 'bg-white/20 text-white border-white/30'
+};
+
+// Available colors for selection
+const availableColors: Array<{name: string, value: keyof typeof titleColorBadges, bg: string}> = [
+  { name: 'White', value: 'white', bg: 'bg-white' },
+  { name: 'Blue', value: 'blue', bg: 'bg-blue-400' },
+  { name: 'Green', value: 'green', bg: 'bg-green-400' },
+  { name: 'Orange', value: 'orange', bg: 'bg-orange-400' },
+  { name: 'Red', value: 'red', bg: 'bg-red-400' },
+  { name: 'Purple', value: 'purple', bg: 'bg-purple-400' },
+  { name: 'Yellow', value: 'yellow', bg: 'bg-yellow-400' }
+];
+
+// Mock data with status badges and title colors
 const initialBoard: Board = {
   id: '1',
   title: 'My Kanban board',
@@ -42,27 +85,57 @@ const initialBoard: Board = {
     {
       id: 'list-1',
       title: 'Kanban Starter Guide',
+      titleColor: 'blue',
+      statusBadge: { id: 'status-1', text: 'In Progress', color: 'orange' },
       cards: [
-        { id: 'card-1', title: 'New to Kanban Board? Start here' },
-        { id: 'card-2', title: 'Capture from email, Slack, and Teams' },
-        { id: 'card-3', title: 'Dive into Kanban Board basics' }
+        { 
+          id: 'card-1', 
+          title: 'New to Kanban Board? Start here',
+          statusBadges: [
+            { id: 'badge-1', text: 'Awaiting review', color: 'orange' }
+          ]
+        },
+        { 
+          id: 'card-2', 
+          title: 'Capture from email, Slack, and Teams',
+          statusBadges: [
+            { id: 'badge-2', text: 'UI/UX Bug', color: 'yellow' },
+            { id: 'badge-3', text: 'Regression', color: 'red' }
+          ]
+        },
+        { 
+          id: 'card-3', 
+          title: 'Dive into Kanban Board basics'
+        }
       ]
     },
     {
       id: 'list-2',
       title: 'Today',
+      titleColor: 'green',
+      statusBadge: { id: 'status-2', text: 'Doing (2)', color: 'blue' },
       cards: [
-        { id: 'card-4', title: 'Start using Kanban Board' }
+        { 
+          id: 'card-4', 
+          title: 'Start using Kanban Board',
+          statusBadges: [
+            { id: 'badge-4', text: 'Ready for Dev', color: 'green' }
+          ]
+        }
       ]
     },
     {
       id: 'list-3',
       title: 'This Week',
+      titleColor: 'purple',
+      statusBadge: { id: 'status-3', text: 'Done (3)', color: 'green' },
       cards: []
     },
     {
       id: 'list-4',
       title: 'Later',
+      titleColor: 'orange',
+      statusBadge: { id: 'status-4', text: 'Backlog', color: 'gray' },
       cards: []
     }
   ]
@@ -75,7 +148,9 @@ const BoardPage = () => {
   const [newCardTitle, setNewCardTitle] = useState<{[listId: string]: string}>({});
   const [showAddCard, setShowAddCard] = useState<{[listId: string]: boolean}>({});
   const [newListTitle, setNewListTitle] = useState('');
+  const [selectedListColor, setSelectedListColor] = useState<keyof typeof titleColorBadges>('white');
   const [showAddList, setShowAddList] = useState(false);
+  const [showColorPicker, setShowColorPicker] = useState(false);
 
   // Drag and Drop handlers
   const handleDragStart = (e: React.DragEvent, card: Card, listId: string) => {
@@ -159,6 +234,7 @@ const BoardPage = () => {
     const newList: List = {
       id: `list-${Date.now()}`,
       title: newListTitle,
+      titleColor: selectedListColor,
       cards: []
     };
 
@@ -168,7 +244,16 @@ const BoardPage = () => {
     }));
 
     setNewListTitle('');
+    setSelectedListColor('white');
     setShowAddList(false);
+    setShowColorPicker(false);
+  };
+
+  const handleCancelAddList = () => {
+    setShowAddList(false);
+    setShowColorPicker(false);
+    setNewListTitle('');
+    setSelectedListColor('white');
   };
 
   return (
@@ -236,9 +321,30 @@ const BoardPage = () => {
                 onDrop={(e) => handleDrop(e, list.id)}
               >
 
-              <div className="flex items-center justify-between mb-3">
-                <h3 className="font-semibold text-gray-100">{list.title}</h3>
-                <Button variant="ghost" size="sm" className="h-6 w-6 p-0">
+              {/* Updated List Header with Status Badge and Title Color Badge */}
+              <div className="flex items-start justify-between mb-3">
+                <div className="flex-1">
+                  {/* Status Badge */}
+                  {list.statusBadge && (
+                    <div className={`inline-block px-2 py-1 rounded text-xs font-medium border mb-2 ${badgeColors[list.statusBadge.color]}`}>
+                      {list.statusBadge.text}
+                    </div>
+                  )}
+                  {/* List Title with Color Badge */}
+                  <div className="flex items-center gap-2 flex-wrap">
+                    {list.titleColor && (
+                      <div className={`inline-block px-2 py-1 rounded text-xs font-medium border ${titleColorBadges[list.titleColor]}`}>
+                        {list.title}
+                      </div>
+                    )}
+                    {!list.titleColor && (
+                      <h3 className="font-semibold text-gray-100">
+                        {list.title}
+                      </h3>
+                    )}
+                  </div>
+                </div>
+                <Button variant="ghost" size="sm" className="h-6 w-6 p-0 flex-shrink-0 ml-2">
                   <MoreHorizontal className="h-4 w-4" />
                 </Button>
               </div>
@@ -253,8 +359,21 @@ const BoardPage = () => {
                     draggable
                     onDragStart={(e) => handleDragStart(e, card, list.id)}
                   >
-
                     <CardContent className="p-3">
+                      {/* Card Status Badges */}
+                      {card.statusBadges && card.statusBadges.length > 0 && (
+                        <div className="flex flex-wrap gap-1 mb-2">
+                          {card.statusBadges.map((badge) => (
+                            <span 
+                              key={badge.id}
+                              className={`inline-block px-1.5 py-0.5 rounded text-xs font-medium border ${badgeColors[badge.color]}`}
+                            >
+                              {badge.text}
+                            </span>
+                          ))}
+                        </div>
+                      )}
+                      
                       <p className="text-sm text-gray-100">{card.title}</p>
                       <div className="flex items-center space-x-2 mt-2">
                         <Button variant="ghost" size="sm" className="h-6 w-6 p-0 text-white">
@@ -263,7 +382,6 @@ const BoardPage = () => {
                         <Button variant="ghost" size="sm" className="h-6 w-6 p-0 text-white">
                           <User className="h-3 w-3" />
                         </Button>
-
                       </div>
                     </CardContent>
                   </Card>
@@ -324,34 +442,64 @@ const BoardPage = () => {
 
           {/* Add List */}
           {showAddList ? (
-            <div className="flex-shrink-0 w-72 bg-gray-100 rounded-lg p-3">
+            <div className="flex-shrink-0 w-72 bg-white/10 backdrop-blur-sm rounded-lg p-3 border border-white/10">
               <Input
                 value={newListTitle}
                 onChange={(e) => setNewListTitle(e.target.value)}
                 placeholder="Enter list title..."
-                className="mb-3"
+                className="mb-3 bg-white/20 border-white/30 text-white placeholder-white/70"
                 onKeyPress={(e) => {
-                  if (e.key === 'Enter') {
+                  if (e.key === 'Enter' && !showColorPicker) {
                     handleAddList();
                   }
                 }}
                 autoFocus
               />
+              
+              {/* Color Selection */}
+              <div className="mb-3">
+                <div className="flex items-center gap-2 mb-2">
+                  <Palette className="h-4 w-4 text-gray-300" />
+                  <span className="text-sm text-gray-300">Choose title color:</span>
+                </div>
+                <div className="flex flex-wrap gap-2">
+                  {availableColors.map((color) => (
+                    <button
+                      key={color.value}
+                      onClick={() => setSelectedListColor(color.value)}
+                      className={`w-6 h-6 rounded-full border-2 transition-all ${color.bg} 
+                        ${selectedListColor === color.value 
+                          ? 'border-white ring-2 ring-white/50' 
+                          : 'border-white/30 hover:border-white/60'
+                        }`}
+                      title={color.name}
+                    />
+                  ))}
+                </div>
+                {/* Preview */}
+                <div className="mt-2 text-sm text-gray-300">
+                  Preview: 
+                  <div className="mt-1">
+                    <div className={`inline-block px-2 py-1 rounded text-xs font-medium border ${titleColorBadges[selectedListColor]}`}>
+                      {newListTitle || 'List Title'}
+                    </div>
+                  </div>
+                </div>
+              </div>
+
               <div className="flex space-x-2">
                 <Button 
                   size="sm" 
                   onClick={handleAddList}
                   disabled={!newListTitle.trim()}
+                  className="flex-1"
                 >
                   Add list
                 </Button>
                 <Button 
                   variant="ghost" 
                   size="sm"
-                  onClick={() => {
-                    setShowAddList(false);
-                    setNewListTitle('');
-                  }}
+                  onClick={handleCancelAddList}
                 >
                   <X className="h-4 w-4" />
                 </Button>
