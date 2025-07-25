@@ -566,7 +566,7 @@ const BoardPage = () => {
                             variant="ghost" 
                             size="sm" 
                             className="h-6 w-6 p-0 rounded-full border border-dotted border-gray-400 
-                                      text-gray-400 hover:text-white flex items-center justify-center">
+                                      text-gray-400 flex items-center justify-center">
                             <Plus className="h-3 w-3" />
                           </Button>
                         {/* </div> */}
