@@ -481,7 +481,7 @@ const BoardPage = () => {
               onDrop={(e) => handleDrop(e, list.id)}
             >
               {/* List Header */}
-              <div className={`flex items-center justify-between px-4 py-3 ${listHeaderColors[list.titleColor || 'gray']}`}>
+              <div className={`flex items-center justify-between px-3 py-2 ${listHeaderColors[list.titleColor || 'gray']}`}>
                 <div className="flex items-center justify-between w-full">
                   <span className="text-sm font-medium">
                     {list.title} ({list.cards.length})
