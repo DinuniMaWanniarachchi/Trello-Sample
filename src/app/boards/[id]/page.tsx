@@ -482,12 +482,12 @@ const BoardPage = () => {
             >
               {/* List Header */}
               <div className={`flex items-center justify-between px-3 py-2 ${listHeaderColors[list.titleColor || 'gray']}`}>
-                <div className="flex items-center justify-between w-full">
+                <div className="flex items-center justify-between w-full text-black/80">
                   <span className="text-sm font-medium">
                     {list.title} ({list.cards.length})
                   </span>
                   <div className="flex items-center space-x-2">
-                    <Button variant="ghost" size="sm" className="h-6 w-6 p-0 text-white/70 hover:text-white hover:bg-white/20">
+                    <Button variant="ghost" size="sm" className="h-6 w-6 p-0 text-black/100 hover:text-white hover:bg-white/20">
                       <Plus className="h-4 w-4" />
                     </Button>
                     <DropdownMenu>
@@ -495,7 +495,7 @@ const BoardPage = () => {
                         <Button
                           variant="ghost"
                           size="sm"
-                          className="h-6 w-6 p-0 text-white/70 hover:text-white hover:bg-white/20"
+                          className="h-6 w-6 p-0 text-black/100 hover:text-white hover:bg-white/20"
                         >
                           <MoreHorizontal className="h-4 w-4" />
                         </Button>
@@ -535,12 +535,11 @@ const BoardPage = () => {
                     <CardContent className="p-0">
                       {/* Card Status Badges */}
                       {card.statusBadges && card.statusBadges.length > 0 && (
-                        <div className="flex flex-wrap gap-2 mb-2">
+                        <div className="flex flex-wrap gap-1 mb-1">
                           {card.statusBadges.map((badge) => (
                             <span 
                               key={badge.id}
-                              className={`inline-block px-2 py-1 rounded text-xs font-medium ${badgeColors[badge.color]}`}
-                            >
+                              className={`inline-block px-2 py-0.5 rounded text-xs font-medium ${badgeColors[badge.color]}`}>
                               {badge.text}
                             </span>
                           ))}
