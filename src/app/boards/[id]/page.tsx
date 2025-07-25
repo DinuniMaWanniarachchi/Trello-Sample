@@ -12,9 +12,11 @@ import {
   MoreHorizontal,
   X,
   Calendar,
-  User,
-  Palette
+  // User,
+  Palette,
+  Trash2
 } from 'lucide-react';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@radix-ui/react-dropdown-menu';
 
 // Mock data structure with status badges
 interface StatusBadge {
@@ -413,6 +415,11 @@ const BoardPage = () => {
     };
   }, [showDatePicker]);
 
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  function handleDeleteList(id: string): void {
+    throw new Error('Function not implemented.');
+  }
+
   return (
     <div className="min-h-screen bg-zinc-900">
       {/* Header */}
@@ -461,13 +468,13 @@ const BoardPage = () => {
       </div>
 
       {/* Board Content */}
-      <div className="p-6">
+      <div className="p-25">
         <div className="flex space-x-6 overflow-x-auto pb-6">
           {/* Lists */}
           {board.lists.map((list) => (
             <div 
               key={list.id} 
-              className={`flex-shrink-0 w-80 bg-zinc-900 rounded-lg border border-gray-600 overflow-hidden
+              className={`flex-shrink-0 w-70 bg-zinc-900 rounded-lg border border-gray-600 overflow-hidden
                           ${draggedOverList === list.id ? 'ring-2 ring-blue-400' : ''}`}
               onDragOver={(e) => handleDragOver(e, list.id)}
               onDragLeave={handleDragLeave}
@@ -483,9 +490,33 @@ const BoardPage = () => {
                     <Button variant="ghost" size="sm" className="h-6 w-6 p-0 text-white/70 hover:text-white hover:bg-white/20">
                       <Plus className="h-4 w-4" />
                     </Button>
-                    <Button variant="ghost" size="sm" className="h-6 w-6 p-0 text-white/70 hover:text-white hover:bg-white/20">
-                      <MoreHorizontal className="h-4 w-4" />
-                    </Button>
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="h-6 w-6 p-0 text-white/70 hover:text-white hover:bg-white/20"
+                        >
+                          <MoreHorizontal className="h-4 w-4" />
+                        </Button>
+                      </DropdownMenuTrigger>
+
+                      <DropdownMenuContent align="end" className="bg-gray-800 text-white border border-gray-600 shadow-xl rounded-md w-30 p-1">
+                          <DropdownMenuItem
+                            onClick={() => {
+                              if (confirm("⚠️ Are you sure you want to delete this list? This action cannot be undone.")) {
+                                handleDeleteList(list.id);
+                              }
+                            }}
+                            className="group flex items-center gap-2 px-1 py-1 rounded-md text-sm text-red-500 hover:bg-red-600 hover:text-white focus:outline-none focus:ring-2 focus:ring-red-500 transition-all"
+                          >
+                            <div className="flex items-center justify-center bg-red-500/20 group-hover:bg-white/20 p-1.5 rounded-full transition">
+                              <Trash2 className="h-4 w-4" />
+                            </div>
+                            <span className="whitespace-nowrap font-medium">Delete</span>
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                    </DropdownMenu>
                   </div>
                 </div>
               </div>
@@ -501,10 +532,10 @@ const BoardPage = () => {
                     draggable
                     onDragStart={(e) => handleDragStart(e, card, list.id)}
                   >
-                    <CardContent className="p-1">
+                    <CardContent className="p-0">
                       {/* Card Status Badges */}
                       {card.statusBadges && card.statusBadges.length > 0 && (
-                        <div className="flex flex-wrap gap-1 mb-2">
+                        <div className="flex flex-wrap gap-2 mb-2">
                           {card.statusBadges.map((badge) => (
                             <span 
                               key={badge.id}
@@ -516,7 +547,7 @@ const BoardPage = () => {
                         </div>
                       )}
                       
-                      <h4 className="text-white font-medium text-sm leading-tight mb-2">{card.title}</h4>
+                      <h4 className="text-white font-medium text-sm leading-tight mb-1 mt-1 ml-2 mr-2">{card.title}</h4>
                       
                       {/* Due Date Display */}
                       {card.dueDate && (
@@ -527,10 +558,10 @@ const BoardPage = () => {
                         </div>
                       )}
                       
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center space-x-1">
+                      <div className="flex items-center justify-between ml-2 mr-2 mb-2">
+                        {/* <div className="flex items-center space-x-1"> */}
                           <Button 
-                            ref={(el) => { calendarButtonRefs.current[card.id] = el}}
+                            ref={(el) => { calendarButtonRefs.current[card.id] = el }}
                             variant="ghost" 
                             size="sm" 
                             className="h-6 w-6 p-0 text-gray-400 hover:text-white"
@@ -538,13 +569,17 @@ const BoardPage = () => {
                           >
                             <Calendar className="h-3 w-3" />
                           </Button>
-                          <Button variant="ghost" size="sm" className="h-6 w-6 p-0 text-gray-400 hover:text-white">
+                          {/* <Button variant="ghost" size="sm" className="h-6 w-6 p-0 text-gray-400 hover:text-white">
                             <User className="h-3 w-3" />
-                          </Button>
-                          <Button variant="ghost" size="sm" className="h-6 w-6 p-0 text-gray-400 hover:text-white">
+                          </Button> */}
+                          <Button 
+                            variant="ghost" 
+                            size="sm" 
+                            className="h-6 w-6 p-0 rounded-full border border-dotted border-gray-400 
+                                      text-gray-400 hover:text-white flex items-center justify-center">
                             <Plus className="h-3 w-3" />
                           </Button>
-                        </div>
+                        {/* </div> */}
                       </div>
                     </CardContent>
                   </Card>
@@ -552,7 +587,7 @@ const BoardPage = () => {
 
                 {/* Add Card */}
                 {showAddCard[list.id] ? (
-                  <div className="space-y-2">
+                  <div className="space-y-1">
                     <Input
                       value={newCardTitle[list.id] || ''}
                       onChange={(e) => setNewCardTitle(prev => ({
@@ -675,7 +710,7 @@ const BoardPage = () => {
             <div className="flex-shrink-0 w-80">
               <Button 
                 variant="ghost" 
-                className="w-full h-32 bg-gray-700/50 hover:bg-gray-700 text-gray-300 hover:text-white border-2 border-dashed border-gray-500 hover:border-gray-400 rounded-lg"
+                className="w-full h-10 bg-gray-700/50 hover:bg-gray-700 text-gray-300 hover:text-white border-2 border-dashed border-gray-500 hover:border-gray-400 rounded-lg"
                 onClick={() => setShowAddList(true)}
               >
                 <Plus className="h-5 w-5 mr-2" />
