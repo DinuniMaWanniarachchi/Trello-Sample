@@ -460,13 +460,13 @@ const BoardPage = () => {
       </div>
 
       {/* Board Content */}
-      <div className="p-25">
+      <div className="p-30">
         <div className="flex space-x-6 overflow-x-auto pb-6">
           {/* Lists */}
           {board.lists.map((list) => (
             <div 
               key={list.id} 
-              className={`flex-shrink-0 w-70 bg-zinc-900 rounded-lg border border-gray-600 overflow-hidden
+              className={`flex-shrink-0 w-65 bg-zinc-900 rounded-lg border border-gray-600 overflow-hidden
                           ${draggedOverList === list.id ? 'ring-2 ring-blue-400' : ''}`}
               onDragOver={(e) => handleDragOver(e, list.id)}
               onDragLeave={handleDragLeave}
@@ -555,9 +555,8 @@ const BoardPage = () => {
                             ref={(el) => { calendarButtonRefs.current[card.id] = el }}
                             variant="ghost" 
                             size="sm" 
-                            className="h-6 w-6 p-0 text-gray-400 hover:text-white"
-                            onClick={() => handleDateClick(card.id, card.dueDate)}
-                          >
+                            className="h-6 w-6 p-0 text-gray-400"
+                            onClick={() => handleDateClick(card.id, card.dueDate)}>
                             <Calendar className="h-3 w-3" />
                           </Button>
                           {/* <Button variant="ghost" size="sm" className="h-6 w-6 p-0 text-gray-400 hover:text-white">
