@@ -34,7 +34,7 @@ interface Card {
 interface List {
   id: string;
   title: string;
-  titleColor?: 'orange' | 'blue' | 'green' | 'red' | 'purple' | 'yellow' | 'white';
+  titleColor?: 'orange' | 'blue' | 'green' | 'red' | 'purple' | 'yellow' | 'gray';
   cards: Card[];
   statusBadge?: StatusBadge;
 }
@@ -47,93 +47,90 @@ interface Board {
 
 // Color classes for badges
 const badgeColors = {
-  orange: 'bg-orange-500/20 text-orange-300 border-orange-500/30',
-  blue: 'bg-blue-500/20 text-blue-300 border-blue-500/30',
-  green: 'bg-green-500/20 text-green-300 border-green-500/30',
-  red: 'bg-red-500/20 text-red-300 border-red-500/30',
-  purple: 'bg-purple-500/20 text-purple-300 border-purple-500/30',
-  yellow: 'bg-yellow-500/20 text-yellow-300 border-yellow-500/30',
-  gray: 'bg-gray-500/20 text-gray-300 border-gray-500/30'
+  orange: 'bg-orange-500 text-white',
+  blue: 'bg-blue-500 text-white',
+  green: 'bg-green-500 text-white',
+  red: 'bg-red-500 text-white',
+  purple: 'bg-purple-500 text-white',
+  yellow: 'bg-yellow-500 text-black',
+  gray: 'bg-gray-500 text-white'
 };
 
-// Color classes for title color badges
-const titleColorBadges = {
-  orange: 'bg-orange-500/20 text-orange-300 border-orange-500/30',
-  blue: 'bg-blue-500/20 text-blue-300 border-blue-500/30',
-  green: 'bg-green-500/20 text-green-300 border-green-500/30',
-  red: 'bg-red-500/20 text-red-300 border-red-500/30',
-  purple: 'bg-purple-500/20 text-purple-300 border-purple-500/30',
-  yellow: 'bg-yellow-500/20 text-yellow-300 border-yellow-500/30',
-  white: 'bg-white/20 text-white border-white/30'
+// Color classes for list headers
+const listHeaderColors = {
+  orange: 'bg-orange-500 text-white',
+  blue: 'bg-blue-500 text-white',
+  green: 'bg-green-500 text-white',
+  red: 'bg-red-500 text-white',
+  purple: 'bg-purple-500 text-white',
+  yellow: 'bg-yellow-500 text-black',
+  gray: 'bg-gray-500 text-white'
 };
 
 // Available colors for selection
-const availableColors: Array<{name: string, value: keyof typeof titleColorBadges, bg: string}> = [
-  { name: 'White', value: 'white', bg: 'bg-white' },
-  { name: 'Blue', value: 'blue', bg: 'bg-blue-400' },
-  { name: 'Green', value: 'green', bg: 'bg-green-400' },
-  { name: 'Orange', value: 'orange', bg: 'bg-orange-400' },
-  { name: 'Red', value: 'red', bg: 'bg-red-400' },
-  { name: 'Purple', value: 'purple', bg: 'bg-purple-400' },
-  { name: 'Yellow', value: 'yellow', bg: 'bg-yellow-400' }
+const availableColors: Array<{name: string, value: keyof typeof listHeaderColors, bg: string}> = [
+  { name: 'Gray', value: 'gray', bg: 'bg-gray-500' },
+  { name: 'Blue', value: 'blue', bg: 'bg-blue-500' },
+  { name: 'Green', value: 'green', bg: 'bg-green-500' },
+  { name: 'Orange', value: 'orange', bg: 'bg-orange-500' },
+  { name: 'Red', value: 'red', bg: 'bg-red-500' },
+  { name: 'Purple', value: 'purple', bg: 'bg-purple-500' },
+  { name: 'Yellow', value: 'yellow', bg: 'bg-yellow-500' }
 ];
 
-// Mock data with status badges and title colors
+// Mock data matching the screenshot
 const initialBoard: Board = {
   id: '1',
   title: 'My Kanban board',
   lists: [
     {
       id: 'list-1',
-      title: '',
-      statusBadge: { id: 'status-1', text: 'In Progress', color: 'orange' },
+      title: 'To Do',
+      titleColor: 'gray',
       cards: [
         { 
           id: 'card-1', 
-          title: 'New to Kanban Board? Start here',
-          statusBadges: [
-            { id: 'badge-1', text: 'Awaiting review', color: 'orange' }
-          ]
+          title: 'Test Kanban Board',
         },
         { 
           id: 'card-2', 
-          title: 'Capture from email, Slack, and Teams',
-          statusBadges: [
-            { id: 'badge-2', text: 'UI/UX Bug', color: 'yellow' },
-            { id: 'badge-3', text: 'Regression', color: 'red' }
-          ]
-        },
-        { 
-          id: 'card-3', 
-          title: 'Dive into Kanban Board basics'
-        },
+          title: 'Fix Bugs',
+        }
       ]
     },
     {
       id: 'list-2',
-      title: '',
-      statusBadge: { id: 'status-2', text: 'Doing ', color: 'blue' },
+      title: 'Doing',
+      titleColor: 'blue',
       cards: [
         { 
-          id: 'card-7', 
-          title: 'Start using Kanban Board',
-          statusBadges: [
-            { id: 'badge-4', text: 'Ready for Dev', color: 'green' }
-          ]
+          id: 'card-3', 
+          title: 'Start My Kanban Board Journey',
+        },
+        { 
+          id: 'card-4', 
+          title: 'Bug Assignment',
         }
       ]
     },
     {
       id: 'list-3',
-      title: '',
-      statusBadge: { id: 'status-3', text: 'Done', color: 'green' },
-      cards: []
-    },
-    {
-      id: 'list-4',
-      title: '',
-      statusBadge: { id: 'status-4', text: 'Backlog', color: 'gray' },
-      cards: []
+      title: 'Done',
+      titleColor: 'green',
+      cards: [
+        { 
+          id: 'card-5', 
+          title: 'Bug Closure',
+        },
+        { 
+          id: 'card-6', 
+          title: 'Reporting',
+        },
+        { 
+          id: 'card-7', 
+          title: 'Documentation',
+        }
+      ]
     }
   ]
 };
@@ -145,7 +142,7 @@ const BoardPage = () => {
   const [newCardTitle, setNewCardTitle] = useState<{[listId: string]: string}>({});
   const [showAddCard, setShowAddCard] = useState<{[listId: string]: boolean}>({});
   const [newListTitle, setNewListTitle] = useState('');
-  const [selectedListColor, setSelectedListColor] = useState<keyof typeof titleColorBadges>('white');
+  const [selectedListColor, setSelectedListColor] = useState<keyof typeof listHeaderColors>('gray');
   const [showAddList, setShowAddList] = useState(false);
   const [showColorPicker, setShowColorPicker] = useState(false);
   const [showDatePicker, setShowDatePicker] = useState<{[cardId: string]: boolean}>({});
@@ -199,24 +196,20 @@ const BoardPage = () => {
     const buttonRect = buttonElement.getBoundingClientRect();
     const viewportHeight = window.innerHeight;
     const viewportWidth = window.innerWidth;
-    const pickerHeight = 180; // Approximate height of date picker
-    const pickerWidth = 240; // Approximate width of date picker
+    const pickerHeight = 180;
+    const pickerWidth = 240;
 
     let top = buttonRect.bottom + window.scrollY + 4;
     let left = buttonRect.left + window.scrollX;
 
-    // Check if picker would go below viewport
     if (buttonRect.bottom + pickerHeight > viewportHeight) {
-      // Position above the button instead
       top = buttonRect.top + window.scrollY - pickerHeight - 4;
     }
 
-    // Check if picker would go beyond right edge
     if (buttonRect.left + pickerWidth > viewportWidth) {
       left = buttonRect.right + window.scrollX - pickerWidth;
     }
 
-    // Ensure picker doesn't go beyond left edge
     if (left < 8) {
       left = 8;
     }
@@ -316,7 +309,7 @@ const BoardPage = () => {
     }));
 
     setNewListTitle('');
-    setSelectedListColor('white');
+    setSelectedListColor('gray');
     setShowAddList(false);
     setShowColorPicker(false);
   };
@@ -325,15 +318,13 @@ const BoardPage = () => {
     setShowAddList(false);
     setShowColorPicker(false);
     setNewListTitle('');
-    setSelectedListColor('white');
+    setSelectedListColor('gray');
   };
 
   // Due date functionality
   const handleDateClick = (cardId: string, currentDate?: string) => {
-    // Close any other open date pickers
     setShowDatePicker({});
     
-    // Calculate position
     const position = calculateDatePickerPosition(cardId);
     setDatePickerPosition(prev => ({ ...prev, [cardId]: position }));
     
@@ -377,7 +368,6 @@ const BoardPage = () => {
     const handleClickOutside = (event: MouseEvent) => {
       const target = event.target as Element;
       
-      // Check if click is outside any date picker
       let clickedOutside = true;
       Object.keys(showDatePicker).forEach(cardId => {
         if (showDatePicker[cardId]) {
@@ -426,24 +416,21 @@ const BoardPage = () => {
   return (
     <div className="min-h-screen bg-zinc-900">
       {/* Header */}
-      <header className="bg-black/20 backdrop-blur-sm border-b border-white/20">
+      <header className="bg-zinc-900 border-b border-gray-700">
         <div className="px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16">
-            <div className="flex items-center space-x-4">
-              <div className="flex items-center space-x-2">
-              </div>
-              
+            <div className="flex items-center space-x-4">              
               <div className="relative">
                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
                 <Input 
-                  className="pl-10 w-64 bg-white/20 border-white/30 text-white placeholder-white/70"
+                  className="pl-10 w-64 bg-gray-700 border-gray-600 text-white placeholder-gray-400"
                   placeholder="Search"
                 />
               </div>
             </div>
 
             <div className="flex items-center space-x-4">
-              <Button variant="ghost" size="sm" className="text-white hover:bg-white/20">
+              <Button variant="ghost" size="sm" className="text-white hover:bg-gray-700">
                 <Plus className="h-4 w-4 mr-1" />
                 Create
               </Button>
@@ -453,20 +440,20 @@ const BoardPage = () => {
       </header>
 
       {/* Board Header */}
-      <div className="px-6 py-4 border-b border-white/20">
+      <div className="px-6 py-4 border-b border-gray-700">
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-4">
             <h1 className="text-2xl font-bold text-white">{board.title}</h1>
-            <Button variant="ghost" size="sm" className="text-white hover:bg-white/20">
+            <Button variant="ghost" size="sm" className="text-white hover:bg-gray-700">
               <Star className="h-4 w-4" />
             </Button>
-            <Button variant="ghost" size="sm" className="text-white hover:bg-white/20">
+            <Button variant="ghost" size="sm" className="text-white hover:bg-gray-700">
               <Users className="h-4 w-4" />
             </Button>
           </div>
           
           <div className="flex items-center space-x-2">
-            <Button variant="ghost" size="sm" className="text-white hover:bg-white/20">
+            <Button variant="ghost" size="sm" className="text-white hover:bg-gray-700">
               <MoreHorizontal className="h-4 w-4" />
             </Button>
           </div>
@@ -478,150 +465,154 @@ const BoardPage = () => {
         <div className="flex space-x-6 overflow-x-auto pb-6">
           {/* Lists */}
           {board.lists.map((list) => (
-        <div 
-          key={list.id} 
-          className={`flex-shrink-0 w-72 bg-white/10 backdrop-blur-sm 
-                      rounded-lg p-3 border border-white/10 
-                      ${draggedOverList === list.id ? 'ring-2 ring-blue-400' : ''}`}
-          onDragOver={(e) => handleDragOver(e, list.id)}
-          onDragLeave={handleDragLeave}
-          onDrop={(e) => handleDrop(e, list.id)}
-        >
-
-          {/* List Header */}
-          <div className="flex items-start justify-between mb-2">
-            <div className="flex-1">
-              {list.statusBadge && (
-                <div className={`inline-block px-2 py-1 rounded text-xs font-medium border mb-1 ${badgeColors[list.statusBadge.color]}`}>
-                  {list.statusBadge.text}
-                </div>
-              )}
-              {list.title && (
-                <h3 className="text-white text-lg font-semibold">
-                  {list.title}
-                </h3>
-              )}
-            </div>
-            <Button variant="ghost" size="sm" className="h-6 w-6 p-0 flex-shrink-0 ml-2">
-              <MoreHorizontal className="h-4 w-4" />
-            </Button>
-          </div>
-
-          {/* Cards */}
-          <div className="space-y-1 mb-2">
-            {list.cards.map((card) => (
-              <Card 
-                key={card.id}
-                className="cursor-move hover:shadow-md transition-shadow 
-                          bg-white/10 backdrop-blur-sm border border-white/10 p-1 max-w-sm"
-                draggable
-                onDragStart={(e) => handleDragStart(e, card, list.id)}
-              >
-                <CardContent className="p-2">
-                  {/* Card Status Badges */}
-                  {card.statusBadges && card.statusBadges.length > 0 && (
-                    <div className="flex flex-wrap gap-1 mb-1">
-                      {card.statusBadges.map((badge) => (
-                        <span 
-                          key={badge.id}
-                          className={`inline-block px-1.5 py-0.5 rounded text-xs font-medium border ${badgeColors[badge.color]}`}
-                        >
-                          {badge.text}
-                        </span>
-                      ))}
-                    </div>
-                  )}
-                  
-                  <p className="text-sm text-gray-100">{card.title}</p>
-                  
-                  {/* Due Date Display */}
-                  {card.dueDate && (
-                    <div className="mt-1">
-                      <span className={`text-xs ${getDueDateColor(card.dueDate)}`}>
-                        📅 Due {formatDueDate(card.dueDate)}
-                      </span>
-                    </div>
-                  )}
-                  
-                  <div className="flex items-center space-x-2 mt-1">
-                    <Button 
-                      ref={(el) => { calendarButtonRefs.current[card.id] = el}}
-                      variant="ghost" 
-                      size="sm" 
-                      className="h-6 w-6 p-0 text-white hover:text-blue-400"
-                      onClick={() => handleDateClick(card.id, card.dueDate)}
-                    >
-                      <Calendar className="h-3 w-3" />
+            <div 
+              key={list.id} 
+              className={`flex-shrink-0 w-80 bg-zinc-900 rounded-lg border border-gray-600 overflow-hidden
+                          ${draggedOverList === list.id ? 'ring-2 ring-blue-400' : ''}`}
+              onDragOver={(e) => handleDragOver(e, list.id)}
+              onDragLeave={handleDragLeave}
+              onDrop={(e) => handleDrop(e, list.id)}
+            >
+              {/* List Header */}
+              <div className={`flex items-center justify-between px-4 py-3 ${listHeaderColors[list.titleColor || 'gray']}`}>
+                <div className="flex items-center justify-between w-full">
+                  <span className="text-sm font-medium">
+                    {list.title} ({list.cards.length})
+                  </span>
+                  <div className="flex items-center space-x-2">
+                    <Button variant="ghost" size="sm" className="h-6 w-6 p-0 text-white/70 hover:text-white hover:bg-white/20">
+                      <Plus className="h-4 w-4" />
                     </Button>
-                    <Button variant="ghost" size="sm" className="h-6 w-6 p-0 text-white">
-                      <User className="h-3 w-3" />
+                    <Button variant="ghost" size="sm" className="h-6 w-6 p-0 text-white/70 hover:text-white hover:bg-white/20">
+                      <MoreHorizontal className="h-4 w-4" />
                     </Button>
                   </div>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
+                </div>
+              </div>
 
-              {/* Add Card */}
-              {showAddCard[list.id] ? (
-                <div className="space-y-2">
-                  <Input
-                    value={newCardTitle[list.id] || ''}
-                    onChange={(e) => setNewCardTitle(prev => ({
-                      ...prev,
-                      [list.id]: e.target.value
-                    }))}
-                    placeholder="Enter a title for this card..."
-                    className="text-sm"
-                    onKeyPress={(e) => {
-                      if (e.key === 'Enter') {
-                        handleAddCard(list.id);
-                      }
-                    }}
-                    autoFocus
-                  />
-                  <div className="flex space-x-2">
-                    <Button 
-                      size="sm" 
-                      onClick={() => handleAddCard(list.id)}
-                      disabled={!newCardTitle[list.id]?.trim()}
-                    >
-                      Add card
-                    </Button>
-                    <Button 
-                      variant="ghost" 
-                      size="sm"
-                      onClick={() => {
-                        setShowAddCard(prev => ({ ...prev, [list.id]: false }));
-                        setNewCardTitle(prev => ({ ...prev, [list.id]: '' }));
+              {/* Cards Container */}
+              <div className="p-1 space-y-2 min-h-[200px]">
+                {/* Cards */}
+                {list.cards.map((card) => (
+                  <Card 
+                    key={card.id}
+                    className="cursor-move hover:shadow-lg transition-all duration-200
+                              bg-gray-800 border-gray-500 hover:bg-gray-550"
+                    draggable
+                    onDragStart={(e) => handleDragStart(e, card, list.id)}
+                  >
+                    <CardContent className="p-1">
+                      {/* Card Status Badges */}
+                      {card.statusBadges && card.statusBadges.length > 0 && (
+                        <div className="flex flex-wrap gap-1 mb-2">
+                          {card.statusBadges.map((badge) => (
+                            <span 
+                              key={badge.id}
+                              className={`inline-block px-2 py-1 rounded text-xs font-medium ${badgeColors[badge.color]}`}
+                            >
+                              {badge.text}
+                            </span>
+                          ))}
+                        </div>
+                      )}
+                      
+                      <h4 className="text-white font-medium text-sm leading-tight mb-2">{card.title}</h4>
+                      
+                      {/* Due Date Display */}
+                      {card.dueDate && (
+                        <div className="mb-2">
+                          <span className={`text-xs ${getDueDateColor(card.dueDate)}`}>
+                            📅 Due {formatDueDate(card.dueDate)}
+                          </span>
+                        </div>
+                      )}
+                      
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center space-x-1">
+                          <Button 
+                            ref={(el) => { calendarButtonRefs.current[card.id] = el}}
+                            variant="ghost" 
+                            size="sm" 
+                            className="h-6 w-6 p-0 text-gray-400 hover:text-white"
+                            onClick={() => handleDateClick(card.id, card.dueDate)}
+                          >
+                            <Calendar className="h-3 w-3" />
+                          </Button>
+                          <Button variant="ghost" size="sm" className="h-6 w-6 p-0 text-gray-400 hover:text-white">
+                            <User className="h-3 w-3" />
+                          </Button>
+                          <Button variant="ghost" size="sm" className="h-6 w-6 p-0 text-gray-400 hover:text-white">
+                            <Plus className="h-3 w-3" />
+                          </Button>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))}
+
+                {/* Add Card */}
+                {showAddCard[list.id] ? (
+                  <div className="space-y-2">
+                    <Input
+                      value={newCardTitle[list.id] || ''}
+                      onChange={(e) => setNewCardTitle(prev => ({
+                        ...prev,
+                        [list.id]: e.target.value
+                      }))}
+                      placeholder="Enter a title for this card..."
+                      className="text-sm bg-gray-600 border-gray-500 text-white placeholder-gray-400"
+                      onKeyPress={(e) => {
+                        if (e.key === 'Enter') {
+                          handleAddCard(list.id);
+                        }
                       }}
-                    >
-                      <X className="h-4 w-4" />
-                    </Button>
+                      autoFocus
+                    />
+                    <div className="flex space-x-2">
+                      <Button 
+                        size="sm" 
+                        onClick={() => handleAddCard(list.id)}
+                        disabled={!newCardTitle[list.id]?.trim()}
+                        className="bg-blue-600 hover:bg-blue-700"
+                      >
+                        Add Task
+                      </Button>
+                      <Button 
+                        variant="ghost" 
+                        size="sm"
+                        onClick={() => {
+                          setShowAddCard(prev => ({ ...prev, [list.id]: false }));
+                          setNewCardTitle(prev => ({ ...prev, [list.id]: '' }));
+                        }}
+                        className="text-gray-400 hover:text-white"
+                      >
+                        <X className="h-4 w-4" />
+                      </Button>
+                    </div>
                   </div>
-                </div>
-              ) : (
-                <Button 
-                  variant="ghost" 
-                  size="sm" 
-                  className="w-full justify-start text-gray-100 hover:bg-gray-200 hover:text-gray-800"
-                  onClick={() => setShowAddCard(prev => ({ ...prev, [list.id]: true }))}
-                >
-                  <Plus className="h-4 w-4 mr-2" />
-                  Add a card
-                </Button>
-              )}
+                ) : (
+                  <Button 
+                    variant="ghost" 
+                    size="sm" 
+                    className="w-full justify-center text-gray-400 hover:text-white hover:bg-gray-600 border-2 border-dashed border-gray-500 hover:border-gray-400 py-6"
+                    onClick={() => setShowAddCard(prev => ({ ...prev, [list.id]: true }))}
+                  >
+                    <Plus className="h-4 w-4 mr-2" />
+                    Add Task
+                  </Button>
+                )}
+              </div>
             </div>
           ))}
 
           {/* Add List */}
           {showAddList ? (
-            <div className="flex-shrink-0 w-72 bg-white/10 backdrop-blur-sm rounded-lg p-3 border border-white/10">
+            <div className="flex-shrink-0 w-80 bg-gray-700 rounded-lg p-4 border border-gray-600">
               <Input
                 value={newListTitle}
                 onChange={(e) => setNewListTitle(e.target.value)}
                 placeholder="Enter list title..."
-                className="mb-3 bg-white/20 border-white/30 text-white placeholder-white/70"
+                className="mb-3 bg-gray-600 border-gray-500 text-white placeholder-gray-400"
                 onKeyPress={(e) => {
                   if (e.key === 'Enter' && !showColorPicker) {
                     handleAddList();
@@ -644,7 +635,7 @@ const BoardPage = () => {
                       className={`w-6 h-6 rounded-full border-2 transition-all ${color.bg} 
                         ${selectedListColor === color.value 
                           ? 'border-white ring-2 ring-white/50' 
-                          : 'border-white/30 hover:border-white/60'
+                          : 'border-gray-400 hover:border-white'
                         }`}
                       title={color.name}
                     />
@@ -654,8 +645,8 @@ const BoardPage = () => {
                 <div className="mt-2 text-sm text-gray-300">
                   Preview: 
                   <div className="mt-1">
-                    <div className={`inline-block px-2 py-1 rounded text-xs font-medium border ${titleColorBadges[selectedListColor]}`}>
-                      {newListTitle || 'List Title'}
+                    <div className={`inline-block px-3 py-1 rounded-md text-sm font-medium ${listHeaderColors[selectedListColor]}`}>
+                      {newListTitle || 'New List'}
                     </div>
                   </div>
                 </div>
@@ -666,7 +657,7 @@ const BoardPage = () => {
                   size="sm" 
                   onClick={handleAddList}
                   disabled={!newListTitle.trim()}
-                  className="flex-1"
+                  className="flex-1 bg-blue-600 hover:bg-blue-700"
                 >
                   Add list
                 </Button>
@@ -674,19 +665,20 @@ const BoardPage = () => {
                   variant="ghost" 
                   size="sm"
                   onClick={handleCancelAddList}
+                  className="text-gray-400 hover:text-white"
                 >
                   <X className="h-4 w-4" />
                 </Button>
               </div>
             </div>
           ) : (
-            <div className="flex-shrink-0 w-72">
+            <div className="flex-shrink-0 w-80">
               <Button 
                 variant="ghost" 
-                className="w-full h-12 bg-white/20 hover:bg-white/30 text-white border-2 border-dashed border-white/40 hover:border-white/60"
+                className="w-full h-32 bg-gray-700/50 hover:bg-gray-700 text-gray-300 hover:text-white border-2 border-dashed border-gray-500 hover:border-gray-400 rounded-lg"
                 onClick={() => setShowAddList(true)}
               >
-                <Plus className="h-4 w-4 mr-2" />
+                <Plus className="h-5 w-5 mr-2" />
                 Add another list
               </Button>
             </div>
@@ -707,7 +699,7 @@ const BoardPage = () => {
           <div
             key={cardId}
             ref={(el) => { datePickerRefs.current[cardId] = el}}
-            className="fixed z-50 bg-white/95 backdrop-blur-sm border border-white/20 rounded-lg p-3 shadow-xl"
+            className="fixed z-50 bg-white rounded-lg p-3 shadow-xl border border-gray-300"
             style={{
               top: `${position.top}px`,
               left: `${position.left}px`,
