@@ -5,7 +5,6 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import {  
-  Search, 
   Plus, 
   Star,
   Users,
@@ -423,17 +422,10 @@ const BoardPage = () => {
   return (
     <div className="min-h-screen bg-zinc-900">
       {/* Header */}
-      <header className="bg-zinc-900 border-b border-gray-700">
+      {/* <header className="bg-zinc-900 border-b border-gray-700">
         <div className="px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16">
             <div className="flex items-center space-x-4">              
-              <div className="relative">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
-                <Input 
-                  className="pl-10 w-64 bg-gray-700 border-gray-600 text-white placeholder-gray-400"
-                  placeholder="Search"
-                />
-              </div>
             </div>
 
             <div className="flex items-center space-x-4">
@@ -444,7 +436,7 @@ const BoardPage = () => {
             </div>
           </div>
         </div>
-      </header>
+      </header> */}
 
       {/* Board Header */}
       <div className="px-6 py-4 border-b border-gray-700">
