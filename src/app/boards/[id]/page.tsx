@@ -5,6 +5,13 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
+import { 
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetHeader,
+  SheetTitle,
+} from '@/components/ui/sheet';
 import {  
   Plus, 
   Star,
@@ -19,9 +26,134 @@ import {
   Tag,
   Clock
 } from 'lucide-react';
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@radix-ui/react-dropdown-menu';
 
-// Mock data structure with status badges
+
+// Custom Dropdown Component
+interface DropdownMenuProps {
+  children: React.ReactNode;
+}
+
+interface DropdownMenuTriggerProps {
+  asChild?: boolean;
+  children: React.ReactNode;
+}
+
+interface DropdownMenuContentProps {
+  align?: 'start' | 'end';
+  className?: string;
+  children: React.ReactNode;
+}
+
+interface DropdownMenuItemProps {
+  onClick?: () => void;
+  className?: string;
+  children: React.ReactNode;
+}
+
+const DropdownMenu: React.FC<DropdownMenuProps> = ({ children }) => {
+  const [isOpen, setIsOpen] = useState(false);
+  
+  return (
+    <div className="relative inline-block">
+      {React.Children.map(children, (child) => {
+        if (React.isValidElement(child)) {
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          return React.cloneElement(child as React.ReactElement<any>, {
+            isOpen,
+            setIsOpen,
+          });
+        }
+        return child;
+      })}
+    </div>
+  );
+};
+
+const DropdownMenuTrigger: React.FC<DropdownMenuTriggerProps & { isOpen?: boolean; setIsOpen?: (open: boolean) => void }> = ({ 
+  children, 
+  isOpen, 
+  setIsOpen 
+}) => {
+  const handleClick = () => {
+    setIsOpen?.(!isOpen);
+  };
+
+  if (React.isValidElement(children)) {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    return React.cloneElement(children as React.ReactElement<any>, {
+      onClick: handleClick,
+    });
+  }
+  return <>{children}</>;
+};
+
+const DropdownMenuContent: React.FC<DropdownMenuContentProps & { isOpen?: boolean; setIsOpen?: (open: boolean) => void }> = ({ 
+  align = 'start', 
+  className = '', 
+  children, 
+  isOpen,
+  setIsOpen 
+}) => {
+  const ref = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (ref.current && !ref.current.contains(event.target as Node)) {
+        setIsOpen?.(false);
+      }
+    };
+
+    if (isOpen) {
+      document.addEventListener('mousedown', handleClickOutside);
+    }
+
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [isOpen, setIsOpen]);
+
+  if (!isOpen) return null;
+
+  const alignmentClass = align === 'end' ? 'right-0' : 'left-0';
+
+  return (
+    <div
+      ref={ref}
+      className={`absolute top-full mt-1 z-50 ${alignmentClass} ${className}`}
+    >
+      {React.Children.map(children, (child) => {
+        if (React.isValidElement(child)) {
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          return React.cloneElement(child as React.ReactElement<any>, {
+            setIsOpen,
+          });
+        }
+        return child;
+      })}
+    </div>
+  );
+};
+
+const DropdownMenuItem: React.FC<DropdownMenuItemProps & { setIsOpen?: (open: boolean) => void }> = ({ 
+  onClick, 
+  className = '', 
+  children, 
+  setIsOpen 
+}) => {
+  const handleClick = () => {
+    onClick?.();
+    setIsOpen?.(false);
+  };
+
+  return (
+    <div
+      onClick={handleClick}
+      className={`cursor-pointer ${className}`}
+    >
+      {children}
+    </div>
+  );
+};
 interface StatusBadge {
   id: string;
   text: string;
@@ -140,15 +272,15 @@ const initialBoard: Board = {
   ]
 };
 
-// Card Details Popup Component
-interface CardDetailsPopupProps {
+// Card Details Drawer Component using shadcn/ui Sheet
+interface CardDetailsDrawerProps {
   card: Card | null;
   isOpen: boolean;
   onClose: () => void;
   onUpdate: (cardId: string, updates: Partial<Card>) => void;
 }
 
-const CardDetailsPopup: React.FC<CardDetailsPopupProps> = ({ card, isOpen, onClose, onUpdate }) => {
+const CardDetailsDrawer: React.FC<CardDetailsDrawerProps> = ({ card, isOpen, onClose, onUpdate }) => {
   const [editedTitle, setEditedTitle] = useState('');
   const [editedDescription, setEditedDescription] = useState('');
   const [editedDueDate, setEditedDueDate] = useState('');
@@ -166,7 +298,7 @@ const CardDetailsPopup: React.FC<CardDetailsPopupProps> = ({ card, isOpen, onClo
     }
   }, [card, isOpen]);
 
-  if (!isOpen || !card) return null;
+  if (!card) return null;
 
   const handleSave = () => {
     onUpdate(card.id, {
@@ -175,7 +307,7 @@ const CardDetailsPopup: React.FC<CardDetailsPopupProps> = ({ card, isOpen, onClo
       dueDate: editedDueDate || undefined,
     });
     setIsEditingTitle(false);
-    onClose(); // Close the popup to return to the board page
+    onClose();
   };
 
   const handleAddBadge = () => {
@@ -239,197 +371,185 @@ const CardDetailsPopup: React.FC<CardDetailsPopupProps> = ({ card, isOpen, onClo
   };
 
   return (
-    <>
-      {/* Background Overlay */}
-      <div 
-        className="fixed inset-0 bg-black bg-opacity-30 z-40" 
-        onClick={onClose}
-      />
-      
-      {/* Right Sidebar */}
-      <div className={`fixed top-0 right-0 h-full w-96 bg-gray-800 shadow-2xl z-50 transform transition-transform duration-300 ease-in-out ${
-        isOpen ? 'translate-x-0' : 'translate-x-full'
-      }`}>
-        <div className="flex flex-col h-full">
-          {/* Header */}
-          <div className="flex items-center justify-between p-6 border-b border-gray-700 bg-gray-800">
-            <div className="flex items-center space-x-3">
-              <Edit3 className="h-5 w-5 text-gray-300" />
-              <h2 className="text-xl font-semibold text-white">Card Details</h2>
-            </div>
-            <Button variant="ghost" size="sm" onClick={onClose} className="text-gray-300 hover:text-white hover:bg-gray-700">
-              <X className="h-5 w-5" />
-            </Button>
+    <Sheet open={isOpen} onOpenChange={onClose}>
+      <SheetContent side="right" className="w-96 bg-gray-800 border-gray-700">
+        <SheetHeader className="border-b border-gray-700 pb-4">
+          <div className="flex items-center space-x-3">
+            <Edit3 className="h-5 w-5 text-gray-300" />
+            <SheetTitle className="text-xl font-semibold text-white">Card Details</SheetTitle>
           </div>
+          <SheetDescription className="text-gray-400">
+            Edit your card details, add labels, and set due dates.
+          </SheetDescription>
+        </SheetHeader>
 
-          {/* Content - Scrollable */}
-          <div className="flex-1 overflow-y-auto p-6 space-y-6 bg-gray-800">
-            {/* Title Section */}
-            <div className="space-y-3">
-              <div className="flex items-center space-x-2">
-                <Type className="h-4 w-4 text-gray-300" />
-                <label className="text-sm font-medium text-gray-300">Title</label>
-              </div>
-              {isEditingTitle ? (
-                <div className="space-y-2">
-                  <Input
-                    value={editedTitle}
-                    onChange={(e) => setEditedTitle(e.target.value)}
-                    className="text-lg font-medium bg-gray-700 border-gray-600 text-white placeholder-gray-400"
-                    autoFocus
-                    onKeyPress={(e) => {
-                      if (e.key === 'Enter') {
-                        handleSave();
-                      }
-                    }}
-                  />
-                  <div className="flex space-x-2">
-                    <Button size="sm" onClick={handleSave} className="bg-blue-600 hover:bg-blue-700 text-white">
-                      Save
-                    </Button>
-                    <Button variant="ghost" size="sm" onClick={() => setIsEditingTitle(false)} className="text-gray-300 hover:text-white hover:bg-gray-700">
-                      Cancel
-                    </Button>
-                  </div>
-                </div>
-              ) : (
-                <div 
-                  className="text-lg font-medium text-white cursor-pointer hover:bg-gray-700 p-2 rounded border border-transparent hover:border-gray-600"
-                  onClick={() => setIsEditingTitle(true)}
-                >
-                  {editedTitle || 'Click to add title...'}
-                </div>
-              )}
+        {/* Content - Scrollable */}
+        <div className="flex-1 overflow-y-auto py-6 space-y-6">
+          {/* Title Section */}
+          <div className="space-y-3">
+            <div className="flex items-center space-x-2">
+              <Type className="h-4 w-4 text-gray-300" />
+              <label className="text-sm font-medium text-gray-300">Title</label>
             </div>
-
-            {/* Status Badges */}
-            <div className="space-y-3">
-              <div className="flex items-center space-x-2">
-                <Tag className="h-4 w-4 text-gray-300" />
-                <label className="text-sm font-medium text-gray-300">Labels</label>
-              </div>
-              
-              {/* Existing Badges */}
-              {card.statusBadges && card.statusBadges.length > 0 && (
-                <div className="flex flex-wrap gap-2">
-                  {card.statusBadges.map((badge) => (
-                    <div key={badge.id} className="flex items-center">
-                      <span className={`inline-block px-3 py-1 rounded-full text-sm font-medium ${badgeColors[badge.color]}`}>
-                        {badge.text}
-                      </span>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        className="ml-1 h-6 w-6 p-0 text-gray-400 hover:text-red-500"
-                        onClick={() => handleRemoveBadge(badge.id)}
-                      >
-                        <X className="h-3 w-3" />
-                      </Button>
-                    </div>
-                  ))}
-                </div>
-              )}
-
-              {/* Add New Badge */}
+            {isEditingTitle ? (
               <div className="space-y-2">
                 <Input
-                  placeholder="Add label..."
-                  value={newBadgeText}
-                  onChange={(e) => setNewBadgeText(e.target.value)}
-                  className="w-full bg-gray-700 border-gray-600 text-white placeholder-gray-400"
+                  value={editedTitle}
+                  onChange={(e) => setEditedTitle(e.target.value)}
+                  className="text-lg font-medium bg-gray-700 border-gray-600 text-white placeholder-gray-400"
+                  autoFocus
                   onKeyPress={(e) => {
                     if (e.key === 'Enter') {
-                      handleAddBadge();
+                      handleSave();
                     }
                   }}
                 />
-                <div className="flex items-center space-x-2">
-                  <select
-                    value={newBadgeColor}
-                    onChange={(e) => setNewBadgeColor(e.target.value as keyof typeof badgeColors)}
-                    className="flex-1 px-3 py-2 border border-gray-600 rounded-md text-sm bg-gray-700 text-white"
-                  >
-                    {Object.keys(badgeColors).map((color) => (
-                      <option key={color} value={color}>
-                        {color.charAt(0).toUpperCase() + color.slice(1)}
-                      </option>
-                    ))}
-                  </select>
-                  <Button size="sm" onClick={handleAddBadge} disabled={!newBadgeText.trim()} className="bg-blue-600 hover:bg-blue-700 text-white">
-                    Add
+                <div className="flex space-x-2">
+                  <Button size="sm" onClick={handleSave} className="bg-blue-600 hover:bg-blue-700 text-white">
+                    Save
+                  </Button>
+                  <Button variant="ghost" size="sm" onClick={() => setIsEditingTitle(false)} className="text-gray-300 hover:text-white hover:bg-gray-700">
+                    Cancel
                   </Button>
                 </div>
               </div>
-            </div>
-
-            {/* Due Date */}
-            <div className="space-y-3">
-              <div className="flex items-center space-x-2">
-                <Clock className="h-4 w-4 text-gray-300" />
-                <label className="text-sm font-medium text-gray-300">Due Date</label>
+            ) : (
+              <div 
+                className="text-lg font-medium text-white cursor-pointer hover:bg-gray-700 p-2 rounded border border-transparent hover:border-gray-600"
+                onClick={() => setIsEditingTitle(true)}
+              >
+                {editedTitle || 'Click to add title...'}
               </div>
-              <div className="space-y-2">
-                <Input
-                  type="date"
-                  value={editedDueDate}
-                  onChange={(e) => {
-                    setEditedDueDate(e.target.value);
-                    onUpdate(card.id, { dueDate: e.target.value || undefined });
-                  }}
-                  className="w-full bg-gray-700 border-gray-600 text-white"
-                />
-                {editedDueDate && (
-                  <div className="flex items-center justify-between">
-                    <span className={`text-sm font-medium ${getDueDateColor(editedDueDate)}`}>
-                      📅 Due {formatDueDate(editedDueDate)}
+            )}
+          </div>
+
+          {/* Status Badges */}
+          <div className="space-y-3">
+            <div className="flex items-center space-x-2">
+              <Tag className="h-4 w-4 text-gray-300" />
+              <label className="text-sm font-medium text-gray-300">Labels</label>
+            </div>
+            
+            {/* Existing Badges */}
+            {card.statusBadges && card.statusBadges.length > 0 && (
+              <div className="flex flex-wrap gap-2">
+                {card.statusBadges.map((badge) => (
+                  <div key={badge.id} className="flex items-center">
+                    <span className={`inline-block px-3 py-1 rounded-full text-sm font-medium ${badgeColors[badge.color]}`}>
+                      {badge.text}
                     </span>
                     <Button
                       variant="ghost"
                       size="sm"
-                      onClick={() => {
-                        setEditedDueDate('');
-                        onUpdate(card.id, { dueDate: undefined });
-                      }}
-                      className="text-red-500 hover:text-red-700 hover:bg-gray-700"
+                      className="ml-1 h-6 w-6 p-0 text-gray-400 hover:text-red-500"
+                      onClick={() => handleRemoveBadge(badge.id)}
                     >
-                      Remove
+                      <X className="h-3 w-3" />
                     </Button>
                   </div>
-                )}
+                ))}
               </div>
-            </div>
+            )}
 
-            {/* Description */}
-            <div className="space-y-3">
-              <div className="flex items-center space-x-2">
-                <Edit3 className="h-4 w-4 text-gray-300" />
-                <label className="text-sm font-medium text-gray-300">Description</label>
-              </div>
-              <Textarea
-                value={editedDescription}
-                onChange={(e) => {
-                  setEditedDescription(e.target.value);
-                  onUpdate(card.id, { description: e.target.value });
+            {/* Add New Badge */}
+            <div className="space-y-2">
+              <Input
+                placeholder="Add label..."
+                value={newBadgeText}
+                onChange={(e) => setNewBadgeText(e.target.value)}
+                className="w-full bg-gray-700 border-gray-600 text-white placeholder-gray-400"
+                onKeyPress={(e) => {
+                  if (e.key === 'Enter') {
+                    handleAddBadge();
+                  }
                 }}
-                placeholder="Add a more detailed description..."
-                rows={4}
-                className="w-full resize-none bg-gray-700 border-gray-600 text-white placeholder-gray-400"
               />
+              <div className="flex items-center space-x-2">
+                <select
+                  value={newBadgeColor}
+                  onChange={(e) => setNewBadgeColor(e.target.value as keyof typeof badgeColors)}
+                  className="flex-1 px-3 py-2 border border-gray-600 rounded-md text-sm bg-gray-700 text-white"
+                >
+                  {Object.keys(badgeColors).map((color) => (
+                    <option key={color} value={color}>
+                      {color.charAt(0).toUpperCase() + color.slice(1)}
+                    </option>
+                  ))}
+                </select>
+                <Button size="sm" onClick={handleAddBadge} disabled={!newBadgeText.trim()} className="bg-blue-600 hover:bg-blue-700 text-white">
+                  Add
+                </Button>
+              </div>
             </div>
           </div>
 
-          {/* Footer */}
-          <div className="flex justify-end space-x-3 p-6 border-t border-gray-700 bg-gray-800">
-            <Button variant="ghost" onClick={onClose} className="text-gray-300 hover:text-white hover:bg-gray-700">
-              Close
-            </Button>
-            <Button onClick={handleSave} className="bg-blue-600 hover:bg-blue-700 text-white">
-              Save Changes
-            </Button>
+          {/* Due Date */}
+          <div className="space-y-3">
+            <div className="flex items-center space-x-2">
+              <Clock className="h-4 w-4 text-gray-300" />
+              <label className="text-sm font-medium text-gray-300">Due Date</label>
+            </div>
+            <div className="space-y-2">
+              <Input
+                type="date"
+                value={editedDueDate}
+                onChange={(e) => {
+                  setEditedDueDate(e.target.value);
+                  onUpdate(card.id, { dueDate: e.target.value || undefined });
+                }}
+                className="w-full bg-gray-700 border-gray-600 text-white"
+              />
+              {editedDueDate && (
+                <div className="flex items-center justify-between">
+                  <span className={`text-sm font-medium ${getDueDateColor(editedDueDate)}`}>
+                    📅 Due {formatDueDate(editedDueDate)}
+                  </span>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => {
+                      setEditedDueDate('');
+                      onUpdate(card.id, { dueDate: undefined });
+                    }}
+                    className="text-red-500 hover:text-red-700 hover:bg-gray-700"
+                  >
+                    Remove
+                  </Button>
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* Description */}
+          <div className="space-y-3">
+            <div className="flex items-center space-x-2">
+              <Edit3 className="h-4 w-4 text-gray-300" />
+              <label className="text-sm font-medium text-gray-300">Description</label>
+            </div>
+            <Textarea
+              value={editedDescription}
+              onChange={(e) => {
+                setEditedDescription(e.target.value);
+                onUpdate(card.id, { description: e.target.value });
+              }}
+              placeholder="Add a more detailed description..."
+              rows={4}
+              className="w-full resize-none bg-gray-700 border-gray-600 text-white placeholder-gray-400"
+            />
           </div>
         </div>
-      </div>
-    </>
+
+        {/* Footer */}
+        <div className="flex justify-end space-x-3 pt-4 border-t border-gray-700">
+          <Button variant="ghost" onClick={onClose} className="text-gray-300 hover:text-white hover:bg-gray-700">
+            Close
+          </Button>
+          <Button onClick={handleSave} className="bg-blue-600 hover:bg-blue-700 text-white">
+            Save Changes
+          </Button>
+        </div>
+      </SheetContent>
+    </Sheet>
   );
 };
 
@@ -448,7 +568,7 @@ const BoardPage = () => {
   const [datePickerPosition, setDatePickerPosition] = useState<{[cardId: string]: {top: number, left: number}}>({});
 
   const [selectedCard, setSelectedCard] = useState<Card | null>(null);
-  const [isCardPopupOpen, setIsCardPopupOpen] = useState(false);
+  const [isCardDrawerOpen, setIsCardDrawerOpen] = useState(false);
     
   const datePickerRefs = useRef<{[cardId: string]: HTMLDivElement | null}>({});
   const calendarButtonRefs = useRef<{[cardId: string]: HTMLButtonElement | null}>({});
@@ -743,13 +863,13 @@ const BoardPage = () => {
       </div>
 
       {/* Board Content */}
-      <div className={`p-30 transition-all duration-300 ${isCardPopupOpen ? 'pr-[400px]' : ''}`}>
-        <div className="flex space-x-3 overflow-x-auto pb-3">
+      <div className="p-6">
+        <div className="flex space-x-4 overflow-x-auto pb-4">
           {/* Lists */}
           {board.lists.map((list) => (
             <div 
               key={list.id} 
-              className={`flex-shrink-0 w-68 bg-zinc-900 rounded-lg border border-gray-600 overflow-hidden
+              className={`flex-shrink-0 w-72 bg-zinc-900 rounded-lg border border-gray-600 overflow-hidden
                           ${draggedOverList === list.id ? 'ring-2 ring-blue-400' : ''}`}
               onDragOver={(e) => handleDragOver(e, list.id)}
               onDragLeave={handleDragLeave}
@@ -796,24 +916,24 @@ const BoardPage = () => {
               </div>
 
               {/* Cards Container */}
-              <div className="p-1 space-y-2 min-h-[200px]">
+              <div className="p-3 space-y-2 min-h-[200px]">
                 {/* Cards */}
                 {list.cards.map((card) => (
                   <Card 
                     key={card.id}
                     className="cursor-move hover:shadow-lg transition-all duration-200
-                              bg-gray-800 border-gray-500 hover:bg-gray-550"
+                              bg-gray-800 border-gray-500 hover:bg-gray-700"
                     draggable
                     onDragStart={(e) => handleDragStart(e, card, list.id)}
                     onClick={() => {
                       setSelectedCard(card);
-                      setIsCardPopupOpen(true);
+                      setIsCardDrawerOpen(true);
                     }}
                   >
-                    <CardContent className="px-2 py-1">
+                    <CardContent className="px-3 py-2">
                       {/* Card Status Badges */}
                       {card.statusBadges && card.statusBadges.length > 0 && (
-                        <div className="flex flex-wrap gap-1 mb-1">
+                        <div className="flex flex-wrap gap-1 mb-2">
                           {card.statusBadges.map((badge) => (
                             <span 
                               key={badge.id}
@@ -824,7 +944,7 @@ const BoardPage = () => {
                         </div>
                       )}
                       
-                      <h4 className="text-white font-medium text-sm leading-tight mb-1 mt-1 ml-2 mr-2">{card.title}</h4>
+                      <h4 className="text-white font-medium text-sm leading-tight mb-2">{card.title}</h4>
                       
                       {/* Due Date Display */}
                       {card.dueDate && (
@@ -835,12 +955,12 @@ const BoardPage = () => {
                         </div>
                       )}
                       
-                      <div className="flex items-center justify-between ml-2 mr-2 mb-2">
+                      <div className="flex items-center justify-between">
                         <Button 
                           ref={(el) => { calendarButtonRefs.current[card.id] = el }}
                           variant="ghost" 
                           size="sm" 
-                          className="h-6 w-6 p-0 text-gray-400"
+                          className="h-6 w-6 p-0 text-gray-400 hover:text-white"
                           onClick={(e) => {
                             e.stopPropagation();
                             handleDateClick(card.id, card.dueDate);
@@ -851,7 +971,7 @@ const BoardPage = () => {
                           variant="ghost" 
                           size="sm" 
                           className="h-6 w-6 p-0 rounded-full border border-dotted border-gray-400 
-                                    text-gray-400 flex items-center justify-center"
+                                    text-gray-400 flex items-center justify-center hover:text-white hover:border-white"
                           onClick={(e) => {
                             e.stopPropagation();
                           }}>
@@ -864,7 +984,7 @@ const BoardPage = () => {
 
                 {/* Add Card */}
                 {showAddCard[list.id] ? (
-                  <div className="space-y-1">
+                  <div className="space-y-2">
                     <Input
                       value={newCardTitle[list.id] || ''}
                       onChange={(e) => setNewCardTitle(prev => ({
@@ -872,7 +992,7 @@ const BoardPage = () => {
                         [list.id]: e.target.value
                       }))}
                       placeholder="Enter a title for this card..."
-                      className="text-sm bg-gray-600 border-gray-500 text-white placeholder-gray-400"
+                      className="text-sm bg-gray-700 border-gray-500 text-white placeholder-gray-400"
                       onKeyPress={(e) => {
                         if (e.key === 'Enter') {
                           handleAddCard(list.id);
@@ -906,7 +1026,7 @@ const BoardPage = () => {
                   <Button 
                     variant="ghost" 
                     size="sm" 
-                    className="w-full justify-center text-gray-400 hover:text-white hover:bg-gray-600 border-2 border-dashed border-gray-500 hover:border-gray-400 py-6"
+                    className="w-full justify-center text-gray-400 hover:text-white hover:bg-gray-700 border-2 border-dashed border-gray-500 hover:border-gray-400 py-6"
                     onClick={() => setShowAddCard(prev => ({ ...prev, [list.id]: true }))}
                   >
                     <Plus className="h-4 w-4 mr-2" />
@@ -1066,12 +1186,12 @@ const BoardPage = () => {
         );
       })}
 
-      {/* Card Details Popup - Right Sidebar */}
-      <CardDetailsPopup
+      {/* Card Details Drawer */}
+      <CardDetailsDrawer
         card={selectedCard}
-        isOpen={isCardPopupOpen}
+        isOpen={isCardDrawerOpen}
         onClose={() => {
-          setIsCardPopupOpen(false);
+          setIsCardDrawerOpen(false);
           setSelectedCard(null);
         }}
         onUpdate={(cardId, updates) => {
