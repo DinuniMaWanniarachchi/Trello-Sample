@@ -12,7 +12,6 @@ import {
   MoreHorizontal,
   X,
   Calendar,
-  // User,
   Palette,
   Trash2,
   Edit3,
@@ -176,6 +175,7 @@ const CardDetailsPopup: React.FC<CardDetailsPopupProps> = ({ card, isOpen, onClo
       dueDate: editedDueDate || undefined,
     });
     setIsEditingTitle(false);
+    onClose(); // Close the popup to return to the board page
   };
 
   const handleAddBadge = () => {
@@ -235,7 +235,7 @@ const CardDetailsPopup: React.FC<CardDetailsPopupProps> = ({ card, isOpen, onClo
     if (diffDays < 0) return 'text-red-500';
     if (diffDays === 0) return 'text-orange-500';
     if (diffDays === 1) return 'text-yellow-500';
-    return 'text-gray-600';
+    return 'text-gray-400';
   };
 
   return (
@@ -247,35 +247,35 @@ const CardDetailsPopup: React.FC<CardDetailsPopupProps> = ({ card, isOpen, onClo
       />
       
       {/* Right Sidebar */}
-      <div className={`fixed top-0 right-0 h-full w-96 bg-white shadow-2xl z-50 transform transition-transform duration-300 ease-in-out ${
+      <div className={`fixed top-0 right-0 h-full w-96 bg-gray-800 shadow-2xl z-50 transform transition-transform duration-300 ease-in-out ${
         isOpen ? 'translate-x-0' : 'translate-x-full'
       }`}>
         <div className="flex flex-col h-full">
           {/* Header */}
-          <div className="flex items-center justify-between p-6 border-b bg-gray-50">
+          <div className="flex items-center justify-between p-6 border-b border-gray-700 bg-gray-800">
             <div className="flex items-center space-x-3">
-              <Edit3 className="h-5 w-5 text-gray-600" />
-              <h2 className="text-xl font-semibold text-gray-900">Card Details</h2>
+              <Edit3 className="h-5 w-5 text-gray-300" />
+              <h2 className="text-xl font-semibold text-white">Card Details</h2>
             </div>
-            <Button variant="ghost" size="sm" onClick={onClose}>
+            <Button variant="ghost" size="sm" onClick={onClose} className="text-gray-300 hover:text-white hover:bg-gray-700">
               <X className="h-5 w-5" />
             </Button>
           </div>
 
           {/* Content - Scrollable */}
-          <div className="flex-1 overflow-y-auto p-6 space-y-6">
+          <div className="flex-1 overflow-y-auto p-6 space-y-6 bg-gray-800">
             {/* Title Section */}
             <div className="space-y-3">
               <div className="flex items-center space-x-2">
-                <Type className="h-4 w-4 text-gray-600" />
-                <label className="text-sm font-medium text-gray-700">Title</label>
+                <Type className="h-4 w-4 text-gray-300" />
+                <label className="text-sm font-medium text-gray-300">Title</label>
               </div>
               {isEditingTitle ? (
                 <div className="space-y-2">
                   <Input
                     value={editedTitle}
                     onChange={(e) => setEditedTitle(e.target.value)}
-                    className="text-lg font-medium"
+                    className="text-lg font-medium bg-gray-700 border-gray-600 text-white placeholder-gray-400"
                     autoFocus
                     onKeyPress={(e) => {
                       if (e.key === 'Enter') {
@@ -284,17 +284,17 @@ const CardDetailsPopup: React.FC<CardDetailsPopupProps> = ({ card, isOpen, onClo
                     }}
                   />
                   <div className="flex space-x-2">
-                    <Button size="sm" onClick={handleSave}>
+                    <Button size="sm" onClick={handleSave} className="bg-blue-600 hover:bg-blue-700 text-white">
                       Save
                     </Button>
-                    <Button variant="ghost" size="sm" onClick={() => setIsEditingTitle(false)}>
+                    <Button variant="ghost" size="sm" onClick={() => setIsEditingTitle(false)} className="text-gray-300 hover:text-white hover:bg-gray-700">
                       Cancel
                     </Button>
                   </div>
                 </div>
               ) : (
                 <div 
-                  className="text-lg font-medium text-gray-900 cursor-pointer hover:bg-gray-50 p-2 rounded border border-transparent hover:border-gray-200"
+                  className="text-lg font-medium text-white cursor-pointer hover:bg-gray-700 p-2 rounded border border-transparent hover:border-gray-600"
                   onClick={() => setIsEditingTitle(true)}
                 >
                   {editedTitle || 'Click to add title...'}
@@ -305,8 +305,8 @@ const CardDetailsPopup: React.FC<CardDetailsPopupProps> = ({ card, isOpen, onClo
             {/* Status Badges */}
             <div className="space-y-3">
               <div className="flex items-center space-x-2">
-                <Tag className="h-4 w-4 text-gray-600" />
-                <label className="text-sm font-medium text-gray-700">Labels</label>
+                <Tag className="h-4 w-4 text-gray-300" />
+                <label className="text-sm font-medium text-gray-300">Labels</label>
               </div>
               
               {/* Existing Badges */}
@@ -336,7 +336,7 @@ const CardDetailsPopup: React.FC<CardDetailsPopupProps> = ({ card, isOpen, onClo
                   placeholder="Add label..."
                   value={newBadgeText}
                   onChange={(e) => setNewBadgeText(e.target.value)}
-                  className="w-full"
+                  className="w-full bg-gray-700 border-gray-600 text-white placeholder-gray-400"
                   onKeyPress={(e) => {
                     if (e.key === 'Enter') {
                       handleAddBadge();
@@ -347,7 +347,7 @@ const CardDetailsPopup: React.FC<CardDetailsPopupProps> = ({ card, isOpen, onClo
                   <select
                     value={newBadgeColor}
                     onChange={(e) => setNewBadgeColor(e.target.value as keyof typeof badgeColors)}
-                    className="flex-1 px-3 py-2 border border-gray-300 rounded-md text-sm"
+                    className="flex-1 px-3 py-2 border border-gray-600 rounded-md text-sm bg-gray-700 text-white"
                   >
                     {Object.keys(badgeColors).map((color) => (
                       <option key={color} value={color}>
@@ -355,7 +355,7 @@ const CardDetailsPopup: React.FC<CardDetailsPopupProps> = ({ card, isOpen, onClo
                       </option>
                     ))}
                   </select>
-                  <Button size="sm" onClick={handleAddBadge} disabled={!newBadgeText.trim()}>
+                  <Button size="sm" onClick={handleAddBadge} disabled={!newBadgeText.trim()} className="bg-blue-600 hover:bg-blue-700 text-white">
                     Add
                   </Button>
                 </div>
@@ -365,8 +365,8 @@ const CardDetailsPopup: React.FC<CardDetailsPopupProps> = ({ card, isOpen, onClo
             {/* Due Date */}
             <div className="space-y-3">
               <div className="flex items-center space-x-2">
-                <Clock className="h-4 w-4 text-gray-600" />
-                <label className="text-sm font-medium text-gray-700">Due Date</label>
+                <Clock className="h-4 w-4 text-gray-300" />
+                <label className="text-sm font-medium text-gray-300">Due Date</label>
               </div>
               <div className="space-y-2">
                 <Input
@@ -376,7 +376,7 @@ const CardDetailsPopup: React.FC<CardDetailsPopupProps> = ({ card, isOpen, onClo
                     setEditedDueDate(e.target.value);
                     onUpdate(card.id, { dueDate: e.target.value || undefined });
                   }}
-                  className="w-full"
+                  className="w-full bg-gray-700 border-gray-600 text-white"
                 />
                 {editedDueDate && (
                   <div className="flex items-center justify-between">
@@ -390,7 +390,7 @@ const CardDetailsPopup: React.FC<CardDetailsPopupProps> = ({ card, isOpen, onClo
                         setEditedDueDate('');
                         onUpdate(card.id, { dueDate: undefined });
                       }}
-                      className="text-red-500 hover:text-red-700"
+                      className="text-red-500 hover:text-red-700 hover:bg-gray-700"
                     >
                       Remove
                     </Button>
@@ -402,8 +402,8 @@ const CardDetailsPopup: React.FC<CardDetailsPopupProps> = ({ card, isOpen, onClo
             {/* Description */}
             <div className="space-y-3">
               <div className="flex items-center space-x-2">
-                <Edit3 className="h-4 w-4 text-gray-600" />
-                <label className="text-sm font-medium text-gray-700">Description</label>
+                <Edit3 className="h-4 w-4 text-gray-300" />
+                <label className="text-sm font-medium text-gray-300">Description</label>
               </div>
               <Textarea
                 value={editedDescription}
@@ -413,17 +413,17 @@ const CardDetailsPopup: React.FC<CardDetailsPopupProps> = ({ card, isOpen, onClo
                 }}
                 placeholder="Add a more detailed description..."
                 rows={4}
-                className="w-full resize-none"
+                className="w-full resize-none bg-gray-700 border-gray-600 text-white placeholder-gray-400"
               />
             </div>
           </div>
 
           {/* Footer */}
-          <div className="flex justify-end space-x-3 p-6 border-t bg-gray-50">
-            <Button variant="ghost" onClick={onClose}>
+          <div className="flex justify-end space-x-3 p-6 border-t border-gray-700 bg-gray-800">
+            <Button variant="ghost" onClick={onClose} className="text-gray-300 hover:text-white hover:bg-gray-700">
               Close
             </Button>
-            <Button onClick={handleSave}>
+            <Button onClick={handleSave} className="bg-blue-600 hover:bg-blue-700 text-white">
               Save Changes
             </Button>
           </div>
@@ -743,13 +743,13 @@ const BoardPage = () => {
       </div>
 
       {/* Board Content */}
-      <div className={`p-6 transition-all duration-300 ${isCardPopupOpen ? 'pr-[400px]' : ''}`}>
-        <div className="flex space-x-6 overflow-x-auto pb-6">
+      <div className={`p-30 transition-all duration-300 ${isCardPopupOpen ? 'pr-[400px]' : ''}`}>
+        <div className="flex space-x-3 overflow-x-auto pb-3">
           {/* Lists */}
           {board.lists.map((list) => (
             <div 
               key={list.id} 
-              className={`flex-shrink-0 w-80 bg-zinc-900 rounded-lg border border-gray-600 overflow-hidden
+              className={`flex-shrink-0 w-68 bg-zinc-900 rounded-lg border border-gray-600 overflow-hidden
                           ${draggedOverList === list.id ? 'ring-2 ring-blue-400' : ''}`}
               onDragOver={(e) => handleDragOver(e, list.id)}
               onDragLeave={handleDragLeave}
@@ -775,22 +775,21 @@ const BoardPage = () => {
                           <MoreHorizontal className="h-4 w-4" />
                         </Button>
                       </DropdownMenuTrigger>
-
                       <DropdownMenuContent align="end" className="bg-gray-800 text-white border border-gray-600 shadow-xl rounded-md w-30 p-1">
-                          <DropdownMenuItem
-                            onClick={() => {
-                              if (confirm("⚠️ Are you sure you want to delete this list? This action cannot be undone.")) {
-                                handleDeleteList(list.id);
-                              }
-                            }}
-                            className="group flex items-center gap-2 px-1 py-1 rounded-md text-sm text-red-500 hover:bg-red-600 hover:text-white focus:outline-none focus:ring-2 focus:ring-red-500 transition-all"
-                          >
-                            <div className="flex items-center justify-center bg-red-500/20 group-hover:bg-white/20 p-1.5 rounded-full transition">
-                              <Trash2 className="h-4 w-4" />
-                            </div>
-                            <span className="whitespace-nowrap font-medium">Delete</span>
-                          </DropdownMenuItem>
-                        </DropdownMenuContent>
+                        <DropdownMenuItem
+                          onClick={() => {
+                            if (confirm("⚠️ Are you sure you want to delete this list? This action cannot be undone.")) {
+                              handleDeleteList(list.id);
+                            }
+                          }}
+                          className="group flex items-center gap-2 px-1 py-1 rounded-md text-sm text-red-500 hover:bg-red-600 hover:text-white focus:outline-none focus:ring-2 focus:ring-red-500 transition-all"
+                        >
+                          <div className="flex items-center justify-center bg-red-500/20 group-hover:bg-white/20 p-1.5 rounded-full transition">
+                            <Trash2 className="h-4 w-4" />
+                          </div>
+                          <span className="whitespace-nowrap font-medium">Delete</span>
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
                     </DropdownMenu>
                   </div>
                 </div>
@@ -800,17 +799,17 @@ const BoardPage = () => {
               <div className="p-1 space-y-2 min-h-[200px]">
                 {/* Cards */}
                 {list.cards.map((card) => (
-                <Card 
-                  key={card.id}
-                  className="cursor-move hover:shadow-lg transition-all duration-200
-                            bg-gray-800 border-gray-500 hover:bg-gray-550"
-                  draggable
-                  onDragStart={(e) => handleDragStart(e, card, list.id)}
-                  onClick={() => {
-                    setSelectedCard(card);
-                    setIsCardPopupOpen(true);
-                  }}
-                >
+                  <Card 
+                    key={card.id}
+                    className="cursor-move hover:shadow-lg transition-all duration-200
+                              bg-gray-800 border-gray-500 hover:bg-gray-550"
+                    draggable
+                    onDragStart={(e) => handleDragStart(e, card, list.id)}
+                    onClick={() => {
+                      setSelectedCard(card);
+                      setIsCardPopupOpen(true);
+                    }}
+                  >
                     <CardContent className="px-2 py-1">
                       {/* Card Status Badges */}
                       {card.statusBadges && card.statusBadges.length > 0 && (
