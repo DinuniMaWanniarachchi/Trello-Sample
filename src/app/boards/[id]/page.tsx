@@ -396,7 +396,7 @@ const CardDetailsDrawer: React.FC<CardDetailsDrawerProps> = ({ card, isOpen, onC
                 <Input
                   value={editedTitle}
                   onChange={(e) => setEditedTitle(e.target.value)}
-                  className="text-lg font-medium bg-gray-700 border-gray-600 text-white placeholder-gray-400"
+                  className="text-xxs font-thin bg-gray-700 border-gray-600 text-white placeholder-gray-400"
                   autoFocus
                   onKeyPress={(e) => {
                     if (e.key === 'Enter') {
@@ -415,7 +415,7 @@ const CardDetailsDrawer: React.FC<CardDetailsDrawerProps> = ({ card, isOpen, onC
               </div>
             ) : (
               <div 
-                className="text-lg font-medium text-white cursor-pointer hover:bg-gray-700 p-2 rounded border border-transparent hover:border-gray-600"
+                className="text-xxs font-medium text-white cursor-pointer hover:bg-gray-700 p-2 rounded border border-transparent hover:border-gray-600"
                 onClick={() => setIsEditingTitle(true)}
               >
                 {editedTitle || 'Click to add title...'}
