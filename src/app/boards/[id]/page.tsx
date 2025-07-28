@@ -372,7 +372,7 @@ const CardDetailsDrawer: React.FC<CardDetailsDrawerProps> = ({ card, isOpen, onC
 
   return (
     <Sheet open={isOpen} onOpenChange={onClose}>
-      <SheetContent side="right" className="w-96 bg-gray-800 border-gray-700">
+      <SheetContent side="right" className="w-100 bg-gray-800 border-gray-700">
         <SheetHeader className="border-b border-gray-700 pb-4">
           <div className="flex items-center space-x-3">
             <Edit3 className="h-5 w-5 text-gray-300" />
@@ -384,10 +384,10 @@ const CardDetailsDrawer: React.FC<CardDetailsDrawerProps> = ({ card, isOpen, onC
         </SheetHeader>
 
         {/* Content - Scrollable */}
-        <div className="flex-1 overflow-y-auto py-6 space-y-6">
+        <div className="flex-3 overflow-y-auto py-8 space-y-6">
           {/* Title Section */}
           <div className="space-y-3">
-            <div className="flex items-center space-x-2">
+            <div className="flex items-center space-x-4">
               <Type className="h-4 w-4 text-gray-300" />
               <label className="text-sm font-medium text-gray-300">Title</label>
             </div>
@@ -425,7 +425,7 @@ const CardDetailsDrawer: React.FC<CardDetailsDrawerProps> = ({ card, isOpen, onC
 
           {/* Status Badges */}
           <div className="space-y-3">
-            <div className="flex items-center space-x-2">
+            <div className="flex items-center space-x-4">
               <Tag className="h-4 w-4 text-gray-300" />
               <label className="text-sm font-medium text-gray-300">Labels</label>
             </div>
