@@ -524,7 +524,7 @@ const BoardPage = () => {
                     draggable
                     onDragStart={(e) => handleDragStart(e, card, list.id)}
                   >
-                    <CardContent className="p-0">
+                    <CardContent className="px-2 py-1">
                       {/* Card Status Badges */}
                       {card.statusBadges && card.statusBadges.length > 0 && (
                         <div className="flex flex-wrap gap-1 mb-1">
