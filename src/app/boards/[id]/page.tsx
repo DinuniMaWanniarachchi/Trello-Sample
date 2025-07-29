@@ -908,14 +908,14 @@ const BoardPage = () => {
           {board.lists.map((list) => (
             <div 
               key={list.id} 
-              className={`flex-shrink-0 w-68 bg-zinc-900 rounded-lg border border-gray-600 overflow-hidden
+              className={`flex-shrink-0 w-68 bg-zinc-900 rounded-md border border-gray-600 overflow-hidden
                           ${draggedOverList === list.id ? 'ring-2 ring-blue-400' : ''}`}
               onDragOver={(e) => handleDragOver(e, list.id)}
               onDragLeave={handleDragLeave}
               onDrop={(e) => handleDrop(e, list.id)}
             >
               {/* List Header */}
-              <div className={`flex items-center justify-between px-3 py-2 ${listHeaderColors[list.titleColor || 'gray']}`}>
+              <div className={`flex items-center justify-between px-3 py-2 rounded-md ${listHeaderColors[list.titleColor || 'gray']}`}>
                 <div className="flex items-center justify-between w-full text-black/80">
                   <span className="text-sm font-medium">
                     {list.title} ({list.cards.length})
@@ -943,7 +943,7 @@ const BoardPage = () => {
                           }}
                           className="group flex items-center gap-2 px-1 py-1 rounded-md text-sm text-red-500 hover:bg-red-600 hover:text-white focus:outline-none focus:ring-2 focus:ring-red-500 transition-all"
                         >
-                          <div className="flex items-center justify-center bg-red-500/20 group-hover:bg-white/20 p-1.5 rounded-full transition">
+                          <div className="flex items-center justify-center bg-red-500/20 group-hover:bg-white/20 p-1.5 rounded-md transition">
                             <Trash2 className="h-4 w-4" />
                           </div>
                           <span className="whitespace-nowrap font-medium">Delete</span>
@@ -963,7 +963,7 @@ const BoardPage = () => {
                     <div
                       className={`h-2 transition-all duration-200 ${
                         draggedOverList === list.id && draggedOverCardIndex === index && draggedCard?.card.id !== card.id
-                          ? 'bg-blue-400 rounded-full opacity-75 mb-2'
+                          ? 'bg-blue-400 rounded-md opacity-75 mb-2'
                           : ''
                       }`}
                       onDragOver={(e) => handleDragOver(e, list.id, index)}
@@ -990,7 +990,7 @@ const BoardPage = () => {
                             {card.statusBadges.map((badge) => (
                               <span 
                                 key={badge.id}
-                                className={`inline-block px-2 py-0.5 rounded text-xs font-medium ${badgeColors[badge.color]}`}>
+                                className={`inline-block px-2 py-0.5 rounded-md text-xs font-medium ${badgeColors[badge.color]}`}>
                                 {badge.text}
                               </span>
                             ))}
@@ -1023,7 +1023,7 @@ const BoardPage = () => {
                           <Button 
                             variant="ghost" 
                             size="sm" 
-                            className="h-6 w-6 p-0 rounded-full border border-dotted border-gray-400 
+                            className="h-6 w-6 p-0 rounded-md border border-dotted border-gray-400 
                                       text-gray-400 flex items-center justify-center hover:text-white hover:border-white"
                             onClick={(e) => {
                               e.stopPropagation();
@@ -1039,7 +1039,7 @@ const BoardPage = () => {
                       <div
                         className={`h-2 transition-all duration-200 ${
                           draggedOverList === list.id && draggedOverCardIndex === list.cards.length && draggedCard?.sourceListId !== list.id
-                            ? 'bg-blue-400 rounded-full opacity-75 mt-2'
+                            ? 'bg-blue-400 rounded-md opacity-75 mt-2'
                             : ''
                         }`}
                         onDragOver={(e) => handleDragOver(e, list.id, list.cards.length)}
@@ -1054,7 +1054,7 @@ const BoardPage = () => {
                   <div
                     className={`h-4 transition-all duration-200 ${
                       draggedOverList === list.id && draggedOverCardIndex === 0
-                        ? 'bg-blue-400 rounded-full opacity-75'
+                        ? 'bg-blue-400 rounded-md opacity-75'
                         : ''
                     }`}
                     onDragOver={(e) => handleDragOver(e, list.id, 0)}
@@ -1118,7 +1118,7 @@ const BoardPage = () => {
 
           {/* Add List */}
           {showAddList ? (
-            <div className="flex-shrink-0 w-80 bg-gray-700 rounded-lg p-4 border border-gray-600">
+            <div className="flex-shrink-0 w-80 bg-gray-700 rounded-md p-4 border border-gray-600">
               <Input
                 value={newListTitle}
                 onChange={(e) => setNewListTitle(e.target.value)}
@@ -1142,7 +1142,7 @@ const BoardPage = () => {
                     <button
                       key={color.value}
                       onClick={() => setSelectedListColor(color.value)}
-                      className={`w-6 h-6 rounded-full border-2 transition-all ${color.bg} 
+                      className={`w-6 h-6 rounded-md border-2 transition-all ${color.bg} 
                         ${selectedListColor === color.value 
                           ? 'border-white ring-2 ring-white/50' 
                           : 'border-gray-400 hover:border-white'
@@ -1183,7 +1183,7 @@ const BoardPage = () => {
             <div className="flex-shrink-0 w-80">
               <Button 
                 variant="ghost" 
-                className="w-full h-10 bg-gray-700/50 hover:bg-gray-700 text-gray-300 hover:text-white border-2 border-dashed border-gray-500 hover:border-gray-400 rounded-lg"
+                className="w-full h-10 bg-gray-700/50 hover:bg-gray-700 text-gray-300 hover:text-white border-2 border-dashed border-gray-500 hover:border-gray-400 rounded-md"
                 onClick={() => setShowAddList(true)}
               >
                 <Plus className="h-5 w-5 mr-2" />
@@ -1207,7 +1207,7 @@ const BoardPage = () => {
           <div
             key={cardId}
             ref={(el) => { datePickerRefs.current[cardId] = el}}
-            className="fixed z-50 bg-white rounded-lg p-3 shadow-xl border border-gray-300"
+            className="fixed z-50 bg-white rounded-md p-3 shadow-xl border border-gray-300"
             style={{
               top: `${position.top}px`,
               left: `${position.left}px`,
