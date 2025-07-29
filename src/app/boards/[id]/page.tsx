@@ -18,7 +18,6 @@ import {
   Users,
   MoreHorizontal,
   X,
-  Calendar,
   Palette,
   Trash2,
   Edit3,
@@ -782,18 +781,6 @@ const BoardPage = () => {
   };
 
   // Due date functionality
-  const handleDateClick = (cardId: string, currentDate?: string) => {
-    setShowDatePicker({});
-    
-    const position = calculateDatePickerPosition(cardId);
-    setDatePickerPosition(prev => ({ ...prev, [cardId]: position }));
-    
-    setEditingDueDate(prev => ({
-      ...prev,
-      [cardId]: currentDate || ''
-    }));
-    setShowDatePicker(prev => ({ ...prev, [cardId]: true }));
-  };
 
   const handleDateSave = (cardId: string, listId: string) => {
     const dateValue = editingDueDate[cardId];
@@ -1009,17 +996,21 @@ const BoardPage = () => {
                         )}
                         
                         <div className="flex items-center justify-between">
-                          <Button 
-                            ref={(el) => { calendarButtonRefs.current[card.id] = el }}
-                            variant="ghost" 
-                            size="sm" 
-                            className="h-6 w-6 p-0 text-gray-400 hover:text-white"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              handleDateClick(card.id, card.dueDate);
-                            }}>
-                            <Calendar className="h-3 w-3" />
-                          </Button>
+                          <div className="relative">
+                            <div
+                              className="task-due-date cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 rounded px-1 py-0.5 transition-colors"
+                              title="Click to change date"
+                              style={{
+                                fontSize: "10px",
+                                color: "rgb(136, 136, 136)",
+                                marginRight: "8px",
+                                whiteSpace: "nowrap",
+                                display: "inline-block",
+                              }}
+                            >
+                              No due date
+                            </div>
+                          </div>
                           <Button 
                             variant="ghost" 
                             size="sm" 
