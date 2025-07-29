@@ -25,6 +25,7 @@ import {
   Tag,
   Clock
 } from 'lucide-react';
+import { ThemeToggle } from '@/components/theme-toggle';
 
 
 // Custom Dropdown Component
@@ -881,6 +882,7 @@ const BoardPage = () => {
           </div>
           
           <div className="flex items-center space-x-2">
+            <ThemeToggle />
             <Button variant="ghost" size="sm" className="text-white hover:bg-gray-700">
               <MoreHorizontal className="h-4 w-4" />
             </Button>

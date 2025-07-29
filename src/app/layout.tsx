@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
-import { Inter } from "next/font/google";
+import { Geist, Geist_Mono, Inter } from "next/font/google";
 import "./globals.css";
+import { ThemeProvider as NextThemesProvider, ThemeProviderProps } from "next-themes";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -14,10 +14,15 @@ const geistMono = Geist_Mono({
 });
 
 const inter = Inter({
-  variable: "--font-inter", // Add CSS variable
+  variable: "--font-inter",
   subsets: ["latin"],
   display: "swap",
 });
+
+// Wraps children with ThemeProvider
+function ThemeProvider({ children, ...props }: ThemeProviderProps) {
+  return <NextThemesProvider {...props}>{children}</NextThemesProvider>;
+}
 
 export const metadata: Metadata = {
   title: "My Kanban Board",
@@ -30,11 +35,14 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
+    <html lang="en" suppressHydrationWarning>
       <body
         className={`${geistSans.variable} ${geistMono.variable} ${inter.variable} antialiased`}
       >
-        {children}
+        {/* ✅ Wrap body with ThemeProvider */}
+        <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
+          {children}
+        </ThemeProvider>
       </body>
     </html>
   );
