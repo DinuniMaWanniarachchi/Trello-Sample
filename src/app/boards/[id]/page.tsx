@@ -555,8 +555,9 @@ const CardDetailsDrawer: React.FC<CardDetailsDrawerProps> = ({ card, isOpen, onC
 
 const BoardPage = () => {
   const [board, setBoard] = useState<Board>(initialBoard);
-  const [draggedCard, setDraggedCard] = useState<{card: Card, sourceListId: string} | null>(null);
+  const [draggedCard, setDraggedCard] = useState<{card: Card, sourceListId: string, sourceIndex: number} | null>(null);
   const [draggedOverList, setDraggedOverList] = useState<string | null>(null);
+  const [draggedOverCardIndex, setDraggedOverCardIndex] = useState<number | null>(null);
   const [newCardTitle, setNewCardTitle] = useState<{[listId: string]: string}>({});
   const [showAddCard, setShowAddCard] = useState<{[listId: string]: boolean}>({});
   const [newListTitle, setNewListTitle] = useState('');
@@ -638,49 +639,87 @@ const BoardPage = () => {
     return { top, left };
   };
 
-  // Drag and Drop handlers
+  // Enhanced Drag and Drop handlers
   const handleDragStart = (e: React.DragEvent, card: Card, listId: string) => {
-    setDraggedCard({ card, sourceListId: listId });
+    const list = board.lists.find(l => l.id === listId);
+    const cardIndex = list?.cards.findIndex(c => c.id === card.id) ?? -1;
+    
+    setDraggedCard({ card, sourceListId: listId, sourceIndex: cardIndex });
     e.dataTransfer.effectAllowed = 'move';
   };
 
-  const handleDragOver = (e: React.DragEvent, listId: string) => {
+  const handleDragOver = (e: React.DragEvent, listId: string, cardIndex?: number) => {
     e.preventDefault();
     setDraggedOverList(listId);
+    
+    // Set the card index for positioning within the list
+    if (typeof cardIndex === 'number') {
+      setDraggedOverCardIndex(cardIndex);
+    } else {
+      // If dropping on the list container, append to end
+      const targetList = board.lists.find(l => l.id === listId);
+      setDraggedOverCardIndex(targetList?.cards.length ?? 0);
+    }
+    
     e.dataTransfer.dropEffect = 'move';
   };
 
   const handleDragLeave = () => {
     setDraggedOverList(null);
+    setDraggedOverCardIndex(null);
   };
 
-  const handleDrop = (e: React.DragEvent, targetListId: string) => {
+  const handleDrop = (e: React.DragEvent, targetListId: string, targetIndex?: number) => {
     e.preventDefault();
     setDraggedOverList(null);
+    setDraggedOverCardIndex(null);
     
     if (!draggedCard) return;
     
-    const { card, sourceListId } = draggedCard;
+    const { card, sourceListId, sourceIndex } = draggedCard;
     
-    if (sourceListId === targetListId) {
-      setDraggedCard(null);
-      return;
-    }
+    // Determine the target position
+    const targetList = board.lists.find(l => l.id === targetListId);
+    const finalTargetIndex = typeof targetIndex === 'number' ? targetIndex : (targetList?.cards.length ?? 0);
 
     setBoard(prevBoard => {
       const newLists = prevBoard.lists.map(list => {
-        if (list.id === sourceListId) {
-          return {
-            ...list,
-            cards: list.cards.filter(c => c.id !== card.id)
-          };
+        // Handle moving between different lists (existing behavior)
+        if (sourceListId !== targetListId) {
+          if (list.id === sourceListId) {
+            // Remove card from source list
+            const newCards = [...list.cards];
+            newCards.splice(sourceIndex, 1);
+            return { ...list, cards: newCards };
+          }
+          if (list.id === targetListId) {
+            // Add card to target list at specific position
+            const newCards = [...list.cards];
+            newCards.splice(finalTargetIndex, 0, card);
+            return { ...list, cards: newCards };
+          }
+          return list;
         }
-        if (list.id === targetListId) {
-          return {
-            ...list,
-            cards: [...list.cards, card]
-          };
+        
+        // Handle moving within the same list (swapping/shifting behavior)
+        if (list.id === sourceListId && sourceListId === targetListId) {
+          const newCards = [...list.cards];
+          
+          // Don't do anything if dropping in the same position
+          if (sourceIndex === finalTargetIndex) {
+            return list;
+          }
+          
+          // Remove the dragged card from its original position
+          const [draggedCard] = newCards.splice(sourceIndex, 1);
+          
+          // Insert the dragged card at the new position
+          // This automatically shifts other cards to make room
+          newCards.splice(finalTargetIndex, 0, draggedCard);
+          
+          return { ...list, cards: newCards };
         }
+        
         return list;
       });
       
@@ -917,70 +956,111 @@ const BoardPage = () => {
 
               {/* Cards Container */}
               <div className="p-3 space-y-2 min-h-[200px]">
-                {/* Cards */}
-                {list.cards.map((card) => (
-                  <Card 
-                    key={card.id}
-                    className="cursor-move hover:shadow-lg transition-all duration-200
-                              bg-gray-800 border-gray-500 hover:bg-gray-700"
-                    draggable
-                    onDragStart={(e) => handleDragStart(e, card, list.id)}
-                    onClick={() => {
-                      setSelectedCard(card);
-                      setIsCardDrawerOpen(true);
-                    }}
-                  >
-                    <CardContent className="px-3 py-2">
-                      {/* Card Status Badges */}
-                      {card.statusBadges && card.statusBadges.length > 0 && (
-                        <div className="flex flex-wrap gap-1 mb-2">
-                          {card.statusBadges.map((badge) => (
-                            <span 
-                              key={badge.id}
-                              className={`inline-block px-2 py-0.5 rounded text-xs font-medium ${badgeColors[badge.color]}`}>
-                              {badge.text}
+                {/* Cards with Drop Zones */}
+                {list.cards.map((card, index) => (
+                  <div key={card.id}>
+                    {/* Drop zone above card */}
+                    <div
+                      className={`h-2 transition-all duration-200 ${
+                        draggedOverList === list.id && draggedOverCardIndex === index && draggedCard?.card.id !== card.id
+                          ? 'bg-blue-400 rounded-full opacity-75 mb-2'
+                          : ''
+                      }`}
+                      onDragOver={(e) => handleDragOver(e, list.id, index)}
+                      onDrop={(e) => handleDrop(e, list.id, index)}
+                    />
+                    
+                    {/* Card */}
+                    <Card 
+                      className={`cursor-move hover:shadow-lg transition-all duration-200
+                                  bg-gray-800 border-gray-500 hover:bg-gray-700 ${
+                                    draggedCard?.card.id === card.id ? 'opacity-50' : ''
+                                  }`}
+                      draggable
+                      onDragStart={(e) => handleDragStart(e, card, list.id)}
+                      onClick={() => {
+                        setSelectedCard(card);
+                        setIsCardDrawerOpen(true);
+                      }}
+                    >
+                      <CardContent className="px-3 py-2">
+                        {/* Card Status Badges */}
+                        {card.statusBadges && card.statusBadges.length > 0 && (
+                          <div className="flex flex-wrap gap-1 mb-2">
+                            {card.statusBadges.map((badge) => (
+                              <span 
+                                key={badge.id}
+                                className={`inline-block px-2 py-0.5 rounded text-xs font-medium ${badgeColors[badge.color]}`}>
+                                {badge.text}
+                              </span>
+                            ))}
+                          </div>
+                        )}
+                        
+                        <h4 className="text-white font-medium text-sm leading-tight mb-2">{card.title}</h4>
+                        
+                        {/* Due Date Display */}
+                        {card.dueDate && (
+                          <div className="mb-2">
+                            <span className={`text-xs ${getDueDateColor(card.dueDate)}`}>
+                              📅 Due {formatDueDate(card.dueDate)}
                             </span>
-                          ))}
+                          </div>
+                        )}
+                        
+                        <div className="flex items-center justify-between">
+                          <Button 
+                            ref={(el) => { calendarButtonRefs.current[card.id] = el }}
+                            variant="ghost" 
+                            size="sm" 
+                            className="h-6 w-6 p-0 text-gray-400 hover:text-white"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleDateClick(card.id, card.dueDate);
+                            }}>
+                            <Calendar className="h-3 w-3" />
+                          </Button>
+                          <Button 
+                            variant="ghost" 
+                            size="sm" 
+                            className="h-6 w-6 p-0 rounded-full border border-dotted border-gray-400 
+                                      text-gray-400 flex items-center justify-center hover:text-white hover:border-white"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                            }}>
+                            <Plus className="h-3 w-3" />
+                          </Button>
                         </div>
-                      )}
-                      
-                      <h4 className="text-white font-medium text-sm leading-tight mb-2">{card.title}</h4>
-                      
-                      {/* Due Date Display */}
-                      {card.dueDate && (
-                        <div className="mb-2">
-                          <span className={`text-xs ${getDueDateColor(card.dueDate)}`}>
-                            📅 Due {formatDueDate(card.dueDate)}
-                          </span>
-                        </div>
-                      )}
-                      
-                      <div className="flex items-center justify-between">
-                        <Button 
-                          ref={(el) => { calendarButtonRefs.current[card.id] = el }}
-                          variant="ghost" 
-                          size="sm" 
-                          className="h-6 w-6 p-0 text-gray-400 hover:text-white"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            handleDateClick(card.id, card.dueDate);
-                          }}>
-                          <Calendar className="h-3 w-3" />
-                        </Button>
-                        <Button 
-                          variant="ghost" 
-                          size="sm" 
-                          className="h-6 w-6 p-0 rounded-full border border-dotted border-gray-400 
-                                    text-gray-400 flex items-center justify-center hover:text-white hover:border-white"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                          }}>
-                          <Plus className="h-3 w-3" />
-                        </Button>
-                      </div>
-                    </CardContent>
-                  </Card>
+                      </CardContent>
+                    </Card>
+                    
+                    {/* Drop zone after last card */}
+                    {index === list.cards.length - 1 && (
+                      <div
+                        className={`h-2 transition-all duration-200 ${
+                          draggedOverList === list.id && draggedOverCardIndex === list.cards.length && draggedCard?.sourceListId !== list.id
+                            ? 'bg-blue-400 rounded-full opacity-75 mt-2'
+                            : ''
+                        }`}
+                        onDragOver={(e) => handleDragOver(e, list.id, list.cards.length)}
+                        onDrop={(e) => handleDrop(e, list.id, list.cards.length)}
+                      />
+                    )}
+                  </div>
                 ))}
+
+                {/* Drop zone for empty list */}
+                {list.cards.length === 0 && (
+                  <div
+                    className={`h-4 transition-all duration-200 ${
+                      draggedOverList === list.id && draggedOverCardIndex === 0
+                        ? 'bg-blue-400 rounded-full opacity-75'
+                        : ''
+                    }`}
+                    onDragOver={(e) => handleDragOver(e, list.id, 0)}
+                    onDrop={(e) => handleDrop(e, list.id, 0)}
+                  />
+                )}
 
                 {/* Add Card */}
                 {showAddCard[list.id] ? (
@@ -1027,8 +1107,7 @@ const BoardPage = () => {
                     variant="ghost" 
                     size="sm" 
                     className="w-full justify-center text-gray-400 hover:text-white hover:bg-gray-700 border-2 border-dashed border-gray-500 hover:border-gray-400 py-6"
-                    onClick={() => setShowAddCard(prev => ({ ...prev, [list.id]: true }))}
-                  >
+                    onClick={() => setShowAddCard(prev => ({ ...prev, [list.id]: true }))}>
                     <Plus className="h-4 w-4 mr-2" />
                     Add Task
                   </Button>
@@ -1050,8 +1129,7 @@ const BoardPage = () => {
                     handleAddList();
                   }
                 }}
-                autoFocus
-              />
+                autoFocus/>
               
               {/* Color Selection */}
               <div className="mb-3">
@@ -1089,16 +1167,14 @@ const BoardPage = () => {
                   size="sm" 
                   onClick={handleAddList}
                   disabled={!newListTitle.trim()}
-                  className="flex-1 bg-blue-600 hover:bg-blue-700"
-                >
+                  className="flex-1 bg-blue-600 hover:bg-blue-700">
                   Add list
                 </Button>
                 <Button 
                   variant="ghost" 
                   size="sm"
                   onClick={handleCancelAddList}
-                  className="text-gray-400 hover:text-white"
-                >
+                  className="text-gray-400 hover:text-white">
                   <X className="h-4 w-4" />
                 </Button>
               </div>
