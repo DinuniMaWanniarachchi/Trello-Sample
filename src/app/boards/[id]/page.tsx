@@ -384,7 +384,7 @@ const CardDetailsDrawer: React.FC<CardDetailsDrawerProps> = ({ card, isOpen, onC
         </SheetHeader>
 
         {/* Content - Scrollable */}
-        <div className="flex-3 overflow-y-auto py-8 space-y-6">
+        <div className="flex-3 overflow-y-auto pt-8 pb-4 px-4 space-y-6">
           {/* Title Section */}
           <div className="space-y-3">
             <div className="flex items-center space-x-4">
@@ -415,7 +415,7 @@ const CardDetailsDrawer: React.FC<CardDetailsDrawerProps> = ({ card, isOpen, onC
               </div>
             ) : (
               <div 
-                className="text-xxs font-medium text-white cursor-pointer hover:bg-gray-700 p-2 rounded border border-transparent hover:border-gray-600"
+                className="text-xxs font-medium text-white cursor-pointer hover:bg-gray-700 p-2 rounded-md border border-transparent hover:border-gray-600"
                 onClick={() => setIsEditingTitle(true)}
               >
                 {editedTitle || 'Click to add title...'}
@@ -435,7 +435,7 @@ const CardDetailsDrawer: React.FC<CardDetailsDrawerProps> = ({ card, isOpen, onC
               <div className="flex flex-wrap gap-2">
                 {card.statusBadges.map((badge) => (
                   <div key={badge.id} className="flex items-center">
-                    <span className={`inline-block px-3 py-1 rounded-full text-sm font-medium ${badgeColors[badge.color]}`}>
+                    <span className={`inline-block px-3 py-1 rounded-md text-sm font-medium ${badgeColors[badge.color]}`}>
                       {badge.text}
                     </span>
                     <Button
@@ -540,7 +540,7 @@ const CardDetailsDrawer: React.FC<CardDetailsDrawerProps> = ({ card, isOpen, onC
         </div>
 
         {/* Footer */}
-        <div className="flex justify-end space-x-3 pt-4 border-t border-gray-700">
+        <div className="flex justify-end space-x-3 pt-2 border-t border-gray-700">
           <Button variant="ghost" onClick={onClose} className="text-gray-300 hover:text-white hover:bg-gray-700">
             Close
           </Button>
