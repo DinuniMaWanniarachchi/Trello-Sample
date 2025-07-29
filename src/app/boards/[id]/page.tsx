@@ -1011,16 +1011,18 @@ const BoardPage = () => {
                               No due date
                             </div>
                           </div>
-                          <Button 
-                            variant="ghost" 
-                            size="sm" 
-                            className="h-6 w-6 p-0 rounded-md border border-dotted border-gray-400 
-                                      text-gray-400 flex items-center justify-center hover:text-white hover:border-white"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                            }}>
-                            <Plus className="h-3 w-3" />
-                          </Button>
+                          <button className="
+                            w-5 h-5 rounded-full border border-dashed flex items-center justify-center
+                            transition-colors duration-200
+                            border-gray-600 hover:border-gray-500 hover:bg-gray-800 text-gray-400
+                          " title="Add assignee">
+                            <span role="img" aria-label="plus" className="anticon anticon-plus text-xs">
+                              <svg viewBox="64 64 896 896" focusable="false" data-icon="plus" width="1em" height="1em" fill="currentColor" aria-hidden="true">
+                                <path d="M482 152h60q8 0 8 8v704q0 8-8 8h-60q-8 0-8-8V160q0-8 8-8z"></path>
+                                <path d="M192 474h672q8 0 8 8v60q0 8-8 8H160q-8 0-8-8v-60q0-8 8-8z"></path>
+                              </svg>
+                            </span>
+                          </button>
                         </div>
                       </CardContent>
                     </Card>
