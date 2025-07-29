@@ -998,6 +998,31 @@ const BoardPage = () => {
                         <div className="flex items-center justify-between">
                           <div className="relative">
                             <div
+                              ref={(el) => {datePickerRefs.current[card.id] = el}}
+                              onClick={(e) => {
+                                e.stopPropagation();
+
+                                setShowDatePicker((prev) => ({
+                                  ...prev,
+                                  [card.id]: !prev[card.id],
+                                }));
+
+                                setEditingDueDate((prev) => ({
+                                  ...prev,
+                                  [card.id]: card.dueDate || "",
+                                }));
+
+                                const rect = datePickerRefs.current[card.id]?.getBoundingClientRect();
+                                if (rect) {
+                                  setDatePickerPosition((prev) => ({
+                                    ...prev,
+                                    [card.id]: {
+                                      top: rect.top + window.scrollY + 24, // add some offset
+                                      left: rect.left + window.scrollX,
+                                    },
+                                  }));
+                                }
+                              }}
                               className="task-due-date cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 rounded px-1 py-0.5 transition-colors"
                               title="Click to change date"
                               style={{
@@ -1011,8 +1036,12 @@ const BoardPage = () => {
                               No due date
                             </div>
                           </div>
-                          <button className="
-                            w-5 h-5 rounded-full border border-dashed flex items-center justify-center
+                          <button
+                            onClick={(e) => {
+                            e.stopPropagation(); 
+                            console.log("Add assignee clicked");
+                            }}
+                            className="w-5 h-5 rounded-full border border-dashed flex items-center justify-center
                             transition-colors duration-200
                             border-gray-600 hover:border-gray-500 hover:bg-gray-800 text-gray-400
                           " title="Add assignee">
