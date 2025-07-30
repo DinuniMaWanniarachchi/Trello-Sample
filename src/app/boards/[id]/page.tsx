@@ -670,64 +670,64 @@ const BoardPage = () => {
   };
 
   const handleDrop = (e: React.DragEvent, targetListId: string, targetIndex?: number) => {
-    e.preventDefault();
-    setDraggedOverList(null);
-    setDraggedOverCardIndex(null);
-    
-    if (!draggedCard) return;
-    
-    const { card, sourceListId, sourceIndex } = draggedCard;
-    
-    // Determine the target position
-    const targetList = board.lists.find(l => l.id === targetListId);
-    const finalTargetIndex = typeof targetIndex === 'number' ? targetIndex : (targetList?.cards.length ?? 0);
+  e.preventDefault();
+  setDraggedOverList(null);
+  setDraggedOverCardIndex(null);
+  
+  if (!draggedCard) return;
+  
+  const { card, sourceListId, sourceIndex } = draggedCard;
+  
+  // Determine the target position
+  const targetList = board.lists.find(l => l.id === targetListId);
+  const finalTargetIndex = typeof targetIndex === 'number' ? targetIndex : (targetList?.cards.length ?? 0);
 
-    setBoard(prevBoard => {
-      const newLists = prevBoard.lists.map(list => {
-        // Handle moving between different lists (existing behavior)
-        if (sourceListId !== targetListId) {
-          if (list.id === sourceListId) {
-            // Remove card from source list
-            const newCards = [...list.cards];
-            newCards.splice(sourceIndex, 1);
-            return { ...list, cards: newCards };
-          }
-          if (list.id === targetListId) {
-            // Add card to target list at specific position
-            const newCards = [...list.cards];
-            newCards.splice(finalTargetIndex, 0, card);
-            return { ...list, cards: newCards };
-          }
-          return list;
-        }
-        
-        // Handle moving within the same list (swapping/shifting behavior)
-        if (list.id === sourceListId && sourceListId === targetListId) {
+  setBoard(prevBoard => {
+    const newLists = prevBoard.lists.map(list => {
+      // Handle moving between different lists (existing behavior)
+      if (sourceListId !== targetListId) {
+        if (list.id === sourceListId) {
+          // Remove card from source list
           const newCards = [...list.cards];
-          
-          // Don't do anything if dropping in the same position
-          if (sourceIndex === finalTargetIndex) {
-            return list;
-          }
-          
-          // Remove the dragged card from its original position
-          const [draggedCard] = newCards.splice(sourceIndex, 1);
-          
-          // Insert the dragged card at the new position
-          // This automatically shifts other cards to make room
-          newCards.splice(finalTargetIndex, 0, draggedCard);
-          
+          newCards.splice(sourceIndex, 1);
           return { ...list, cards: newCards };
         }
-        
+        if (list.id === targetListId) {
+          // Add card to target list at specific position
+          const newCards = [...list.cards];
+          newCards.splice(finalTargetIndex, 0, card);
+          return { ...list, cards: newCards };
+        }
         return list;
-      });
+      }
       
-      return { ...prevBoard, lists: newLists };
+      // Handle moving within the same list (FIXED LOGIC)
+      if (list.id === sourceListId && sourceListId === targetListId) {
+        const newCards = [...list.cards];
+
+        if (sourceIndex === finalTargetIndex) {
+          return list;
+        }
+
+        const [removedCard] = newCards.splice(sourceIndex, 1);
+
+        let insertIndex = finalTargetIndex;
+        if (sourceIndex < finalTargetIndex) {
+          insertIndex--; // Adjust if dragging downward
+        }
+
+        newCards.splice(insertIndex, 0, removedCard);
+
+        return { ...list, cards: newCards };
+      }
+      return list;
     });
     
-    setDraggedCard(null);
-  };
+    return { ...prevBoard, lists: newLists };
+  });
+  
+  setDraggedCard(null);
+};
 
   // Add card functionality
   const handleAddCard = (listId: string) => {
