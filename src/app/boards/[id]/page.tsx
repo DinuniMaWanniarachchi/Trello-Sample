@@ -28,6 +28,7 @@ import {
 import { ThemeToggle } from '@/components/theme-toggle';
 
 
+
 // Custom Dropdown Component
 interface DropdownMenuProps {
   children: React.ReactNode;
@@ -882,7 +883,6 @@ const BoardPage = () => {
           </div>
           
           <div className="flex items-center space-x-2">
-            <ThemeToggle />
             <Button variant="ghost" size="sm" className="text-white hover:bg-gray-700">
               <MoreHorizontal className="h-4 w-4" />
             </Button>
@@ -910,6 +910,7 @@ const BoardPage = () => {
                     {list.title} ({list.cards.length})
                   </span>
                   <div className="flex items-center space-x-2">
+                    <ThemeToggle />
                     <Button variant="ghost" size="sm" className="h-6 w-6 p-0 text-black/100 hover:text-white hover:bg-white/20">
                       <Plus className="h-4 w-4" />
                     </Button>
