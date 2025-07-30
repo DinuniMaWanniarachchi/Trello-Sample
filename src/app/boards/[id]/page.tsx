@@ -25,9 +25,6 @@ import {
   Tag,
   Clock
 } from 'lucide-react';
-import { ThemeToggle } from '@/components/theme-toggle';
-
-
 
 // Custom Dropdown Component
 interface DropdownMenuProps {
@@ -155,6 +152,7 @@ const DropdownMenuItem: React.FC<DropdownMenuItemProps & { setIsOpen?: (open: bo
     </div>
   );
 };
+
 interface StatusBadge {
   id: string;
   text: string;
@@ -273,6 +271,27 @@ const initialBoard: Board = {
   ]
 };
 
+// Theme Toggle Component
+const ThemeToggle = () => {
+  const [isDark, setIsDark] = useState(true);
+
+  const toggleTheme = () => {
+    setIsDark(!isDark);
+    document.documentElement.classList.toggle('dark');
+  };
+
+  return (
+    <Button
+      variant="ghost"
+      size="sm"
+      onClick={toggleTheme}
+      className="text-foreground hover:bg-accent"
+    >
+      {isDark ? '☀️' : '🌙'}
+    </Button>
+  );
+};
+
 // Card Details Drawer Component using shadcn/ui Sheet
 interface CardDetailsDrawerProps {
   card: Card | null;
@@ -368,18 +387,18 @@ const CardDetailsDrawer: React.FC<CardDetailsDrawerProps> = ({ card, isOpen, onC
     if (diffDays < 0) return 'text-red-500';
     if (diffDays === 0) return 'text-orange-500';
     if (diffDays === 1) return 'text-yellow-500';
-    return 'text-gray-400';
+    return 'text-muted-foreground';
   };
 
   return (
     <Sheet open={isOpen} onOpenChange={onClose}>
-      <SheetContent side="right" className="w-100 bg-gray-800 border-gray-700">
-        <SheetHeader className="border-b border-gray-700 pb-4">
+      <SheetContent side="right" className="w-100 bg-background border-border">
+        <SheetHeader className="border-b border-border pb-4">
           <div className="flex items-center space-x-3">
-            <Edit3 className="h-5 w-5 text-gray-300" />
-            <SheetTitle className="text-xl font-semibold text-white">Card Details</SheetTitle>
+            <Edit3 className="h-5 w-5 text-muted-foreground" />
+            <SheetTitle className="text-xl font-semibold text-foreground">Card Details</SheetTitle>
           </div>
-          <SheetDescription className="text-gray-400">
+          <SheetDescription className="text-muted-foreground">
             Edit your card details, add labels, and set due dates.
           </SheetDescription>
         </SheetHeader>
@@ -389,15 +408,15 @@ const CardDetailsDrawer: React.FC<CardDetailsDrawerProps> = ({ card, isOpen, onC
           {/* Title Section */}
           <div className="space-y-3">
             <div className="flex items-center space-x-4">
-              <Type className="h-4 w-4 text-gray-300" />
-              <label className="text-sm font-medium text-gray-300">Title</label>
+              <Type className="h-4 w-4 text-muted-foreground" />
+              <label className="text-sm font-medium text-muted-foreground">Title</label>
             </div>
             {isEditingTitle ? (
               <div className="space-y-2">
                 <Input
                   value={editedTitle}
                   onChange={(e) => setEditedTitle(e.target.value)}
-                  className="text-xxs font-thin bg-gray-700 border-gray-600 text-white placeholder-gray-400"
+                  className="text-xxs font-thin bg-accent border-border text-foreground placeholder-muted-foreground"
                   autoFocus
                   onKeyPress={(e) => {
                     if (e.key === 'Enter') {
@@ -409,14 +428,14 @@ const CardDetailsDrawer: React.FC<CardDetailsDrawerProps> = ({ card, isOpen, onC
                   <Button size="sm" onClick={handleSave} className="bg-blue-600 hover:bg-blue-700 text-white">
                     Save
                   </Button>
-                  <Button variant="ghost" size="sm" onClick={() => setIsEditingTitle(false)} className="text-gray-300 hover:text-white hover:bg-gray-700">
+                  <Button variant="ghost" size="sm" onClick={() => setIsEditingTitle(false)} className="text-muted-foreground hover:text-foreground hover:bg-accent">
                     Cancel
                   </Button>
                 </div>
               </div>
             ) : (
               <div 
-                className="text-xxs font-medium text-white cursor-pointer hover:bg-gray-700 p-2 rounded-md border border-transparent hover:border-gray-600"
+                className="text-xxs font-medium text-foreground cursor-pointer hover:bg-accent p-2 rounded-md border border-transparent hover:border-border"
                 onClick={() => setIsEditingTitle(true)}
               >
                 {editedTitle || 'Click to add title...'}
@@ -427,8 +446,8 @@ const CardDetailsDrawer: React.FC<CardDetailsDrawerProps> = ({ card, isOpen, onC
           {/* Status Badges */}
           <div className="space-y-3">
             <div className="flex items-center space-x-4">
-              <Tag className="h-4 w-4 text-gray-300" />
-              <label className="text-sm font-medium text-gray-300">Labels</label>
+              <Tag className="h-4 w-4 text-muted-foreground" />
+              <label className="text-sm font-medium text-muted-foreground">Labels</label>
             </div>
             
             {/* Existing Badges */}
@@ -442,7 +461,7 @@ const CardDetailsDrawer: React.FC<CardDetailsDrawerProps> = ({ card, isOpen, onC
                     <Button
                       variant="ghost"
                       size="sm"
-                      className="ml-1 h-6 w-6 p-0 text-gray-400 hover:text-red-500"
+                      className="ml-1 h-6 w-6 p-0 text-muted-foreground hover:text-red-500"
                       onClick={() => handleRemoveBadge(badge.id)}
                     >
                       <X className="h-3 w-3" />
@@ -458,7 +477,7 @@ const CardDetailsDrawer: React.FC<CardDetailsDrawerProps> = ({ card, isOpen, onC
                 placeholder="Add label..."
                 value={newBadgeText}
                 onChange={(e) => setNewBadgeText(e.target.value)}
-                className="w-full bg-gray-700 border-gray-600 text-white placeholder-gray-400"
+                className="w-full bg-accent border-border text-foreground placeholder-muted-foreground"
                 onKeyPress={(e) => {
                   if (e.key === 'Enter') {
                     handleAddBadge();
@@ -469,7 +488,7 @@ const CardDetailsDrawer: React.FC<CardDetailsDrawerProps> = ({ card, isOpen, onC
                 <select
                   value={newBadgeColor}
                   onChange={(e) => setNewBadgeColor(e.target.value as keyof typeof badgeColors)}
-                  className="flex-1 px-3 py-2 border border-gray-600 rounded-md text-sm bg-gray-700 text-white"
+                  className="flex-1 px-3 py-2 border border-border rounded-md text-sm bg-accent text-foreground"
                 >
                   {Object.keys(badgeColors).map((color) => (
                     <option key={color} value={color}>
@@ -487,8 +506,8 @@ const CardDetailsDrawer: React.FC<CardDetailsDrawerProps> = ({ card, isOpen, onC
           {/* Due Date */}
           <div className="space-y-3">
             <div className="flex items-center space-x-2">
-              <Clock className="h-4 w-4 text-gray-300" />
-              <label className="text-sm font-medium text-gray-300">Due Date</label>
+              <Clock className="h-4 w-4 text-muted-foreground" />
+              <label className="text-sm font-medium text-muted-foreground">Due Date</label>
             </div>
             <div className="space-y-2">
               <Input
@@ -498,7 +517,7 @@ const CardDetailsDrawer: React.FC<CardDetailsDrawerProps> = ({ card, isOpen, onC
                   setEditedDueDate(e.target.value);
                   onUpdate(card.id, { dueDate: e.target.value || undefined });
                 }}
-                className="w-full bg-gray-700 border-gray-600 text-white"
+                className="w-full bg-accent border-border text-foreground"
               />
               {editedDueDate && (
                 <div className="flex items-center justify-between">
@@ -512,7 +531,7 @@ const CardDetailsDrawer: React.FC<CardDetailsDrawerProps> = ({ card, isOpen, onC
                       setEditedDueDate('');
                       onUpdate(card.id, { dueDate: undefined });
                     }}
-                    className="text-red-500 hover:text-red-700 hover:bg-gray-700"
+                    className="text-red-500 hover:text-red-700 hover:bg-accent"
                   >
                     Remove
                   </Button>
@@ -524,8 +543,8 @@ const CardDetailsDrawer: React.FC<CardDetailsDrawerProps> = ({ card, isOpen, onC
           {/* Description */}
           <div className="space-y-3">
             <div className="flex items-center space-x-2">
-              <Edit3 className="h-4 w-4 text-gray-300" />
-              <label className="text-sm font-medium text-gray-300">Description</label>
+              <Edit3 className="h-4 w-4 text-muted-foreground" />
+              <label className="text-sm font-medium text-muted-foreground">Description</label>
             </div>
             <Textarea
               value={editedDescription}
@@ -535,14 +554,14 @@ const CardDetailsDrawer: React.FC<CardDetailsDrawerProps> = ({ card, isOpen, onC
               }}
               placeholder="Add a more detailed description..."
               rows={4}
-              className="w-full resize-none bg-gray-700 border-gray-600 text-white placeholder-gray-400"
+              className="w-full resize-none bg-accent border-border text-foreground placeholder-muted-foreground"
             />
           </div>
         </div>
 
         {/* Footer */}
-        <div className="flex justify-end space-x-3 pt-2 border-t border-gray-700">
-          <Button variant="ghost" onClick={onClose} className="text-gray-300 hover:text-white hover:bg-gray-700">
+        <div className="flex justify-end space-x-3 pt-2 border-t border-border">
+          <Button variant="ghost" onClick={onClose} className="text-muted-foreground hover:text-foreground hover:bg-accent">
             Close
           </Button>
           <Button onClick={handleSave} className="bg-blue-600 hover:bg-blue-700 text-white">
@@ -608,7 +627,7 @@ const BoardPage = () => {
     if (diffDays < 0) return 'text-red-400';
     if (diffDays === 0) return 'text-orange-400';
     if (diffDays === 1) return 'text-yellow-400';
-    return 'text-gray-400';
+    return 'text-muted-foreground';
   };
 
   // Calculate optimal position for date picker
@@ -862,28 +881,32 @@ const BoardPage = () => {
     };
   }, [showDatePicker]);
 
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+   
   function handleDeleteList(id: string): void {
-    throw new Error('Function not implemented.');
+    setBoard(prevBoard => ({
+      ...prevBoard,
+      lists: prevBoard.lists.filter(list => list.id !== id)
+    }));
   }
 
   return (
-    <div className="min-h-screen bg-zinc-900">
+    <div className="min-h-screen bg-background">
       {/* Board Header */}
-      <div className="px-6 py-4 border-b border-gray-700">
+      <div className="px-6 py-4 border-b border-border">
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-4">
-            <h1 className="text-2xl font-bold text-white">{board.title}</h1>
-            <Button variant="ghost" size="sm" className="text-white hover:bg-gray-700">
+            <ThemeToggle/>
+            <h1 className="text-2xl font-bold text-foreground">{board.title}</h1>
+            <Button variant="ghost" size="sm" className="text-foreground hover:bg-accent">
               <Star className="h-4 w-4" />
             </Button>
-            <Button variant="ghost" size="sm" className="text-white hover:bg-gray-700">
+            <Button variant="ghost" size="sm" className="text-foreground hover:bg-accent">
               <Users className="h-4 w-4" />
             </Button>
           </div>
           
           <div className="flex items-center space-x-2">
-            <Button variant="ghost" size="sm" className="text-white hover:bg-gray-700">
+            <Button variant="ghost" size="sm" className="text-foreground hover:bg-accent">
               <MoreHorizontal className="h-4 w-4" />
             </Button>
           </div>
@@ -897,7 +920,7 @@ const BoardPage = () => {
           {board.lists.map((list) => (
             <div 
               key={list.id} 
-              className={`flex-shrink-0 w-68 bg-zinc-900 rounded-md border border-gray-600 overflow-hidden
+              className={`flex-shrink-0 w-68 bg-card rounded-md border border-border overflow-hidden
                           ${draggedOverList === list.id ? 'ring-2 ring-blue-400' : ''}`}
               onDragOver={(e) => handleDragOver(e, list.id)}
               onDragLeave={handleDragLeave}
@@ -910,7 +933,6 @@ const BoardPage = () => {
                     {list.title} ({list.cards.length})
                   </span>
                   <div className="flex items-center space-x-2">
-                    <ThemeToggle />
                     <Button variant="ghost" size="sm" className="h-6 w-6 p-0 text-black/100 hover:text-white hover:bg-white/20">
                       <Plus className="h-4 w-4" />
                     </Button>
@@ -924,7 +946,7 @@ const BoardPage = () => {
                           <MoreHorizontal className="h-4 w-4" />
                         </Button>
                       </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end" className="bg-gray-800 text-white border border-gray-600 shadow-xl rounded-md w-30 p-1">
+                      <DropdownMenuContent align="end" className="bg-popover text-popover-foreground border border-border shadow-xl rounded-md w-30 p-1">
                         <DropdownMenuItem
                           onClick={() => {
                             if (confirm("⚠️ Are you sure you want to delete this list? This action cannot be undone.")) {
@@ -963,7 +985,7 @@ const BoardPage = () => {
                     {/* Card */}
                     <Card 
                       className={`cursor-move hover:shadow-lg transition-all duration-200
-                                  bg-gray-800 border-gray-500 hover:bg-gray-700 ${
+                                  bg-card border-border hover:bg-accent ${
                                     draggedCard?.card.id === card.id ? 'opacity-50' : ''
                                   }`}
                       draggable
@@ -987,7 +1009,7 @@ const BoardPage = () => {
                           </div>
                         )}
                         
-                        <h4 className="text-white font-medium text-sm leading-tight mb-2">{card.title}</h4>
+                        <h4 className="text-card-foreground font-medium text-sm leading-tight mb-2">{card.title}</h4>
                         
                         {/* Due Date Display */}
                         {card.dueDate && (
@@ -1026,7 +1048,7 @@ const BoardPage = () => {
                                   }));
                                 }
                               }}
-                              className="task-due-date cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 rounded px-1 py-0.5 transition-colors"
+                              className="task-due-date cursor-pointer hover:bg-accent rounded px-1 py-0.5 transition-colors"
                               title="Click to change date"
                               style={{
                                 fontSize: "10px",
@@ -1046,7 +1068,7 @@ const BoardPage = () => {
                             }}
                             className="w-5 h-5 rounded-full border border-dashed flex items-center justify-center
                             transition-colors duration-200
-                            border-gray-600 hover:border-gray-500 hover:bg-gray-800 text-gray-400
+                            border-border hover:border-muted-foreground hover:bg-accent text-muted-foreground
                           " title="Add assignee">
                             <span role="img" aria-label="plus" className="anticon anticon-plus text-xs">
                               <svg viewBox="64 64 896 896" focusable="false" data-icon="plus" width="1em" height="1em" fill="currentColor" aria-hidden="true">
@@ -1097,7 +1119,7 @@ const BoardPage = () => {
                         [list.id]: e.target.value
                       }))}
                       placeholder="Enter a title for this card..."
-                      className="text-sm bg-gray-700 border-gray-500 text-white placeholder-gray-400"
+                      className="text-sm bg-accent border-border text-foreground placeholder-muted-foreground"
                       onKeyPress={(e) => {
                         if (e.key === 'Enter') {
                           handleAddCard(list.id);
@@ -1121,7 +1143,7 @@ const BoardPage = () => {
                           setShowAddCard(prev => ({ ...prev, [list.id]: false }));
                           setNewCardTitle(prev => ({ ...prev, [list.id]: '' }));
                         }}
-                        className="text-gray-400 hover:text-white"
+                        className="text-muted-foreground hover:text-foreground"
                       >
                         <X className="h-4 w-4" />
                       </Button>
@@ -1131,7 +1153,7 @@ const BoardPage = () => {
                   <Button 
                     variant="ghost" 
                     size="sm" 
-                    className="w-full justify-center text-gray-400 hover:text-white hover:bg-gray-700 border-2 border-dashed border-gray-500 hover:border-gray-400 py-6"
+                    className="w-full justify-center text-muted-foreground hover:text-foreground hover:bg-accent border-2 border-dashed border-border hover:border-muted-foreground py-6"
                     onClick={() => setShowAddCard(prev => ({ ...prev, [list.id]: true }))}>
                     <Plus className="h-4 w-4 mr-2" />
                     Add Task
@@ -1143,12 +1165,12 @@ const BoardPage = () => {
 
           {/* Add List */}
           {showAddList ? (
-            <div className="flex-shrink-0 w-80 bg-gray-700 rounded-md p-4 border border-gray-600">
+            <div className="flex-shrink-0 w-80 bg-accent rounded-md p-4 border border-border">
               <Input
                 value={newListTitle}
                 onChange={(e) => setNewListTitle(e.target.value)}
                 placeholder="Enter list title..."
-                className="mb-3 bg-gray-600 border-gray-500 text-white placeholder-gray-400"
+                className="mb-3 bg-card border-border text-foreground placeholder-muted-foreground"
                 onKeyPress={(e) => {
                   if (e.key === 'Enter' && !showColorPicker) {
                     handleAddList();
@@ -1159,8 +1181,8 @@ const BoardPage = () => {
               {/* Color Selection */}
               <div className="mb-3">
                 <div className="flex items-center gap-2 mb-2">
-                  <Palette className="h-4 w-4 text-gray-300" />
-                  <span className="text-sm text-gray-300">Choose title color:</span>
+                  <Palette className="h-4 w-4 text-muted-foreground" />
+                  <span className="text-sm text-muted-foreground">Choose title color:</span>
                 </div>
                 <div className="flex flex-wrap gap-2">
                   {availableColors.map((color) => (
@@ -1170,14 +1192,14 @@ const BoardPage = () => {
                       className={`w-6 h-6 rounded-md border-2 transition-all ${color.bg} 
                         ${selectedListColor === color.value 
                           ? 'border-white ring-2 ring-white/50' 
-                          : 'border-gray-400 hover:border-white'
+                          : 'border-muted-foreground hover:border-foreground'
                         }`}
                       title={color.name}
                     />
                   ))}
                 </div>
                 {/* Preview */}
-                <div className="mt-2 text-sm text-gray-300">
+                <div className="mt-2 text-sm text-muted-foreground">
                   Preview: 
                   <div className="mt-1">
                     <div className={`inline-block px-3 py-1 rounded-md text-sm font-medium ${listHeaderColors[selectedListColor]}`}>
@@ -1199,7 +1221,7 @@ const BoardPage = () => {
                   variant="ghost" 
                   size="sm"
                   onClick={handleCancelAddList}
-                  className="text-gray-400 hover:text-white">
+                  className="text-muted-foreground hover:text-foreground">
                   <X className="h-4 w-4" />
                 </Button>
               </div>
@@ -1208,7 +1230,7 @@ const BoardPage = () => {
             <div className="flex-shrink-0 w-80">
               <Button 
                 variant="ghost" 
-                className="w-full h-10 bg-gray-700/50 hover:bg-gray-700 text-gray-300 hover:text-white border-2 border-dashed border-gray-500 hover:border-gray-400 rounded-md"
+                className="w-full h-10 bg-accent hover:bg-accent/80 text-muted-foreground hover:text-foreground border-2 border-dashed border-border hover:border-muted-foreground rounded-md"
                 onClick={() => setShowAddList(true)}
               >
                 <Plus className="h-5 w-5 mr-2" />
@@ -1232,7 +1254,7 @@ const BoardPage = () => {
           <div
             key={cardId}
             ref={(el) => { datePickerRefs.current[cardId] = el}}
-            className="fixed z-50 bg-white rounded-md p-3 shadow-xl border border-gray-300"
+            className="fixed z-50 bg-popover rounded-md p-3 shadow-xl border border-border"
             style={{
               top: `${position.top}px`,
               left: `${position.left}px`,
@@ -1240,7 +1262,7 @@ const BoardPage = () => {
             }}
           >
             <div className="space-y-3">
-              <label className="text-sm text-gray-700 font-medium block">Due Date:</label>
+              <label className="text-sm text-popover-foreground font-medium block">Due Date:</label>
               <Input
                 type="date"
                 value={editingDueDate[cardId] || ''}

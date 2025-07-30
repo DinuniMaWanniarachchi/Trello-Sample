@@ -28,14 +28,16 @@ export default function RootLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
   return (
-    <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
-      <html lang="en" suppressHydrationWarning className={`${geistSans.variable} ${geistMono.variable} ${inter.variable} antialiased`}>
-        <body>
+    <html 
+      lang="en" 
+      suppressHydrationWarning 
+      className={`${geistSans.variable} ${geistMono.variable} ${inter.variable} antialiased`}
+    >
+      <body>
+        <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
           {children}
-        </body>
-      </html>
-    </ThemeProvider>
+        </ThemeProvider>
+      </body>
+    </html>
   );
 }
-
-
