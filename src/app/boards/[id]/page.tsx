@@ -880,7 +880,6 @@ const BoardPage = () => {
       window.removeEventListener('resize', handleScrollOrResize);
     };
   }, [showDatePicker]);
-
    
   function handleDeleteList(id: string): void {
     setBoard(prevBoard => ({
