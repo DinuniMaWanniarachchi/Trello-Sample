@@ -37,6 +37,11 @@ export const SortableCard: React.FC<SortableCardProps> = ({
     transition,
   };
 
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  function onUpdateCard(cardId: string, updates: Partial<Card>): void {
+    throw new Error('Function not implemented.');
+  }
+
   return (
     <div
       ref={setNodeRef}
@@ -49,7 +54,7 @@ export const SortableCard: React.FC<SortableCardProps> = ({
         isDragging={isDragging}
         onDragStart={() => {}}
         onClick={onClick}
-        
+        onUpdateCard={onUpdateCard} 
       />
     </div>
   );

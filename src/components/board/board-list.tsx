@@ -46,7 +46,7 @@ export const BoardList: React.FC<BoardListProps> = ({
     >
       {/* List Header */}
       <div className={`flex items-center justify-between px-3 py-2 rounded-md ${listHeaderColors[list.titleColor || 'gray']}`}>
-        <div className="flex items-center justify-between w-full text-black/80">
+        <div className="flex items-center justify-between w-full text-black/100">
           <span className="text-sm font-medium">
             {list.title} ({list.cards.length})
           </span>
