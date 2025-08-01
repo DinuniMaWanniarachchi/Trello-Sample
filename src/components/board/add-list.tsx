@@ -1,4 +1,3 @@
-// components/board/AddList.tsx
 "use client";
 
 import { useState } from 'react';

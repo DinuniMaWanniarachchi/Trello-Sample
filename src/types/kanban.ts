@@ -1,4 +1,3 @@
-// types/kanban.ts
 export type ColorType = 'orange' | 'blue' | 'green' | 'red' | 'purple' | 'yellow' | 'gray' | 'white';
 
 export interface StatusBadge {

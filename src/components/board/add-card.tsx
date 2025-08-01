@@ -1,4 +1,3 @@
-// components/board/AddCard.tsx
 "use client";
 
 import { useState } from 'react';

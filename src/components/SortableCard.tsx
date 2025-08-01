@@ -1,4 +1,3 @@
-// components/board/SortableCards.tsx
 "use client";
 
 import { useSortable } from '@dnd-kit/sortable';

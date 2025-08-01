@@ -1,4 +1,3 @@
-// components/board/SortableList.tsx
 "use client";
 
 import { useDroppable } from '@dnd-kit/core';
