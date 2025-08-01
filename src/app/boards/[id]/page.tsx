@@ -25,8 +25,8 @@ import { SortableCard } from '@/components/board/SortableCards';
 
 export default function BoardPage() {
   const { board, addCard, updateCard, addList, deleteList, moveCard } = useBoard();
-  const [selectedCard] = useState<Card | null>(null);
-  const [isCardDrawerOpen] = useState(false);
+  const [selectedCard, setSelectedCard] = useState<Card | null>(null);
+  const [isCardDrawerOpen, setIsCardDrawerOpen] = useState(false);
   const [activeCard, setActiveCard] = useState<Card | null>(null);
 
   // Configure sensors for better drag experience
@@ -170,20 +170,23 @@ export default function BoardPage() {
     }
   };
 
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  // Fixed handleCardClick function
   function handleCardClick(card: Card): void {
-    throw new Error('Function not implemented.');
+    setSelectedCard(card);
+    setIsCardDrawerOpen(true);
   }
 
+  // Fixed handleCloseDrawer function
   function handleCloseDrawer(): void {
-    throw new Error('Function not implemented.');
+    setIsCardDrawerOpen(false);
+    setSelectedCard(null);
   }
 
   return (
     <div className="min-h-screen bg-background">
       <BoardHeader title={board.title} />
       
-      <div className="p-6">
+      <div className="p-30 flex justify-center">
         <DndContext
           sensors={sensors}
           collisionDetection={closestCorners}

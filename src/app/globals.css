@@ -1,6 +1,7 @@
 @import "tailwindcss";
 @import "tw-animate-css";
 
+
 @custom-variant dark (&:is(.dark *));
 
 @theme inline {
@@ -123,4 +124,52 @@
 
 :root {
   --font-inter: 'Inter', sans-serif;
+}
+
+.date-picker-popover .ant-popover-inner {
+  border-radius: 8px !important;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1) !important;
+}
+
+.date-picker-popover .ant-picker {
+  border-radius: 6px !important;
+}
+
+.date-picker-popover .ant-picker-focused {
+  border-color: #1677ff !important;
+  box-shadow: 0 0 0 2px rgba(22, 119, 255, 0.1) !important;
+}
+
+/* Ensure proper z-index */
+.ant-picker-dropdown {
+  z-index: 9999 !important;
+}
+
+.ant-popover {
+  z-index: 9999 !important;
+}
+
+/* Dark mode support - adjust selectors based on your dark mode implementation */
+.dark .date-picker-popover .ant-popover-inner,
+[data-theme="dark"] .date-picker-popover .ant-popover-inner {
+  background-color: #1f2937 !important;
+  border-color: #374151 !important;
+}
+
+.dark .date-picker-popover .ant-picker,
+[data-theme="dark"] .date-picker-popover .ant-picker {
+  background-color: #374151 !important;
+  border-color: #4b5563 !important;
+  color: #f9fafb !important;
+}
+
+.dark .date-picker-popover .ant-picker-input input,
+[data-theme="dark"] .date-picker-popover .ant-picker-input input {
+  color: #f9fafb !important;
+  background-color: transparent !important;
+}
+
+.dark .date-picker-popover .ant-picker-input input::placeholder,
+[data-theme="dark"] .date-picker-popover .ant-picker-input input::placeholder {
+  color: #9ca3af !important;
 }
