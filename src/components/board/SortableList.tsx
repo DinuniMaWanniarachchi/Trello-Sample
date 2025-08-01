@@ -23,9 +23,10 @@ export const SortableList: React.FC<SortableListProps> = ({
   onAddCard,
   onDeleteList
 }) => {
-  const { setNodeRef } = useDroppable({
+  const { setNodeRef, isOver } = useDroppable({
     id: list.id,
     data: {
+      type: 'list',
       listId: list.id,
     },
   });
@@ -75,7 +76,12 @@ export const SortableList: React.FC<SortableListProps> = ({
       </div>
 
       {/* Cards Container */}
-      <div ref={setNodeRef} className="p-3 space-y-2 min-h-[200px]">
+      <div 
+        ref={setNodeRef} 
+        className={`p-3 space-y-2 min-h-[200px] transition-colors ${
+          isOver ? 'bg-muted/50' : ''
+        }`}
+      >
         <SortableContext items={cardIds} strategy={verticalListSortingStrategy}>
           {list.cards.map((card, index) => (
             <SortableCard
