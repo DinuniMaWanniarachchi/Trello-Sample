@@ -1,7 +1,8 @@
-// hooks/useBoard.ts
+// hooks/useBoard.ts (Updated for @dnd-kit/sortable)
 "use client";
 
 import { useState } from 'react';
+import { arrayMove } from '@dnd-kit/sortable';
 import { Board, Card, List, ColorType } from '@/types/kanban';
 
 // Initial board data
@@ -96,48 +97,55 @@ export const useBoard = () => {
     cardId: string, 
     sourceListId: string, 
     targetListId: string, 
-    sourceIndex: number, 
-    targetIndex: number
+    oldIndex: number, 
+    newIndex: number
   ) => {
     setBoard(prevBoard => {
-      const card = prevBoard.lists
-        .find(list => list.id === sourceListId)
-        ?.cards.find(c => c.id === cardId);
+      // Find the card being moved
+      const sourceList = prevBoard.lists.find(list => list.id === sourceListId);
+      const card = sourceList?.cards.find(c => c.id === cardId);
       
-      if (!card) return prevBoard;
+      if (!card || !sourceList) return prevBoard;
 
-      const newLists = prevBoard.lists.map(list => {
-        if (sourceListId !== targetListId) {
+      // If moving within the same list
+      if (sourceListId === targetListId) {
+        return {
+          ...prevBoard,
+          lists: prevBoard.lists.map(list => {
+            if (list.id === sourceListId) {
+              return {
+                ...list,
+                cards: arrayMove(list.cards, oldIndex, newIndex)
+              };
+            }
+            return list;
+          })
+        };
+      }
+
+      // If moving between different lists
+      return {
+        ...prevBoard,
+        lists: prevBoard.lists.map(list => {
           if (list.id === sourceListId) {
-            const newCards = [...list.cards];
-            newCards.splice(sourceIndex, 1);
-            return { ...list, cards: newCards };
+            // Remove card from source list
+            return {
+              ...list,
+              cards: list.cards.filter(c => c.id !== cardId)
+            };
           }
           if (list.id === targetListId) {
+            // Add card to target list at the specified position
             const newCards = [...list.cards];
-            newCards.splice(targetIndex, 0, card);
-            return { ...list, cards: newCards };
+            newCards.splice(newIndex, 0, card);
+            return {
+              ...list,
+              cards: newCards
+            };
           }
           return list;
-        }
-        
-        if (list.id === sourceListId && sourceListId === targetListId) {
-          const newCards = [...list.cards];
-          if (sourceIndex === targetIndex) return list;
-          
-          const [removedCard] = newCards.splice(sourceIndex, 1);
-          let insertIndex = targetIndex;
-          if (sourceIndex < targetIndex) {
-            insertIndex--;
-          }
-          newCards.splice(insertIndex, 0, removedCard);
-          
-          return { ...list, cards: newCards };
-        }
-        return list;
-      });
-      
-      return { ...prevBoard, lists: newLists };
+        })
+      };
     });
   };
 

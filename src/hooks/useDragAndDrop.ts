@@ -1,58 +1,129 @@
-// hooks/useDragAndDrop.ts
+// hooks/useDragAndDrop.ts (Updated with @dnd-kit/sortable)
 "use client";
 
 import { useState } from 'react';
-import { Card, DraggedCard } from '@/types/kanban';
+import {
+  DndContext,
+  DragEndEvent,
+  DragOverEvent,
+  DragStartEvent,
+  PointerSensor,
+  useSensor,
+  useSensors,
+  DragOverlay,
+  closestCorners
+} from '@dnd-kit/core';
+import {
+  SortableContext,
+  verticalListSortingStrategy,
+  arrayMove
+} from '@dnd-kit/sortable';
+import { Card } from '@/types/kanban';
 
-export const useDragAndDrop = (onMoveCard: (cardId: string, sourceListId: string, targetListId: string, sourceIndex: number, targetIndex: number) => void) => {
-  const [draggedCard, setDraggedCard] = useState<DraggedCard | null>(null);
-  const [draggedOverList, setDraggedOverList] = useState<string | null>(null);
-  const [draggedOverCardIndex, setDraggedOverCardIndex] = useState<number | null>(null);
+interface UseDragAndDropProps {
+  onMoveCard: (cardId: string, sourceListId: string, targetListId: string, oldIndex: number, newIndex: number) => void;
+}
 
-  const handleDragStart = (e: React.DragEvent, card: Card, listId: string, cardIndex: number) => {
-    setDraggedCard({ card, sourceListId: listId, sourceIndex: cardIndex });
-    e.dataTransfer.effectAllowed = 'move';
+export const useDragAndDrop = ({ onMoveCard }: UseDragAndDropProps) => {
+  const [activeCard, setActiveCard] = useState<Card | null>(null);
+  const [activeListId, setActiveListId] = useState<string | null>(null);
+
+  const sensors = useSensors(
+    useSensor(PointerSensor, {
+      activationConstraint: {
+        distance: 8,
+      },
+    })
+  );
+
+  const handleDragStart = (event: DragStartEvent) => {
+    const { active } = event;
+    const cardId = active.id as string;
+    const listId = active.data.current?.listId;
+    const card = active.data.current?.card;
+
+    setActiveCard(card);
+    setActiveListId(listId);
   };
 
-  const handleDragOver = (e: React.DragEvent, listId: string, cardIndex?: number) => {
-    e.preventDefault();
-    setDraggedOverList(listId);
+  const handleDragOver = (event: DragOverEvent) => {
+    const { active, over } = event;
     
-    if (typeof cardIndex === 'number') {
-      setDraggedOverCardIndex(cardIndex);
-    } else {
-      setDraggedOverCardIndex(null);
+    if (!over) return;
+
+    const activeId = active.id as string;
+    const overId = over.id as string;
+
+    // If dragging over a different list
+    const activeListId = active.data.current?.listId;
+    const overListId = over.data.current?.listId || overId;
+
+    if (activeListId !== overListId) {
+      // Handle moving between lists - this will be handled in onDragEnd
+      return;
     }
-    
-    e.dataTransfer.dropEffect = 'move';
   };
 
-  const handleDragLeave = () => {
-    setDraggedOverList(null);
-    setDraggedOverCardIndex(null);
+  const handleDragEnd = (event: DragEndEvent) => {
+    const { active, over } = event;
+    
+    setActiveCard(null);
+    setActiveListId(null);
+
+    if (!over) return;
+
+    const activeId = active.id as string;
+    const overId = over.id as string;
+
+    const activeListId = active.data.current?.listId;
+    const overListId = over.data.current?.listId || overId;
+    
+    const activeIndex = active.data.current?.index || 0;
+    const overIndex = over.data.current?.index || 0;
+
+    if (activeId === overId) return;
+
+    // Move card within the same list or between different lists
+    onMoveCard(activeId, activeListId, overListId, activeIndex, overIndex);
   };
 
-  const handleDrop = (e: React.DragEvent, targetListId: string, targetIndex?: number) => {
-    e.preventDefault();
-    setDraggedOverList(null);
-    setDraggedOverCardIndex(null);
-    
-    if (!draggedCard) return;
-    
-    const { card, sourceListId, sourceIndex } = draggedCard;
-    const finalTargetIndex = typeof targetIndex === 'number' ? targetIndex : 0;
+  const DndContextProvider = ({ children }: { children: React.ReactNode }) => (
+    <DndContext
+      sensors={sensors}
+      collisionDetection={closestCorners}
+      onDragStart={handleDragStart}
+      onDragOver={handleDragOver}
+      onDragEnd={handleDragEnd}
+    >
+      {children}
+      <DragOverlay>
+        {activeCard ? (
+          <div className="bg-card border border-border rounded-md p-3 shadow-lg opacity-95">
+            <h4 className="text-card-foreground font-medium text-sm">
+              {activeCard.title}
+            </h4>
+          </div>
+        ) : null}
+      </DragOverlay>
+    </DndContext>
+  );
 
-    onMoveCard(card.id, sourceListId, targetListId, sourceIndex, finalTargetIndex);
-    setDraggedCard(null);
-  };
+  const SortableContextProvider = ({ 
+    children, 
+    items 
+  }: { 
+    children: React.ReactNode; 
+    items: string[] 
+  }) => (
+    <SortableContext items={items} strategy={verticalListSortingStrategy}>
+      {children}
+    </SortableContext>
+  );
 
   return {
-    draggedCard,
-    draggedOverList,
-    draggedOverCardIndex,
-    handleDragStart,
-    handleDragOver,
-    handleDragLeave,
-    handleDrop
+    DndContextProvider,
+    SortableContextProvider,
+    activeCard,
+    activeListId
   };
 };
