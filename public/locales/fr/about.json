@@ -1,0 +1,17 @@
+{
+  "title": "À Propos de Nous",
+  "subtitle": "En savoir plus sur notre entreprise",
+  "content": {
+    "introduction": "Nous sommes une entreprise innovante axée sur la fourniture de solutions exceptionnelles.",
+    "mission": "Notre mission est de créer une technologie qui fait la différence.",
+    "vision": "Être le fournisseur leader de solutions de pointe dans le monde entier."
+  },
+  "team": {
+    "title": "Notre Équipe",
+    "description": "Rencontrez les personnes talentueuses derrière notre succès."
+  },
+  "contact": {
+    "title": "Nous Contacter",
+    "description": "Prêt à travailler avec nous? Contactez notre équipe dès aujourd'hui."
+  }
+}

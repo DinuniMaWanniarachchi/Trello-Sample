@@ -1,0 +1,23 @@
+{
+  "welcome": "Welcome to our app",
+  "navigation": {
+    "home": "Home",
+    "about": "About",
+    "contact": "Contact"
+  },
+  "buttons": {
+    "submit": "Submit",
+    "cancel": "Cancel",
+    "save": "Save"
+  },
+  "messages": {
+    "loading": "Loading...",
+    "error": "Something went wrong",
+    "success": "Success!"
+  },
+  "user": {
+    "profile": "Profile",
+    "settings": "Settings",
+    "logout": "Logout"
+  }
+}

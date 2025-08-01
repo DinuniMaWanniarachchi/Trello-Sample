@@ -1,0 +1,23 @@
+{
+  "welcome": "Bienvenue dans notre application",
+  "navigation": {
+    "home": "Accueil",
+    "about": "À propos",
+    "contact": "Contact"
+  },
+  "buttons": {
+    "submit": "Soumettre",
+    "cancel": "Annuler",
+    "save": "Sauvegarder"
+  },
+  "messages": {
+    "loading": "Chargement...",
+    "error": "Quelque chose s'est mal passé",
+    "success": "Succès!"
+  },
+  "user": {
+    "profile": "Profil",
+    "settings": "Paramètres",
+    "logout": "Déconnexion"
+  }
+}
