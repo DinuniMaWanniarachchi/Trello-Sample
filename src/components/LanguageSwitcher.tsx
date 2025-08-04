@@ -1,41 +1,34 @@
-import { useRouter } from 'next/router';
-import { useTranslation } from 'next-i18next';
+"use client";
+import { useTranslation } from 'react-i18next';
 
-interface LanguageOption {
-  code: string;
-  name: string;
-  flag: string;
-}
+export function LanguageSwitcher() {
+  const { i18n, t } = useTranslation();
 
-const languages: LanguageOption[] = [
-  { code: 'en', name: 'English', flag: '🇺🇸' },
-  { code: 'es', name: 'Español', flag: '🇪🇸' },
-  { code: 'fr', name: 'Français', flag: '🇫🇷' },
-  { code: 'de', name: 'Deutsch', flag: '🇩🇪' },
-];
+  const languages = [
+    { code: 'en', name: 'English' },
+    { code: 'es', name: 'Español' },
+    { code: 'fr', name: 'Français' },
+  ];
 
-export default function LanguageSwitcher() {
-  const router = useRouter();
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const { t } = useTranslation('common');
-
-  const handleLanguageChange = (locale: string) => {
-    router.push(router.pathname, router.asPath, { locale });
+  const changeLanguage = (lng: string) => {
+    i18n.changeLanguage(lng);
   };
 
   return (
-    <div className="language-switcher">
-      <select
-        value={router.locale}
-        onChange={(e) => handleLanguageChange(e.target.value)}
-        className="border rounded px-2 py-1"
-      >
-        {languages.map((lang) => (
-          <option key={lang.code} value={lang.code}>
-            {lang.flag} {lang.name}
-          </option>
-        ))}
-      </select>
+    <div className="flex gap-2">
+      {languages.map((lang) => (
+        <button
+          key={lang.code}
+          onClick={() => changeLanguage(lang.code)}
+          className={`px-3 py-1 rounded ${
+            i18n.language === lang.code 
+              ? 'bg-blue-500 text-white' 
+              : 'bg-gray-200 text-gray-700'
+          }`}
+        >
+          {lang.name}
+        </button>
+      ))}
     </div>
   );
 }

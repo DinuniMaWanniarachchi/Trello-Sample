@@ -1,9 +1,9 @@
 {
-  "welcome": "Bienvenue",
+  "welcome": "Bienvenue au Tableau Kanban",
   "hello": "Bonjour",
-  "goodbye": "Au revoir",
-  "language": "Français",
-  "select_language": "Sélectionner la langue",
-  "current_language": "Langue actuelle",
-  "select_language_instruction": "Sélectionnez une langue dans le menu déroulant pour voir les traductions changer."
+  "language": "Langue",
+  "boards": "Tableaux",
+  "create_board": "Créer un Tableau",
+  "edit": "Modifier",
+  "delete": "Supprimer"
 }
