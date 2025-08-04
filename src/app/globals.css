@@ -120,6 +120,13 @@
   body {
     @apply bg-background text-foreground;
   }
+  html {
+    scroll-behavior: smooth;
+  }
+  
+  body {
+    @apply transition-colors duration-200;
+  }
 }
 
 :root {
@@ -172,4 +179,68 @@
 .dark .date-picker-popover .ant-picker-input input::placeholder,
 [data-theme="dark"] .date-picker-popover .ant-picker-input input::placeholder {
   color: #9ca3af !important;
+}
+
+@layer components {
+  .drag-overlay {
+    @apply rotate-3 shadow-lg;
+  }
+  
+  .kanban-column {
+    @apply bg-gray-100 dark:bg-gray-800 rounded-lg p-4 min-w-[300px];
+    min-height: 200px;
+  }
+  
+  .kanban-card {
+    @apply bg-white dark:bg-gray-700 p-3 rounded-lg mb-3 shadow-sm border cursor-pointer;
+    @apply hover:shadow-md transition-shadow duration-200;
+  }
+  
+  .kanban-card:hover {
+    @apply shadow-md;
+  }
+  
+  .kanban-card.dragging {
+    @apply shadow-lg rotate-3;
+  }
+}
+
+@layer utilities {
+  .scrollbar-hide {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+  
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;
+  }
+}
+
+/* Custom animations */
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.animate-slide-in {
+  animation: slideIn 0.2s ease-out;
+}
+
+.animate-fade-in {
+  animation: fadeIn 0.3s ease-out;
 }
