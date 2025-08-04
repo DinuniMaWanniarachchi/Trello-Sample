@@ -3,7 +3,6 @@ import { Geist, Inter } from "next/font/google";
 import "./globals.css";
 import { ThemeProvider } from "@/components/theme-provider";
 import 'antd/dist/reset.css';
-import { I18nProvider } from '@/components/I18nProvider';
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -27,11 +26,11 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <body className={`${geistSans.variable} ${inter.variable} antialiased`}>
-        <I18nProvider>
+       
           <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
             {children}
           </ThemeProvider>
-        </I18nProvider>
+        
       </body>
     </html>
   );
