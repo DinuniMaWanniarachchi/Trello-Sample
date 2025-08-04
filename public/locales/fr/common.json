@@ -1,23 +1,9 @@
 {
-  "welcome": "Bienvenue dans notre application",
-  "navigation": {
-    "home": "Accueil",
-    "about": "À propos",
-    "contact": "Contact"
-  },
-  "buttons": {
-    "submit": "Soumettre",
-    "cancel": "Annuler",
-    "save": "Sauvegarder"
-  },
-  "messages": {
-    "loading": "Chargement...",
-    "error": "Quelque chose s'est mal passé",
-    "success": "Succès!"
-  },
-  "user": {
-    "profile": "Profil",
-    "settings": "Paramètres",
-    "logout": "Déconnexion"
-  }
+  "welcome": "Bienvenue",
+  "hello": "Bonjour",
+  "goodbye": "Au revoir",
+  "language": "Français",
+  "select_language": "Sélectionner la langue",
+  "current_language": "Langue actuelle",
+  "select_language_instruction": "Sélectionnez une langue dans le menu déroulant pour voir les traductions changer."
 }

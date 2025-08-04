@@ -4,13 +4,13 @@ import "./globals.css";
 import { ThemeProvider } from "@/components/theme-provider";
 import 'antd/dist/reset.css';
 
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
+import { I18nProvider } from '@/components/I18nProvider';
+
 const geistSans = Geist({
   variable: "--font-geist-sans",
   subsets: ["latin"],
 });
 
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
 const inter = Inter({
   variable: "--font-inter",
   subsets: ["latin"],
@@ -26,11 +26,14 @@ export default function RootLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
   return (
-    <html 
-      lang="en" 
-      suppressHydrationWarning 
-      // className={`${geistSans.variable} ${geistMono.variable} ${inter.variable} antialiased`}
-    >
+    <html lang="en" suppressHydrationWarning>
+      <body className={`${geistSans.variable} ${inter.variable} antialiased`}>
+        <I18nProvider>
+          <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
+            {children}
+          </ThemeProvider>
+        </I18nProvider>
+      </body>
       <body>
         <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
           {children}

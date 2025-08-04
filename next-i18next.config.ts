@@ -1,20 +1,15 @@
-// next-i18next.config.ts
-import type { UserConfig } from 'next-i18next';
-
-export const i18n: UserConfig['i18n'] = {
-  defaultLocale: 'en',
-  locales: ['en', 'es', 'fr', 'de'],
-  localeDetection: true,
-};
-
-const config: UserConfig = {
-  i18n,
-  fallbackLng: 'en',
-  debug: process.env.NODE_ENV === 'development',
-  serializeConfig: false,
-  react: {
-    useSuspense: false,
+/** @type {import('next-i18next').UserConfig} */
+module.exports = {
+  i18n: {
+    defaultLocale: 'en',
+    locales: ['en', 'es', 'fr', 'de', 'zh', 'ja', 'ar'],
   },
-};
-
-export default config;
+  /** To avoid issues when deploying to some paas (vercel...) */
+  localePath:
+    typeof window === 'undefined'
+      // eslint-disable-next-line @typescript-eslint/no-require-imports
+      ? require('path').resolve('./public/locales')
+      : '/locales',
+  
+  reloadOnPrerender: process.env.NODE_ENV === 'development',
+}

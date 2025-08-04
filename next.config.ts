@@ -1,10 +1,11 @@
-// next.config.ts
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-import { i18n } from './next-i18next.config';
-import type { NextConfig } from 'next';
+/** @type {import('next').NextConfig} */
+// eslint-disable-next-line @typescript-eslint/no-require-imports
+const { i18n } = require('./next-i18next.config');
 
-const nextConfig: NextConfig = {
-  // other Next.js config options can go here
-};
+const nextConfig = {
+  i18n,
+  reactStrictMode: true,
+  swcMinify: true,
+}
 
-export default nextConfig;
+module.exports = nextConfig
