@@ -21,7 +21,7 @@ const LanguageDropdown = () => {
 
   const languages = [
     { code: 'en', name: 'English', flag: '🇺🇸' },
-    { code: 'es', name: 'Español', flag: '🇪🇸' },
+    { code: 'si', name: 'සිංහල', flag: '🇱🇰' },
     { code: 'fr', name: 'Français', flag: '🇫🇷' },
   ];
 

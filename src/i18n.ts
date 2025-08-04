@@ -17,7 +17,7 @@ if (!i18n.isInitialized) {
     .init({
       lng: 'en',
       fallbackLng: 'en',
-      supportedLngs: ['en', 'es', 'fr'],
+      supportedLngs: ['en', 'si', 'fr'],
       ns: ['common'], // Only use common namespace
       defaultNS: 'common',
       interpolation: { 
