@@ -1,32 +1,62 @@
-"use client";
+// i18n.js
 import i18n from 'i18next';
 import { initReactI18next } from 'react-i18next';
-import resourcesToBackend from 'i18next-resources-to-backend';
+import LanguageDetector from 'i18next-browser-languagedetector';
+import HttpApi from 'i18next-http-backend';
 
-if (!i18n.isInitialized) {
-  i18n
-    .use(resourcesToBackend((language: string, namespace: string) => {
-      try {
-        return import(`../public/locales/${language}/${namespace}.json`);
-      } catch (error) {
-        console.warn(`Failed to load ${language}/${namespace}.json`);
-        return {};
+i18n
+  .use(HttpApi) // Load translations from files
+  .use(LanguageDetector) // Detect browser language/localStorage
+  .use(initReactI18next) // Connect with React
+  .init({
+    fallbackLng: 'en',
+    defaultNS: 'common',
+    ns: ['common', 'home'], // Add your namespaces here
+    
+    interpolation: {
+      escapeValue: false, // React already escapes
+    },
+    
+    detection: {
+      order: ['localStorage', 'navigator'],
+      caches: ['localStorage'],
+    },
+    
+    debug: process.env.NODE_ENV === 'development',
+    
+    backend: {
+      loadPath: '/locales/{{lng}}/{{ns}}.json',
+      // Additional backend options for better loading
+      requestOptions: {
+        cache: 'default', // Cache the requests
+      },
+      // Handle loading errors
+      parse: (data: string) => {
+        try {
+          return JSON.parse(data);
+        } catch (error) {
+          console.error('Error parsing translation file:', error);
+          return {};
+        }
+      },
+    },
+    
+    react: {
+      useSuspense: false, // Disable suspense for better error handling
+    },
+    
+    // Add loading state handling
+    initImmediate: false, // Wait for translations to load
+    
+    // Preload languages and namespaces
+    preload: ['en'], // Preload English translations
+    
+    // Handle missing translations
+    missingKeyHandler: (lng, ns, key) => {
+      if (process.env.NODE_ENV === 'development') {
+        console.warn(`Missing translation key: ${key} in ${lng}/${ns}`);
       }
-    }))
-    .use(initReactI18next)
-    .init({
-      lng: 'en',
-      fallbackLng: 'en',
-      supportedLngs: ['en', 'si', 'fr'],
-      ns: ['common'], // Only use common namespace
-      defaultNS: 'common',
-      interpolation: { 
-        escapeValue: false 
-      },
-      react: { 
-        useSuspense: false 
-      },
-    });
-}
+    },
+  });
 
 export default i18n;

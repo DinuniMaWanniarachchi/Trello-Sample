@@ -25,6 +25,6 @@ export const DEFAULT_COLUMNS = [
 
 export const SUPPORTED_LANGUAGES = [
   { code: 'en', name: 'English', flag: '🇺🇸' },
-  { code: 'es', name: 'Español', flag: '🇪🇸' },
+  { code: 'si', name: 'සිංහල', flag: '🇱🇰' },
   { code: 'fr', name: 'Français', flag: '🇫🇷' }
 ] as const;

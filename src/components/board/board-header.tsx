@@ -17,7 +17,7 @@ interface BoardHeaderProps {
 }
 
 const LanguageDropdown = () => {
-  const { i18n, ready } = useTranslation();
+  const { i18n, ready } = useTranslation('common');
 
   const languages = [
     { code: 'en', name: 'English', flag: '🇺🇸' },

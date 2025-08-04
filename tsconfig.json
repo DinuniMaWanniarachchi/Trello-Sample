@@ -23,7 +23,7 @@
     "paths": {
       "@/*": ["./src/*"],
       "@/components/*": ["./src/components/*"],
-      "@/pages/*": ["./src/pages/*"],
+      "@/pages/*": ["pages/*"],
       "@/styles/*": ["./src/styles/*"]
     }
 
