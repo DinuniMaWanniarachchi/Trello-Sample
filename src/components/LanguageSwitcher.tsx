@@ -6,7 +6,7 @@ export function LanguageSwitcher() {
 
   const languages = [
     { code: 'en', name: 'English' },
-    { code: 'es', name: 'Español' },
+    { code: 'si', name: 'සිංහල' },
     { code: 'fr', name: 'Français' },
   ];
 

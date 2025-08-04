@@ -12,7 +12,7 @@ const geistSans = Geist({
 
 const inter = Inter({
   variable: "--font-inter",
-  subsets: ["latin"],
+  subsets: ["latin", 'latin-ext', 'cyrillic'],
   display: "swap",
 });
 
