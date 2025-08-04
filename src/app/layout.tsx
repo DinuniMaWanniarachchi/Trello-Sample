@@ -3,7 +3,6 @@ import { Geist, Inter } from "next/font/google";
 import "./globals.css";
 import { ThemeProvider } from "@/components/theme-provider";
 import 'antd/dist/reset.css';
-
 import { I18nProvider } from '@/components/I18nProvider';
 
 const geistSans = Geist({
@@ -33,11 +32,6 @@ export default function RootLayout({
             {children}
           </ThemeProvider>
         </I18nProvider>
-      </body>
-      <body>
-        <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
-          {children}
-        </ThemeProvider>
       </body>
     </html>
   );
