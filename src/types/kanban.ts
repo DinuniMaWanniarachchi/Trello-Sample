@@ -1,3 +1,4 @@
+// src/types/kanban.ts
 export type ColorType = 'orange' | 'blue' | 'green' | 'red' | 'purple' | 'yellow' | 'gray' | 'white';
 
 export interface StatusBadge {
@@ -10,12 +11,12 @@ export interface Card {
   id: string;
   title?: string;
   description?: string;
-  color?: ColorType; // Added color property
+  color?: ColorType;
   statusBadges?: StatusBadge[];
   dueDate?: string;
-  assignee?: string; // Added assignee property
-  attachments?: number; // Added attachments count
-  comments?: number; // Added comments count
+  assignee?: string;
+  attachments?: number;
+  comments?: number;
 }
 
 export interface List {
@@ -36,6 +37,15 @@ export interface DraggedCard {
   card: Card;
   sourceListId: string;
   sourceIndex: number;
+}
+
+// Additional Redux-specific interfaces
+export interface KanbanState {
+  boards: Board[];
+  currentBoard: Board | null;
+  draggedCard: DraggedCard | null;
+  loading: boolean;
+  error: string | null;
 }
 
 // Color configuration for badges

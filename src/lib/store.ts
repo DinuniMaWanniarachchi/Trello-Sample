@@ -1,14 +1,12 @@
 // src/lib/store.ts
 import { configureStore } from '@reduxjs/toolkit'
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-import { setupListeners } from '@reduxjs/toolkit/query'
-import boardReducer from './features/boardSlice'
+import kanbanReducer from './features/boardSlice'
 
 export const makeStore = () => {
   return configureStore({
     reducer: {
-      board: boardReducer,
-      // Add other reducers here
+      kanban: kanbanReducer,
+      // Add other reducers here (auth, ui, etc.)
     },
     middleware: (getDefaultMiddleware) =>
       getDefaultMiddleware({
