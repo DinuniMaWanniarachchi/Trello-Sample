@@ -158,11 +158,11 @@ export const BoardHeader: React.FC<BoardHeaderProps> = ({ title }) => {
       </div>
       
       {/* Debug info - remove this in production */}
-      <div className="mt-2 text-xs text-gray-500">
+      {/* <div className="mt-2 text-xs text-gray-500">
         Current language: {useTranslation().i18n.language} | 
         Welcome: {t('welcome')} | 
         Save: {t('save', { ns: 'common' })}
-      </div>
+      </div> */}
     </div>
   );
 };
