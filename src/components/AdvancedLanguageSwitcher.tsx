@@ -1,7 +1,14 @@
 import React, { useState, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
-import { loadLanguage, isLanguageLoaded } from '../i18n-dynamic';
-import type { Language, SupportedLanguage } from '../types/i18n.types';
+import { loadLanguage } from '../i18n-dynamic';
+import isLanguageLoaded from '../i18n-dynamic';
+import type { SupportedLanguage } from '../types/i18n.types';
+
+type Language = {
+  code: SupportedLanguage;
+  name: string;
+  flag: string;
+};
 
 interface LanguageSwitcherProps {
   onLanguageChange?: (language: SupportedLanguage) => void;
