@@ -104,8 +104,7 @@ export const BoardList: React.FC<BoardListProps> = ({
               card={card}
               isDragging={draggedCard?.card.id === card.id}
               onDragStart={(e: DragEvent<Element>) => onCardDragStart(e, card, list.id, index)}
-              onClick={() => onCardClick(card)}
-            />
+              onClick={() => onCardClick(card)} listId={''}            />
             
             {/* Drop zone after last card */}
             {index === list.cards.length - 1 && (

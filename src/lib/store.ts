@@ -1,11 +1,13 @@
 // src/lib/store.ts
 import { configureStore } from '@reduxjs/toolkit'
 import kanbanReducer from './features/boardSlice'
+import i18nReducer from './features/i18nSlice';
 
 export const makeStore = () => {
   return configureStore({
     reducer: {
       kanban: kanbanReducer,
+      i18n: i18nReducer,
       // Add other reducers here (auth, ui, etc.)
     },
     middleware: (getDefaultMiddleware) =>

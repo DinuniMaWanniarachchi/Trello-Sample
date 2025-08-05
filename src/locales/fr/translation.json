@@ -1,6 +1,5 @@
 {
   "welcome": "Bienvenue",
-  "board": "Tableau",
   "loading": "Chargement...",
   "error": "Une erreur s'est produite",
   "todo": "À faire",
@@ -17,5 +16,8 @@
   "reporting": "Rapports",
   "documentation": "Documentation",
   "currentLanguage": "Langue actuelle",
-  "save": "Sauvegarder"
+  "save": "Sauvegarder",
+  "My Project Board": "Mon Tableau de Projet",
+  "project": "Projet",
+  "board": "Tableau"
 }
