@@ -2,5 +2,20 @@
   "welcome": "සාදරයෙන් පිළිගනිමු",
   "board": "පුවරුව",
   "loading": "පූරණය වෙමින්...",
-  "error": "දෝෂයක් සිදුවිය"
+  "error": "දෝෂයක් සිදුවිය",
+  "todo": "කළ යුතු",
+  "doing": "කරමින්", 
+  "done": "සම්පූර්ණ",
+  "addTask": "කාර්යය එක් කරන්න",
+  "addAnotherList": "තවත් ලැයිස්තුවක් එක් කරන්න",
+  "noDueDate": "නියමිත දිනයක් නැත",
+  "testKanbanBoard": "කන්බන් පුවරු පරීක්ෂණය",
+  "startMyKanbanBoardJourney": "මගේ කන්බන් පුවරු ගමන ආරම්භ කරන්න",
+  "fixBugs": "දෝෂ නිවැරදි කරන්න",
+  "bugAssignment": "දෝෂ පැවරීම",
+  "bugClosure": "දෝෂ වසා දැමීම",
+  "reporting": "වාර්තා කිරීම", 
+  "documentation": "ලේඛනකරණය",
+  "currentLanguage": "වර්තමান භාෂාව",
+  "save": "සුරකින්න"
 }

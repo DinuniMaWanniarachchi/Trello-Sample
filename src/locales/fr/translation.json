@@ -2,5 +2,20 @@
   "welcome": "Bienvenue",
   "board": "Tableau",
   "loading": "Chargement...",
-  "error": "Une erreur s'est produite"
+  "error": "Une erreur s'est produite",
+  "todo": "À faire",
+  "doing": "En cours",
+  "done": "Terminé", 
+  "addTask": "Ajouter une tâche",
+  "addAnotherList": "Ajouter une autre liste",
+  "noDueDate": "Aucune date d'échéance",
+  "testKanbanBoard": "Test du tableau Kanban",
+  "startMyKanbanBoardJourney": "Commencer mon parcours avec le tableau Kanban",
+  "fixBugs": "Corriger les bugs",
+  "bugAssignment": "Attribution de bugs",
+  "bugClosure": "Fermeture de bugs", 
+  "reporting": "Rapports",
+  "documentation": "Documentation",
+  "currentLanguage": "Langue actuelle",
+  "save": "Sauvegarder"
 }

@@ -1,6 +1,21 @@
 {
   "welcome": "Welcome",
-  "board": "Board",
+  "board": "Board", 
   "loading": "Loading...",
-  "error": "Error occurred"
+  "error": "Error occurred",
+  "todo": "To Do",
+  "doing": "Doing", 
+  "done": "Done",
+  "addTask": "Add Task",
+  "addAnotherList": "Add another list",
+  "noDueDate": "No due date",
+  "testKanbanBoard": "Test Kanban Board",
+  "startMyKanbanBoardJourney": "Start My Kanban Board Journey",
+  "fixBugs": "Fix Bugs",
+  "bugAssignment": "Bug Assignment", 
+  "bugClosure": "Bug Closure",
+  "reporting": "Reporting",
+  "documentation": "Documentation",
+  "currentLanguage": "Current language",
+  "save": "Save"
 }
