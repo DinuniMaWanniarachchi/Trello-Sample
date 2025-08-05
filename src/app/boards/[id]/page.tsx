@@ -62,9 +62,9 @@ export default function BoardPage() {
                   { id: 'badge-2', text: 'Backend', color: 'purple' }
                 ],
                 dueDate: '2025-08-10',
-                assignee: 'John Doe',
-                attachments: 2,
-                comments: 3
+                // assignee: 'John Doe',
+                // attachments: 2,
+                // comments: 3
               },
               {
                 id: 'card-2',
@@ -74,9 +74,9 @@ export default function BoardPage() {
                 statusBadges: [
                   { id: 'badge-3', text: 'Design', color: 'orange' }
                 ],
-                assignee: 'Jane Smith',
-                attachments: 1,
-                comments: 1
+                // assignee: 'Jane Smith',
+                // attachments: 1,
+                // comments: 1
               }
             ]
           },
@@ -94,9 +94,9 @@ export default function BoardPage() {
                   { id: 'badge-4', text: 'Frontend', color: 'blue' },
                   { id: 'badge-5', text: 'In Review', color: 'yellow' }
                 ],
-                dueDate: '2025-08-15',
-                assignee: 'Bob Wilson',
-                comments: 5
+                // dueDate: '2025-08-15',
+                // assignee: 'Bob Wilson',
+                // comments: 5
               }
             ]
           },
@@ -113,7 +113,7 @@ export default function BoardPage() {
                 statusBadges: [
                   { id: 'badge-6', text: 'Completed', color: 'green' }
                 ],
-                assignee: 'Alice Brown'
+                // assignee: 'Alice Brown'
               }
             ]
           }
@@ -402,14 +402,14 @@ export default function BoardPage() {
       />
 
       {/* Debug Panel - Remove in production */}
-      <div className="fixed bottom-4 right-4 bg-white dark:bg-gray-800 rounded-lg shadow-lg p-4 max-w-sm">
+      {/* <div className="fixed bottom-4 right-4 bg-white dark:bg-gray-800 rounded-lg shadow-lg p-4 max-w-sm">
         <h3 className="text-sm font-semibold mb-2">Redux State Debug:</h3>
         <div className="text-xs text-gray-600 dark:text-gray-300 space-y-1">
           <p>Lists: {currentBoard.lists.length}</p>
           <p>Total Cards: {currentBoard.lists.reduce((acc, list) => acc + list.cards.length, 0)}</p>
           <p>Dragging: {activeCard ? activeCard.title : 'None'}</p>
         </div>
-      </div>
+      </div> */}
     </div>
   );
 }
