@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Plus, X, Palette } from 'lucide-react';
+import { Plus, X, Palette, ChevronDown } from 'lucide-react';
 import { ColorType, listHeaderColors } from '@/types/kanban';
 
 interface AddListProps {
@@ -21,6 +21,7 @@ export const AddList: React.FC<AddListProps> = ({ onAddList }) => {
   const [isAdding, setIsAdding] = useState(false);
   const [listTitle, setListTitle] = useState('');
   const [selectedColor, setSelectedColor] = useState<ColorType>('gray');
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
 
   const handleAddList = () => {
     if (!listTitle.trim()) return;
@@ -35,7 +36,15 @@ export const AddList: React.FC<AddListProps> = ({ onAddList }) => {
     setListTitle('');
     setSelectedColor('gray');
     setIsAdding(false);
+    setIsDropdownOpen(false);
   };
+
+  const handleColorSelect = (color: ColorType) => {
+    setSelectedColor(color);
+    setIsDropdownOpen(false);
+  };
+
+  const selectedOption = listColorOptions.find(option => option.value === selectedColor);
 
   if (isAdding) {
     return (
@@ -59,31 +68,45 @@ export const AddList: React.FC<AddListProps> = ({ onAddList }) => {
             <Palette className="h-4 w-4 text-muted-foreground" />
             <span className="text-sm text-muted-foreground">Choose list type:</span>
           </div>
-          <div className="space-y-2">
-            {listColorOptions.map((option) => (
-              <label
-                key={option.value}
-                className={`flex items-center gap-3 p-2 rounded-md cursor-pointer transition-all border-2 ${
-                  selectedColor === option.value
-                    ? 'border-white bg-accent/50'
-                    : 'border-transparent hover:bg-accent/30'
-                }`}
-              >
-                <input
-                  type="radio"
-                  name="listColor"
-                  value={option.value}
-                  checked={selectedColor === option.value}
-                  onChange={() => setSelectedColor(option.value)}
-                  className="sr-only"
-                />
-                <div className={`w-4 h-4 rounded-full ${option.bg}`} />
-                <div className="flex-1">
-                  <div className="text-sm font-medium text-foreground">{option.name}</div>
-                  <div className="text-xs text-muted-foreground">{option.description}</div>
+          
+          {/* Dropdown */}
+          <div className="relative">
+            <button
+              type="button"
+              onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+              className="w-full flex items-center justify-between gap-3 p-3 rounded-md border border-border bg-card hover:bg-accent/30 transition-all"
+            >
+              <div className="flex items-center gap-3">
+                <div className={`w-4 h-4 rounded-full ${selectedOption?.bg}`} />
+                <div className="text-left">
+                  <div className="text-sm font-medium text-foreground">{selectedOption?.name}</div>
+                  <div className="text-xs text-muted-foreground">{selectedOption?.description}</div>
                 </div>
-              </label>
-            ))}
+              </div>
+              <ChevronDown className={`h-4 w-4 text-muted-foreground transition-transform ${isDropdownOpen ? 'rotate-180' : ''}`} />
+            </button>
+            
+            {/* Dropdown Menu */}
+            {isDropdownOpen && (
+              <div className="absolute top-full left-0 right-0 mt-1 bg-card border border-border rounded-md shadow-lg z-10">
+                {listColorOptions.map((option) => (
+                  <button
+                    key={option.value}
+                    type="button"
+                    onClick={() => handleColorSelect(option.value)}
+                    className={`w-full flex items-center gap-3 p-3 hover:bg-accent/50 transition-all first:rounded-t-md last:rounded-b-md ${
+                      selectedColor === option.value ? 'bg-accent/30' : ''
+                    }`}
+                  >
+                    <div className={`w-4 h-4 rounded-full ${option.bg}`} />
+                    <div className="flex-1 text-left">
+                      <div className="text-sm font-medium text-foreground">{option.name}</div>
+                      <div className="text-xs text-muted-foreground">{option.description}</div>
+                    </div>
+                  </button>
+                ))}
+              </div>
+            )}
           </div>
           
           {/* Preview */}
