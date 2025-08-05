@@ -1,16 +1,12 @@
-export interface Language {
-  code: string;
-  name: string;
-  flag: string;
-}
+// src/types/i18n.types.ts
+export type SupportedLanguage = 'en' | 'si' | 'fr';
 
 export interface TranslationModule {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  default: Record<string, any>;
+  default: Record<string, unknown>;
 }
 
-export type SupportedLanguage = 'en' | 'fr' | 'si';
 export interface LoadLanguageResult {
   success: boolean;
   error?: string;
+  language?: string;
 }

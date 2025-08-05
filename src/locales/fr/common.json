@@ -1,9 +1,6 @@
 {
-  "welcome": "Bienvenue au Tableau Kanban",
-  "hello": "Bonjour",
-  "language": "Langue",
-  "boards": "Tableaux",
-  "create_board": "Créer un Tableau",
-  "edit": "Modifier",
-  "delete": "Supprimer"
+  "save": "Sauvegarder",
+  "cancel": "Annuler",
+  "delete": "Supprimer",
+  "edit": "Modifier"
 }

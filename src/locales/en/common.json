@@ -1,9 +1,6 @@
 {
-  "welcome": "Welcome to Kanban Board",
-  "hello": "Hello",
-  "language": "Language",
-  "boards": "Boards",
-  "create_board": "Create Board",
-  "edit": "Edit",
-  "delete": "Delete"
+  "save": "Save",
+  "cancel": "Cancel",
+  "delete": "Delete",
+  "edit": "Edit"
 }

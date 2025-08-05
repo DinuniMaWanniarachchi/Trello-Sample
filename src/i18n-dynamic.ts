@@ -1,74 +1,69 @@
-import i18n from 'i18next';
+// i18n-dynamic.ts
+import i18next from 'i18next';
 import { initReactI18next } from 'react-i18next';
-import type { SupportedLanguage, TranslationModule, LoadLanguageResult } from './types/i18n.types';
+import locales, { SupportedLanguage } from './locales';
 
-// Cache loaded languages to avoid re-downloading
-const loadedLanguages = new Set<SupportedLanguage>();
+// Define the return type for loadLanguage
+interface LoadLanguageResult {
+  success: boolean;
+  error?: string;
+  language?: string;
+}
 
-i18n
-  .use(initReactI18next)
-  .init({
-    lng: 'en',
+// Initialize i18next if not already initialized
+if (!i18next.isInitialized) {
+  i18next.use(initReactI18next).init({
+    lng: 'en', // Default language
     fallbackLng: 'en',
-    resources: {}, // Empty! No translations bundled
-    defaultNS: 'translation',
     interpolation: {
-      escapeValue: false
-    }
+      escapeValue: false,
+    },
+    resources: {}, // We'll add resources dynamically
   });
+}
 
-export const loadLanguage = async (language: SupportedLanguage): Promise<LoadLanguageResult> => {
-  // Return early if already loaded
-  if (loadedLanguages.has(language)) {
-    await i18n.changeLanguage(language);
-    return { success: true };
-  }
-
+export const loadLanguage = async (language: string): Promise<LoadLanguageResult> => {
   try {
     console.log(`Loading ${language} translations...`);
     
-    // Dynamic imports - webpack creates separate chunks
-    const [translationModule, commonModule]: [TranslationModule, TranslationModule] = await Promise.all([
-      import(`./locales/${language}/translation.json`),
-      import(`./locales/${language}/common.json`)
-    ]);
-
-    // Extract the actual data (dynamic imports wrap in { default: ... })
-    const translation = translationModule.default;
-    const common = commonModule.default;
-
-    // Add to i18n
-    // Parameters: (lng, ns, resources, deep, overwrite)
-    i18n.addResourceBundle(language, 'translation', translation, true, true);
-    i18n.addResourceBundle(language, 'common', common, true, true);
+    // Check if language is supported
+    if (!(language in locales)) {
+      throw new Error(`Unsupported language: ${language}`);
+    }
     
-    // Mark as loaded
-    loadedLanguages.add(language);
+    const languageData = locales[language as SupportedLanguage];
     
-    // Switch language
-    await i18n.changeLanguage(language);
+    // Add resources to i18next
+    i18next.addResourceBundle(language, 'translation', languageData.translation, true, true);
+    i18next.addResourceBundle(language, 'common', languageData.common, true, true);
     
-    console.log(`${language} loaded successfully`);
-    return { success: true };
+    // Change the language
+    await i18next.changeLanguage(language);
+    
+    console.log(`Successfully loaded ${language} translations`);
+    
+    return {
+      success: true,
+      language: language
+    };
     
   } catch (error) {
-    const errorMessage = error instanceof Error ? error.message : `Failed to load ${language}`;
     console.error(`Failed to load ${language}:`, error);
-    return { success: false, error: errorMessage };
+    
+    // Fallback to English if the language fails to load
+    if (language !== 'en') {
+      console.log('Falling back to English...');
+      return await loadLanguage('en');
+    }
+    
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : 'Unknown error occurred'
+    };
   }
-};
-
-// Check if a language is already loaded
-export const isLanguageLoaded = (language: SupportedLanguage): boolean => {
-  return loadedLanguages.has(language);
-};
-
-// Get currently loaded languages
-export const getLoadedLanguages = (): SupportedLanguage[] => {
-  return Array.from(loadedLanguages);
 };
 
 // Preload default language
 loadLanguage('en');
 
-export default i18n;
+export default i18next;
