@@ -1,7 +1,6 @@
 "use client";
 
 import React, { useState, useEffect } from 'react';
-// Import only the Ant Design components and styles you need
 import { Card as UICard, CardContent } from '@/components/ui/card';
 import { Card, badgeColors } from '@/types/kanban';
 import { formatDueDate, getDueDateColor } from '@/utils/dateUtils';
@@ -9,22 +8,25 @@ import { DatePicker, Popover, Button } from 'antd';
 import { CalendarOutlined, CloseOutlined } from '@ant-design/icons';
 import dayjs, { Dayjs } from 'dayjs';
 import type { DatePickerProps } from 'antd/es/date-picker';
+import { useAppDispatch } from '@/lib/hooks';
+import { updateCard } from '@/lib/features/boardSlice';
 
 interface BoardCardProps {
   card: Card;
+  listId: string; // Added listId for Redux updates
   isDragging?: boolean;
   onDragStart: (e: React.DragEvent) => void;
   onClick: () => void;
-  onUpdateCard?: (cardId: string, updates: Partial<Card>) => void;
 }
 
 export const BoardCard: React.FC<BoardCardProps> = ({ 
   card, 
+  listId,
   isDragging = false, 
   onDragStart, 
-  onClick,
-  onUpdateCard
+  onClick
 }) => {
+  const dispatch = useAppDispatch();
   const [isDatePickerVisible, setIsDatePickerVisible] = useState(false);
   const [selectedDate, setSelectedDate] = useState<Dayjs | null>(
     card.dueDate ? dayjs(card.dueDate) : null
@@ -41,9 +43,14 @@ export const BoardCard: React.FC<BoardCardProps> = ({
   };
 
   const handleDateChange: DatePickerProps['onChange'] = (date) => {
-    if (date && onUpdateCard) {
+    if (date) {
       const formattedDate = date.format('YYYY-MM-DD');
-      onUpdateCard(card.id, { dueDate: formattedDate });
+      // Use Redux to update the card
+      dispatch(updateCard({ 
+        listId, 
+        cardId: card.id, 
+        updates: { dueDate: formattedDate } 
+      }));
       setSelectedDate(date);
     }
     setIsDatePickerVisible(false);
@@ -51,14 +58,16 @@ export const BoardCard: React.FC<BoardCardProps> = ({
 
   const handleRemoveDate = (e: React.MouseEvent) => {
     e.stopPropagation();
-    if (onUpdateCard) {
-      onUpdateCard(card.id, { dueDate: undefined });
-      setSelectedDate(null);
-    }
+    // Use Redux to remove the due date
+    dispatch(updateCard({ 
+      listId, 
+      cardId: card.id, 
+      updates: { dueDate: undefined } 
+    }));
+    setSelectedDate(null);
   };
 
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const handleCardClick = (e: React.MouseEvent) => {
+  const handleCardClick = () => {
     if (!isDatePickerVisible) {
       onClick();
     }
@@ -66,6 +75,19 @@ export const BoardCard: React.FC<BoardCardProps> = ({
 
   const handlePopoverVisibleChange = (visible: boolean) => {
     setIsDatePickerVisible(visible);
+  };
+
+  const handleAddAssignee = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    // For now, just add a sample assignee - you can enhance this later
+    const sampleAssignees = ['John Doe', 'Jane Smith', 'Bob Wilson', 'Alice Brown'];
+    const randomAssignee = sampleAssignees[Math.floor(Math.random() * sampleAssignees.length)];
+    
+    dispatch(updateCard({ 
+      listId, 
+      cardId: card.id, 
+      updates: { assignee: randomAssignee } 
+    }));
   };
 
   // DatePicker content for the popover
@@ -125,6 +147,13 @@ export const BoardCard: React.FC<BoardCardProps> = ({
         <h4 className="text-card-foreground font-medium text-sm leading-tight mb-2">
           {card.title}
         </h4>
+
+        {/* Card Description */}
+        {card.description && (
+          <p className="text-xs text-muted-foreground mb-2 line-clamp-2">
+            {card.description}
+          </p>
+        )}
         
         {/* Due Date Display */}
         {card.dueDate && (
@@ -139,6 +168,27 @@ export const BoardCard: React.FC<BoardCardProps> = ({
             >
               <CloseOutlined style={{ fontSize: '10px' }} />
             </button>
+          </div>
+        )}
+
+        {/* Assignee Display */}
+        {card.assignee && (
+          <div className="mb-2">
+            <span className="text-xs text-muted-foreground">
+              👤 {card.assignee}
+            </span>
+          </div>
+        )}
+
+        {/* Card Meta Info */}
+        {(card.attachments || card.comments) && (
+          <div className="flex items-center gap-3 mb-2 text-xs text-muted-foreground">
+            {card.attachments && card.attachments > 0 && (
+              <span>📎 {card.attachments}</span>
+            )}
+            {card.comments && card.comments > 0 && (
+              <span>💬 {card.comments}</span>
+            )}
           </div>
         )}
         
@@ -171,14 +221,11 @@ export const BoardCard: React.FC<BoardCardProps> = ({
           </Popover>
           
           <button
-            onClick={(e) => {
-              e.stopPropagation(); 
-              console.log("Add assignee clicked");
-            }}
+            onClick={handleAddAssignee}
             className="w-5 h-5 rounded-full border border-dashed flex items-center justify-center
             transition-colors duration-200
             border-border hover:border-muted-foreground hover:bg-accent text-muted-foreground"
-            title="Add assignee"
+            title={card.assignee ? "Change assignee" : "Add assignee"}
           >
             <span role="img" aria-label="plus" className="anticon anticon-plus text-xs">
               <svg viewBox="64 64 896 896" focusable="false" data-icon="plus" width="1em" height="1em" fill="currentColor" aria-hidden="true">

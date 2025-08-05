@@ -2,7 +2,6 @@ import type { Metadata } from "next";
 import { Geist, Inter } from "next/font/google";
 import "./globals.css";
 import 'antd/dist/reset.css';
-
 import StoreProvider from '@/lib/StoreProvider';
 import { ThemeProvider } from "@/components/theme-provider";
 import { I18nProvider } from '@/components/providers/I18nProvider';
