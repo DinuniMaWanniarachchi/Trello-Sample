@@ -98,7 +98,7 @@ export const AddList: React.FC<AddListProps> = ({ onAddList }) => {
                       selectedColor === option.value ? 'bg-accent/30' : ''
                     }`}
                   >
-                    <div className={`w-4 h-4 rounded-full ${option.bg}`} />
+                    <div className={`w-4 h-4 rounded-md ${option.bg}`} />
                     <div className="flex-1 text-left">
                       <div className="text-sm font-medium text-foreground">{option.name}</div>
                       <div className="text-xs text-muted-foreground">{option.description}</div>

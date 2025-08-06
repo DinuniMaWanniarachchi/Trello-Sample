@@ -84,7 +84,7 @@ const HomePage = () => {
                 <span>Boards</span>
               </a>
               <a href="#" className="flex items-center space-x-3 text-white hover:bg-white/20 rounded-lg p-2">
-                <Settings className="h-5 w-5" />
+                {/* <Settings className="h-5 w-5" /> */}
                 <span>Templates</span>
               </a>
             </nav>

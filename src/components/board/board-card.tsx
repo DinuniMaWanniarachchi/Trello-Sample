@@ -203,7 +203,7 @@ export const BoardCard: React.FC<BoardCardProps> = ({
             overlayClassName="date-picker-popover"
           >
             <div 
-              className="task-due-date cursor-pointer hover:bg-accent rounded px-1 py-0.5 transition-colors flex items-center"
+              className="task-due-date cursor-pointer hover:bg-accent rounded-md px-1 py-0.5 transition-colors flex items-center"
               title={card.dueDate ? "Click to change date" : "Click to set due date"}
               onClick={handleDateClick}
               style={{
@@ -222,7 +222,7 @@ export const BoardCard: React.FC<BoardCardProps> = ({
           
           <button
             onClick={handleAddAssignee}
-            className="w-5 h-5 rounded-full border border-dashed flex items-center justify-center
+            className="w-5 h-5 rounded-md border border-dashed flex items-center justify-center
             transition-colors duration-200
             border-border hover:border-muted-foreground hover:bg-accent text-muted-foreground"
             title={card.assignee ? "Change assignee" : "Add assignee"}

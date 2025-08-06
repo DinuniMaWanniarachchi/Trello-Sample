@@ -50,7 +50,7 @@ export default function BoardPage() {
           {
             id: 'list-1',
             title: 'To Do',
-            titleColor: 'blue',
+            titleColor: 'gray',
             cards: [
               {
                 id: 'card-1',
@@ -82,8 +82,8 @@ export default function BoardPage() {
           },
           {
             id: 'list-2',
-            title: 'In Progress',
-            titleColor: 'orange',
+            title: 'Doing',
+            titleColor: 'blue',
             cards: [
               {
                 id: 'card-3',
