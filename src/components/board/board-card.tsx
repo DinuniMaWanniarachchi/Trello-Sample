@@ -121,7 +121,7 @@ export const BoardCard: React.FC<BoardCardProps> = ({
 
   return (
     <UICard 
-      className={`cursor-move hover:shadow-lg transition-all duration-200
+      className={`cursor-pointer hover:shadow-lg transition-all duration-200
                   bg-card border-border hover:bg-accent ${
                     isDragging ? 'opacity-50' : ''
                   }`}
