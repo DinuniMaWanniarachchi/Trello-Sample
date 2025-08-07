@@ -187,7 +187,7 @@ const KanbanBoard: React.FC<KanbanBoardProps> = ({ initialData = [] }) => {
           {columns.map((column) => (
             <div
               key={column.id}
-              className="bg-gray-100 dark:bg-gray-800 rounded-lg p-4 min-w-[300px] flex-shrink-0"
+              className="bg-gray-100 dark:bg-gray-800 rounded-md p-4 min-w-[300px] flex-shrink-0"
             >
               <div className="flex items-center justify-between mb-4">
                 {editingColumn === column.id ? (
@@ -213,7 +213,7 @@ const KanbanBoard: React.FC<KanbanBoardProps> = ({ initialData = [] }) => {
                   <button className="p-1 hover:bg-gray-200 dark:hover:bg-gray-700 rounded">
                     <MoreVertical size={16} />
                   </button>
-                  <div className="absolute right-0 top-8 bg-white dark:bg-gray-700 shadow-lg rounded-lg py-2 min-w-[120px] opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-10">
+                  <div className="absolute right-0 top-8 bg-white dark:bg-gray-700 shadow-lg rounded-md py-2 min-w-[120px] opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-10">
                     <button
                       onClick={() => setEditingColumn(column.id)}
                       className="flex items-center gap-2 px-3 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 w-full text-left text-sm"
@@ -254,7 +254,7 @@ const KanbanBoard: React.FC<KanbanBoardProps> = ({ initialData = [] }) => {
                               ref={provided.innerRef}
                               {...provided.draggableProps}
                               {...provided.dragHandleProps}
-                              className={`bg-white dark:bg-gray-700 p-3 rounded-lg mb-3 shadow-sm border ${
+                              className={`bg-white dark:bg-gray-700 p-3 rounded-md mb-3 shadow-sm border ${
                                 snapshot.isDragging ? 'shadow-lg rotate-3' : 'hover:shadow-md'
                               } transition-all group`}
                             >
@@ -264,7 +264,7 @@ const KanbanBoard: React.FC<KanbanBoardProps> = ({ initialData = [] }) => {
                                     type="text"
                                     defaultValue={card.title}
                                     placeholder={t('kanban.cardTitle')}
-                                    className="w-full p-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                    className="w-full p-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                                     onKeyPress={(e) => {
                                       if (e.key === 'Enter') {
                                         const title = e.currentTarget.value;
