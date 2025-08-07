@@ -4,7 +4,8 @@ import "./globals.css";
 import 'antd/dist/reset.css';
 import StoreProvider from '@/lib/StoreProvider';
 import { ThemeProvider } from "@/components/theme-provider";
-import { I18nProvider } from '@/components/providers/I18nProvider';
+// Temporarily comment out I18nProvider to test
+// import { I18nProvider } from '@/components/providers/I18nProvider';
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -29,11 +30,10 @@ export default function RootLayout({
     <html lang="en" suppressHydrationWarning>
       <body className={`${geistSans.variable} ${inter.variable} antialiased`}>
         <StoreProvider>
-          <I18nProvider>
-            <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
-              {children}
-            </ThemeProvider>
-          </I18nProvider>
+          {/* Temporarily removed I18nProvider to test */}
+          <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
+            {children}
+          </ThemeProvider>
         </StoreProvider>
       </body>
     </html>

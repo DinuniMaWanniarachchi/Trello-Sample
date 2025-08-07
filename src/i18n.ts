@@ -1,4 +1,4 @@
-// src/i18n.ts - Main i18n configuration
+// src/i18n.ts - Optimized i18n configuration
 import i18n from 'i18next';
 import { initReactI18next } from 'react-i18next';
 import LanguageDetector from 'i18next-browser-languagedetector';
@@ -35,7 +35,13 @@ i18n
     resources,
     lng: 'en', // Default language
     fallbackLng: 'en',
-    debug: process.env.NODE_ENV === 'development',
+    debug: false, // Turn off debug to prevent console logs
+    
+    // Important: These settings prevent loading delays
+    initImmediate: false, // Don't wait for language detection
+    react: {
+      useSuspense: false, // This is key - prevents Suspense loading
+    },
 
     // Language detection options
     detection: {
