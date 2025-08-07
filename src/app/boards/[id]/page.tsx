@@ -390,8 +390,10 @@ export default function BoardPage() {
         card={selectedCard}
         isOpen={isCardDrawerOpen}
         onClose={handleCloseDrawer}
-        onUpdate={handleUpdateCard}
-      />
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        onUpdate={handleUpdateCard} onDelete={function (cardId: string): void {
+          throw new Error('Function not implemented.');
+        } }      />
     </div>
   );
 }
