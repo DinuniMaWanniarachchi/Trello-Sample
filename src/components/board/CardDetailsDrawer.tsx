@@ -38,7 +38,7 @@ interface CardDetailsDrawerProps {
   isOpen: boolean;
   onClose: () => void;
   onUpdate: (cardId: string, updates: Partial<Card>) => void;
-  onDelete: (cardId: string) => void; // New prop for delete function
+  onDelete: (cardId: string) => void;
 }
 
 export const CardDetailsDrawer: React.FC<CardDetailsDrawerProps> = ({ 
@@ -96,12 +96,6 @@ export const CardDetailsDrawer: React.FC<CardDetailsDrawerProps> = ({
     setNewBadgeColor('blue');
   };
 
-  const handleRemoveBadge = (badgeId: string) => {
-    const updatedBadges = (card.statusBadges || []).filter(badge => badge.id !== badgeId);
-    onUpdate(card.id, {
-      statusBadges: updatedBadges
-    });
-  };
 
   const handleDeleteCard = () => {
     onDelete(card.id);
@@ -109,34 +103,42 @@ export const CardDetailsDrawer: React.FC<CardDetailsDrawerProps> = ({
     onClose();
   };
 
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  function handleRemoveBadge(id: string): void {
+    throw new Error('Function not implemented.');
+  }
+
   return (
     <>
       <Sheet open={isOpen} onOpenChange={onClose}>
-        <SheetContent side="right" className="w-100 bg-background border-border">
+        <SheetContent side="right" className="w-100 bg-background border-border [&>button]:hidden">
           <SheetHeader className="border-b border-border pb-4">
             <div className="flex items-center justify-between">
               <div className="flex items-center space-x-3">
                 <Edit3 className="h-5 w-5 text-muted-foreground" />
                 <SheetTitle className="text-xl font-semibold text-foreground">Card Details</SheetTitle>
               </div>
-              
-              {/* More Options Dropdown */}
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
-                    <MoreHorizontal className="h-4 w-4" />
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" className="w-48">
-                  <DropdownMenuItem
-                    onClick={() => setShowDeleteDialog(true)}
-                    className="text-red-600 focus:text-red-600 cursor-pointer"
-                  >
-                    <Trash2 className="mr-2 h-4 w-4" />
-                    Delete Task
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
+              <div className="flex items-center space-x-3">
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
+                      <MoreHorizontal className="h-4 w-4" />
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end" className="w-48">
+                    <DropdownMenuItem
+                      onClick={() => setShowDeleteDialog(true)}
+                      className="text-red-600 focus:text-red-600 cursor-pointer"
+                    >
+                      <Trash2 className="mr-2 h-4 w-4" />
+                      Delete Task
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+                <Button variant="ghost" onClick={onClose} className="h-8 w-8 p-0 text-muted-foreground hover:text-foreground hover:bg-accent">
+                  <X className="h-4 w-4" />
+                </Button>
+              </div>
             </div>
             <SheetDescription className="text-muted-foreground">
               Edit your card details, add labels, and set due dates.
