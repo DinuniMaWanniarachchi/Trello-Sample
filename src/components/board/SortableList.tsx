@@ -33,9 +33,9 @@ export const SortableList: React.FC<SortableListProps> = ({
   const cardIds = list.cards.map(card => card.id);
 
   return (
-    <div className="flex-shrink-0 w-68 bg-card rounded-md border border-border overflow-hidden">
-      {/* List Header */}
-      <div className={`flex items-center justify-between px-3 py-2 rounded-md ${listHeaderColors[list.titleColor || 'gray']}`}>
+    <div className="flex-shrink-0 w-68 h-[500px] bg-card rounded-md border border-border overflow-hidden flex flex-col">
+      {/* List Header - Fixed */}
+      <div className={`flex items-center justify-between px-3 py-2 rounded-md flex-shrink-0 ${listHeaderColors[list.titleColor || 'gray']}`}>
         <div className="flex items-center justify-between w-full text-black/80">
           <span className="text-sm font-medium">
             {list.title} ({list.cards.length})
@@ -74,28 +74,50 @@ export const SortableList: React.FC<SortableListProps> = ({
         </div>
       </div>
 
-      {/* Cards Container */}
-      <div 
-        ref={setNodeRef} 
-        className={`p-3 space-y-2 min-h-[200px] transition-colors ${
-          isOver ? 'bg-muted/50' : ''
-        }`}
-      >
-        <SortableContext items={cardIds} strategy={verticalListSortingStrategy}>
-          {list.cards.map((card, index) => (
-            <SortableCard
-              key={card.id}
-              card={card}
-              listId={list.id}
-              index={index}
-              onClick={() => onCardClick(card)}
-            />
-          ))}
-        </SortableContext>
+      {/* Scrollable Cards Container */}
+      <div className="flex-1 min-h-0 overflow-y-auto">
+        <div 
+          ref={setNodeRef}
+          className={`p-3 space-y-2 transition-colors ${
+            isOver ? 'bg-muted/50' : ''
+          }`}
+          style={{
+            minHeight: '100%'
+          }}
+        >
+          <SortableContext items={cardIds} strategy={verticalListSortingStrategy}>
+            {list.cards.map((card, index) => (
+              <SortableCard
+                key={card.id}
+                card={card}
+                listId={list.id}
+                index={index}
+                onClick={() => onCardClick(card)}
+              />
+            ))}
+          </SortableContext>
 
-        {/* Add Card */}
-        <AddCard listId={list.id} onAddCard={onAddCard} />
+          {/* Add Card */}
+          <AddCard listId={list.id} onAddCard={onAddCard} />
+        </div>
       </div>
+
+      <style jsx>{`
+        .flex-1::-webkit-scrollbar {
+          width: 8px;
+        }
+        .flex-1::-webkit-scrollbar-track {
+          background: #f1f5f9;
+          border-radius: 4px;
+        }
+        .flex-1::-webkit-scrollbar-thumb {
+          background: #94a3b8;
+          border-radius: 4px;
+        }
+        .flex-1::-webkit-scrollbar-thumb:hover {
+          background: #64748b;
+        }
+      `}</style>
     </div>
   );
 };

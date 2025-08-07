@@ -350,7 +350,8 @@ export default function BoardPage() {
     <div className="min-h-screen bg-background">
       <BoardHeader title={currentBoard?.title || 'Loading...'} />
       
-      <div className="p-6 flex justify-center">
+      
+      <div className="p-6 flex justify-center h-[calc(100vh-120px)]">
         <DndContext
           sensors={sensors}
           collisionDetection={closestCorners}
@@ -358,7 +359,7 @@ export default function BoardPage() {
           onDragOver={handleDragOver}
           onDragEnd={handleDragEnd}
         >
-          <div className="flex space-x-4 overflow-x-auto pb-4">
+          <div className="flex space-x-4 overflow-x-auto pb-4 h-full">
             {currentBoard?.lists.map((list) => (
               <SortableList
                 key={list.id}
