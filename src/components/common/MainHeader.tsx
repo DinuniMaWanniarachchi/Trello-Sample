@@ -176,7 +176,7 @@ export const MainHeader: React.FC = () => {
 
   return (
     <header className="bg-zinc-900 border-b border-zinc-800 font-['Inter',sans-serif]">
-      <div className="max-w-7xl mx-auto pl-0 pr-0 -ml-0">
+      <div className="max-w-7xl mx-auto pl-0 pr-0 ">
         <div className="flex items-center justify-between h-10">
           {/* Left side - Logo and Navigation */}
           <div className="flex items-center space-x-6">
