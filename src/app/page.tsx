@@ -4,14 +4,15 @@ import React, { useState } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { MainHeader } from '@/components/common/MainHeader';
 import { 
-  Home, 
   Plus, 
   Settings, 
   Users, 
   CreditCard,
   Star,
-  Clock
+  Clock,
+  Home
 } from 'lucide-react';
 
 // Mock data for demonstration
@@ -41,35 +42,8 @@ const HomePage = () => {
 
   return (
     <div className="min-h-screen bg-zinc-900">
-      {/* Header */}
-      <header className="bg-zinc-900 backdrop-blur-sm border-b border-white/20">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between h-16">
-            <div className="flex items-center space-x-4">
-              <div className="flex items-center space-x-2">
-                {/* <Trello className="h-8 w-8 text-white" /> */}
-                <span className="text-xl font-bold text-white">Kanban</span>
-              </div>
-              
-              <nav className="hidden md:flex space-x-8">
-                <a href="#" className="text-white hover:text-blue-200 flex items-center space-x-1">
-                  <Home className="h-4 w-4" />
-                  <span>Home</span>
-                </a>
-                <a href="#" className="text-white hover:text-blue-200">Boards</a>
-                <a href="#" className="text-white hover:text-blue-200">Templates</a>
-              </nav>
-            </div>
-
-            <div className="flex items-center space-x-4">
-              <Button variant="ghost" size="sm" className="text-white hover:bg-white/20">
-                <Plus className="h-4 w-4 mr-1" />
-                Create
-              </Button>
-            </div>
-          </div>
-        </div>
-      </header>
+      {/* Main Header - Same as board pages */}
+      <MainHeader />
 
       <div className="flex">
         {/* Sidebar */}
@@ -84,7 +58,6 @@ const HomePage = () => {
                 <span>Boards</span>
               </a>
               <a href="#" className="flex items-center space-x-3 text-white hover:bg-white/20 rounded-lg p-2">
-                {/* <Settings className="h-5 w-5" /> */}
                 <span>Templates</span>
               </a>
             </nav>
