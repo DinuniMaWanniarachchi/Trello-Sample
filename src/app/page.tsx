@@ -197,7 +197,7 @@ const HomePage = () => {
             </div>
 
             {/* Links Section */}
-            <div className="mt-8">
+            {/* <div className="mt-8">
               <h2 className="text-white text-lg font-semibold mb-4">Links</h2>
               <Button 
                 variant="ghost" 
@@ -206,7 +206,7 @@ const HomePage = () => {
                 <Plus className="h-4 w-4 mr-2" />
                 Create a board
               </Button>
-            </div>
+            </div> */}
           </div>
         </main>
       </div>

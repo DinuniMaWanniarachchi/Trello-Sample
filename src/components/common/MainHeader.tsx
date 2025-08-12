@@ -13,7 +13,9 @@ import {
   Plus,
   Home,
   Layout,
-  FileText} from 'lucide-react';
+  FileText,
+  Menu,
+  X} from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import {
   DropdownMenu,
@@ -98,7 +100,7 @@ const LanguageDropdown = () => {
 
   if (!ready || !i18n) {
     return (
-      <UIButton variant="ghost" size="sm" disabled className="text-white/70 h-8">
+      <UIButton variant="ghost" size="sm" disabled className="text-white/70 h-8 w-8 sm:w-auto sm:px-2">
         <Globe className="h-3.5 w-3.5" />
       </UIButton>
     );
@@ -136,16 +138,16 @@ const LanguageDropdown = () => {
         <UIButton 
           variant="ghost" 
           size="sm" 
-          className="text-white/80 hover:text-white hover:bg-white/10 h-8 px-2 text-xs font-medium"
+          className="text-white/80 hover:text-white hover:bg-white/10 h-8 w-8 sm:w-auto sm:px-2 text-xs font-medium"
           disabled={loading !== null}
         >
           {loading ? (
             <Loader2 className="h-3.5 w-3.5 animate-spin" />
           ) : (
             <>
-              <Globe className="h-3.5 w-3.5 mr-1" />
-              <span className="hidden sm:inline">{currentLanguage.flag} {currentLanguage.name}</span>
-              <span className="sm:hidden">{currentLanguage.flag}</span>
+              <Globe className="h-3.5 w-3.5 sm:mr-1" />
+              <span className="hidden lg:inline">{currentLanguage.flag} {currentLanguage.name}</span>
+              <span className="hidden sm:inline lg:hidden">{currentLanguage.flag}</span>
             </>
           )}
         </UIButton>
@@ -248,16 +250,26 @@ const CreateButton = () => {
     showDrawer();
   };
 
+  // Get drawer width based on screen size
+  const getDrawerWidth = () => {
+    if (typeof window !== 'undefined') {
+      if (window.innerWidth < 640) return '100%'; // Full width on mobile
+      if (window.innerWidth < 768) return '90%';  // 90% on small tablets
+      return 480; // Fixed width on larger screens
+    }
+    return 480;
+  };
+
   return (
     <>
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
           <UIButton 
             size="sm" 
-            className="bg-blue-600 hover:bg-blue-700 text-white h-8 px-3 text-xs font-medium"
+            className="bg-blue-600 hover:bg-blue-700 text-white h-8 w-8 sm:w-auto sm:px-3 text-xs font-medium"
           >
-            <Plus className="h-3.5 w-3.5 mr-1" />
-            Create
+            <Plus className="h-3.5 w-3.5 sm:mr-1" />
+            <span className="hidden sm:inline">Create</span>
           </UIButton>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end" className="w-44 bg-zinc-800 border-zinc-700">
@@ -287,14 +299,14 @@ const CreateButton = () => {
           </div>
         }
         placement="right"
-        width={480}
+        width={getDrawerWidth()}
         onClose={onClose}
         open={drawerOpen}
         styles={{
           body: { 
             backgroundColor: '#18181b', 
             color: '#fff',
-            padding: '24px'
+            padding: typeof window !== 'undefined' && window.innerWidth < 640 ? '16px' : '24px'
           },
           header: { 
             backgroundColor: '#27272a', 
@@ -315,7 +327,7 @@ const CreateButton = () => {
             </h3>
             <Row gutter={[12, 12]}>
               {boardTemplates.map((template) => (
-                <Col span={12} key={template.id}>
+                <Col xs={24} sm={12} key={template.id}>
                   <Card
                     hoverable
                     style={{
@@ -417,14 +429,21 @@ const CreateButton = () => {
           )}
 
           {/* Action Buttons */}
-          <div style={{ display: 'flex', gap: '12px', justifyContent: 'flex-end' }}>
+          <div style={{ 
+            display: 'flex', 
+            gap: '12px', 
+            justifyContent: 'flex-end',
+            flexDirection: typeof window !== 'undefined' && window.innerWidth < 640 ? 'column' : 'row'
+          }}>
             <Button 
               onClick={onClose} 
               style={{ 
                 backgroundColor: 'transparent', 
                 border: '1px solid #3f3f46',
-                color: '#fff'
+                color: '#fff',
+                order: typeof window !== 'undefined' && window.innerWidth < 640 ? 2 : 1
               }}
+              block={typeof window !== 'undefined' && window.innerWidth < 640}
             >
               Cancel
             </Button>
@@ -435,9 +454,11 @@ const CreateButton = () => {
               style={{
                 backgroundColor: selectedTemplate?.color || '#3b82f6',
                 border: 'none',
-                fontWeight: '500'
+                fontWeight: '500',
+                order: typeof window !== 'undefined' && window.innerWidth < 640 ? 1 : 2
               }}
               disabled={!selectedTemplate}
+              block={typeof window !== 'undefined' && window.innerWidth < 640}
             >
               {loading ? 'Creating...' : 'Create Board'}
             </Button>
@@ -448,40 +469,131 @@ const CreateButton = () => {
   );
 };
 
+const MobileMenu = () => {
+  const [isOpen, setIsOpen] = useState(false);
+  const { t } = useTranslation();
+
+  return (
+    <>
+      <UIButton 
+        variant="ghost" 
+        size="sm" 
+        className="lg:hidden text-white hover:bg-white/10 h-8 w-8 p-0"
+        onClick={() => setIsOpen(true)}
+      >
+        <Menu className="h-4 w-4" />
+      </UIButton>
+
+      <Drawer
+        title={
+          <div className="flex items-center justify-between">
+            <span style={{ color: '#fff', fontSize: '18px', fontWeight: '600' }}>
+              Menu
+            </span>
+            <UIButton 
+              variant="ghost" 
+              size="sm" 
+              onClick={() => setIsOpen(false)}
+              className="text-white hover:bg-white/10 h-8 w-8 p-0"
+            >
+              <X className="h-4 w-4" />
+            </UIButton>
+          </div>
+        }
+        placement="left"
+        width={280}
+        onClose={() => setIsOpen(false)}
+        open={isOpen}
+        styles={{
+          body: { 
+            backgroundColor: '#18181b', 
+            color: '#fff',
+            padding: '16px'
+          },
+          header: { 
+            backgroundColor: '#27272a', 
+            borderBottom: '1px solid #3f3f46'
+          }
+        }}
+        closable={false}
+      >
+        <nav className="space-y-4">
+          <a 
+            href="/" 
+            className="flex items-center space-x-3 text-white/80 hover:text-white hover:bg-white/10 px-3 py-2 rounded-md transition-colors duration-150 text-sm font-medium"
+            onClick={() => setIsOpen(false)}
+          >
+            <Home className="h-4 w-4" />
+            <span>{t('home', { defaultValue: 'Home' })}</span>
+          </a>
+          <a 
+            href="#" 
+            className="flex items-center space-x-3 text-white/80 hover:text-white hover:bg-white/10 px-3 py-2 rounded-md transition-colors duration-150 text-sm font-medium"
+            onClick={() => setIsOpen(false)}
+          >
+            <Layout className="h-4 w-4" />
+            <span>{t('boards', { defaultValue: 'Boards' })}</span>
+          </a>
+          <a 
+            href="#" 
+            className="flex items-center space-x-3 text-white/80 hover:text-white hover:bg-white/10 px-3 py-2 rounded-md transition-colors duration-150 text-sm font-medium"
+            onClick={() => setIsOpen(false)}
+          >
+            <FileText className="h-4 w-4" />
+            <span>{t('templates', { defaultValue: 'Templates' })}</span>
+          </a>
+        </nav>
+        
+        <div className="mt-8 pt-4 border-t border-zinc-700">
+          <div className="space-y-3">
+            <div className="text-white/60 text-xs font-medium uppercase tracking-wider">
+              Settings
+            </div>
+            <div className="flex items-center justify-between">
+              <span className="text-white text-sm">Theme</span>
+              <ThemeToggle />
+            </div>
+          </div>
+        </div>
+      </Drawer>
+    </>
+  );
+};
+
 export const MainHeader: React.FC = () => {
   const { t } = useTranslation();
 
   return (
     <header className="bg-zinc-900 border-b border-zinc-800 font-['Inter',sans-serif]">
-      <div className="w-full px-3">
-        <div className="flex items-center justify-between h-10">
+      <div className="w-full px-3 sm:px-4 lg:px-6">
+        <div className="flex items-center justify-between h-12 sm:h-14">
           {/* Left side - Logo and Navigation */}
-          <div className="flex items-center space-x-6">
+          <div className="flex items-center space-x-4 lg:space-x-6 min-w-0 flex-1">
             {/* Logo */}
-            <div className="flex items-center space-x-0">
-              <span className="text-lg font-semibold text-white">
+            <div className="flex items-center space-x-0 flex-shrink-0">
+              <span className="text-base sm:text-lg font-semibold text-white">
                 Kanban
               </span>
             </div>
             
-            {/* Navigation */}
-            <nav className="hidden md:flex items-center space-x-4">
+            {/* Desktop Navigation */}
+            <nav className="hidden lg:flex items-center space-x-4 min-w-0">
               <a 
                 href="/" 
-                className="text-white/80 hover:text-white flex items-center space-x-1.5 px-2 py-1.5 rounded-md transition-colors duration-150 text-sm font-medium"
+                className="text-white/80 hover:text-white flex items-center space-x-1.5 px-2 py-1.5 rounded-md transition-colors duration-150 text-sm font-medium whitespace-nowrap"
               >
-                <Home className="h-3.5 w-3.5" />
+                <Home className="h-3.5 w-3.5 flex-shrink-0" />
                 <span>{t('home', { defaultValue: 'Home' })}</span>
               </a>
               <a 
                 href="#" 
-                className="text-white/80 hover:text-white px-2 py-1.5 rounded-md transition-colors duration-150 text-sm font-medium"
+                className="text-white/80 hover:text-white px-2 py-1.5 rounded-md transition-colors duration-150 text-sm font-medium whitespace-nowrap"
               >
                 {t('boards', { defaultValue: 'Boards' })}
               </a>
               <a 
                 href="#" 
-                className="text-white/80 hover:text-white px-2 py-1.5 rounded-md transition-colors duration-150 text-sm font-medium"
+                className="text-white/80 hover:text-white px-2 py-1.5 rounded-md transition-colors duration-150 text-sm font-medium whitespace-nowrap"
               >
                 {t('templates', { defaultValue: 'Templates' })}
               </a>
@@ -489,11 +601,11 @@ export const MainHeader: React.FC = () => {
           </div>
 
           {/* Right side - Actions */}
-          <div className="flex items-center space-x-2">
+          <div className="flex items-center space-x-1 sm:space-x-2 flex-shrink-0">
             {/* Language Selector */}
             <LanguageDropdown />
             
-            {/* Theme Toggle */}
+            {/* Theme Toggle - Hidden on mobile */}
             <div className="hidden sm:block">
               <ThemeToggle />
             </div>
@@ -502,15 +614,7 @@ export const MainHeader: React.FC = () => {
             <CreateButton />
             
             {/* Mobile menu button */}
-            <UIButton 
-              variant="ghost" 
-              size="sm" 
-              className="md:hidden text-white hover:bg-white/10 p-1.5"
-            >
-              <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
-              </svg>
-            </UIButton>
+            <MobileMenu />
           </div>
         </div>
       </div>
