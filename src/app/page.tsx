@@ -41,50 +41,50 @@ const HomePage = () => {
   };
 
   return (
-    <div className="min-h-screen bg-zinc-900">
+    <div className="min-h-screen bg-background">
       {/* Main Header - Same as board pages */}
       <MainHeader />
 
       <div className="flex">
         {/* Sidebar */}
-        <aside className="w-64 bg-zinc-900 backdrop-blur-sm border-r border-white/20 min-h-screen">
+        <aside className="w-64 bg-background backdrop-blur-sm border-r border-border min-h-screen">
           <div className="p-4">
             <nav className="space-y-2">
-              <a href="#" className="flex items-center space-x-3 text-white hover:bg-white/20 rounded-lg p-2">
+              <a href="#" className="flex items-center space-x-3 text-foreground hover:bg-accent hover:text-accent-foreground rounded-lg p-2 transition-colors">
                 <Home className="h-5 w-5" />
                 <span>Home</span>
               </a>
-              <a href="#" className="flex items-center space-x-3 text-white hover:bg-white/20 rounded-lg p-2">
+              <a href="#" className="flex items-center space-x-3 text-foreground hover:bg-accent hover:text-accent-foreground rounded-lg p-2 transition-colors">
                 <span>Boards</span>
               </a>
-              <a href="#" className="flex items-center space-x-3 text-white hover:bg-white/20 rounded-lg p-2">
+              <a href="#" className="flex items-center space-x-3 text-foreground hover:bg-accent hover:text-accent-foreground rounded-lg p-2 transition-colors">
                 <span>Templates</span>
               </a>
             </nav>
 
             <div className="mt-8">
-              <h3 className="text-white text-sm font-semibold mb-2">Workspaces</h3>
+              <h3 className="text-foreground text-sm font-semibold mb-2">Workspaces</h3>
               <div className="space-y-2">
-                <div className="flex items-center space-x-2 text-white">
-                  <div className="w-6 h-6 bg-green-500 rounded flex items-center justify-center text-xs font-bold">
+                <div className="flex items-center space-x-2 text-foreground">
+                  <div className="w-6 h-6 bg-green-500 rounded flex items-center justify-center text-xs font-bold text-white">
                     T
                   </div>
                   <span className="text-sm">Kanban Workspace</span>
                 </div>
                 
                 <nav className="ml-8 space-y-1">
-                  <a href="#" className="flex items-center space-x-2 text-white/80 hover:text-white text-sm">
+                  <a href="#" className="flex items-center space-x-2 text-muted-foreground hover:text-foreground text-sm transition-colors">
                     <span>Boards</span>
                   </a>
-                  <a href="#" className="flex items-center space-x-2 text-white/80 hover:text-white text-sm">
+                  <a href="#" className="flex items-center space-x-2 text-muted-foreground hover:text-foreground text-sm transition-colors">
                     <Users className="h-4 w-4" />
                     <span>Members</span>
                   </a>
-                  <a href="#" className="flex items-center space-x-2 text-white/80 hover:text-white text-sm">
+                  <a href="#" className="flex items-center space-x-2 text-muted-foreground hover:text-foreground text-sm transition-colors">
                     <Settings className="h-4 w-4" />
                     <span>Settings</span>
                   </a>
-                  <a href="#" className="flex items-center space-x-2 text-white/80 hover:text-white text-sm">
+                  <a href="#" className="flex items-center space-x-2 text-muted-foreground hover:text-foreground text-sm transition-colors">
                     <CreditCard className="h-4 w-4" />
                     <span>Billing</span>
                   </a>
@@ -95,44 +95,44 @@ const HomePage = () => {
         </aside>
 
         {/* Main Content */}
-        <main className="flex-1 p-8">
+        <main className="flex-1 p-8 bg-background">
           <div className="max-w-4xl mx-auto">
             {/* Your Items Section */}
             <div className="mb-8">
               <div className="flex items-center justify-between mb-4">
-                <h2 className="text-white text-lg font-semibold flex items-center">
+                <h2 className="text-foreground text-lg font-semibold flex items-center">
                   <Clock className="h-5 w-5 mr-2" />
                   Your Items
                 </h2>
               </div>
-              <p className="text-white/80 text-sm mb-6">
+              <p className="text-muted-foreground text-sm mb-6">
                 When you&apos;re added to a checklist item, it&apos;ll show up here.
               </p>
             </div>
 
             {/* Organize Anything Section */}
             <div className="text-center mb-8">
-              <div className="bg-white/10 backdrop-blur-sm rounded-lg p-8 mb-6">
+              <div className="bg-card backdrop-blur-sm rounded-lg p-8 mb-6 border border-border shadow-sm">
                 <div className="mb-6">
-                  <div className="w-48 h-32 mx-auto bg-purple-200 rounded-lg relative overflow-hidden">
+                  <div className="w-48 h-32 mx-auto bg-purple-200 dark:bg-purple-800 rounded-lg relative overflow-hidden">
                     <div className="absolute inset-4 space-y-2">
-                      <div className="bg-white rounded p-2 shadow-sm">
-                        <div className="h-2 bg-gray-200 rounded mb-1"></div>
-                        <div className="h-2 bg-gray-200 rounded w-2/3"></div>
+                      <div className="bg-white dark:bg-gray-800 rounded p-2 shadow-sm">
+                        <div className="h-2 bg-gray-200 dark:bg-gray-600 rounded mb-1"></div>
+                        <div className="h-2 bg-gray-200 dark:bg-gray-600 rounded w-2/3"></div>
                       </div>
-                      <div className="bg-blue-100 rounded p-2 shadow-sm flex items-center justify-center">
+                      <div className="bg-blue-100 dark:bg-blue-900 rounded p-2 shadow-sm flex items-center justify-center">
                         <div className="w-2 h-2 bg-blue-500 rounded-full mr-1"></div>
                         <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
                       </div>
-                      <div className="bg-green-100 rounded p-2 shadow-sm">
+                      <div className="bg-green-100 dark:bg-green-900 rounded p-2 shadow-sm">
                         <div className="w-6 h-6 bg-green-500 rounded"></div>
                       </div>
                     </div>
                   </div>
                 </div>
                 
-                <h3 className="text-2xl font-bold text-white mb-2">Organize anything</h3>
-                <p className="text-white/80 mb-6">
+                <h3 className="text-2xl font-bold text-foreground mb-2">Organize anything</h3>
+                <p className="text-muted-foreground mb-6">
                   Put everything in one place and start moving things forward with your first Kanban board!
                 </p>
                 
@@ -142,7 +142,7 @@ const HomePage = () => {
                       value={boardTitle}
                       onChange={(e) => setBoardTitle(e.target.value)}
                       placeholder="What are you working on?"
-                      className="max-w-md bg-white/20 border-white/30 text-white placeholder-white/70"
+                      className="max-w-md bg-background border-border text-foreground placeholder:text-muted-foreground"
                       onKeyPress={(e) => {
                         if (e.key === 'Enter') {
                           handleCreateBoard();
@@ -159,7 +159,7 @@ const HomePage = () => {
                     >
                       Create your board
                     </Button>
-                    <Button variant="ghost" className="text-white hover:bg-white/20">
+                    <Button variant="ghost" className="text-foreground hover:bg-accent hover:text-accent-foreground">
                       <span className="underline">Got it! Dismiss this.</span>
                     </Button>
                   </div>
@@ -170,11 +170,11 @@ const HomePage = () => {
             {/* Recently Viewed Section */}
             <div>
               <div className="flex items-center justify-between mb-4">
-                <h2 className="text-white text-lg font-semibold flex items-center">
+                <h2 className="text-foreground text-lg font-semibold flex items-center">
                   <Star className="h-5 w-5 mr-2" />
                   Recently viewed
                 </h2>
-                <Button variant="ghost" className="text-white hover:bg-white/20">
+                <Button variant="ghost" className="text-foreground hover:bg-accent hover:text-accent-foreground">
                   <Plus className="h-4 w-4 mr-1" />
                   Create a board
                 </Button>
@@ -184,12 +184,12 @@ const HomePage = () => {
                 {mockBoards.map((board) => (
                   <Card 
                     key={board.id} 
-                    className="bg-white/10 backdrop-blur-sm border-white/20 hover:bg-white/20 cursor-pointer transition-colors"
+                    className="bg-card backdrop-blur-sm border-border hover:bg-accent cursor-pointer transition-colors"
                     onClick={() => navigateToBoard(board.id)}
                   >
                     <CardContent className="p-4">
-                      <h3 className="text-white font-medium mb-1">{board.title}</h3>
-                      <p className="text-white/70 text-sm">{board.workspace}</p>
+                      <h3 className="text-foreground font-medium mb-1">{board.title}</h3>
+                      <p className="text-muted-foreground text-sm">{board.workspace}</p>
                     </CardContent>
                   </Card>
                 ))}
@@ -198,10 +198,10 @@ const HomePage = () => {
 
             {/* Links Section */}
             {/* <div className="mt-8">
-              <h2 className="text-white text-lg font-semibold mb-4">Links</h2>
+              <h2 className="text-foreground text-lg font-semibold mb-4">Links</h2>
               <Button 
                 variant="ghost" 
-                className="text-white hover:bg-white/20 flex items-center"
+                className="text-foreground hover:bg-accent hover:text-accent-foreground flex items-center"
               >
                 <Plus className="h-4 w-4 mr-2" />
                 Create a board
