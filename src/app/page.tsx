@@ -137,17 +137,19 @@ const HomePage = () => {
                 </p>
                 
                 <div className="space-y-4">
-                  <Input 
-                    value={boardTitle}
-                    onChange={(e) => setBoardTitle(e.target.value)}
-                    placeholder="What are you working on?"
-                    className="max-w-md mx-auto bg-white/20 border-white/30 text-white placeholder-white/70"
-                    onKeyPress={(e) => {
-                      if (e.key === 'Enter') {
-                        handleCreateBoard();
-                      }
-                    }}
-                  />
+                  <div className="flex justify-center">
+                    <Input 
+                      value={boardTitle}
+                      onChange={(e) => setBoardTitle(e.target.value)}
+                      placeholder="What are you working on?"
+                      className="max-w-md bg-white/20 border-white/30 text-white placeholder-white/70"
+                      onKeyPress={(e) => {
+                        if (e.key === 'Enter') {
+                          handleCreateBoard();
+                        }
+                      }}
+                    />
+                  </div>
                   
                   <div className="flex justify-center space-x-4">
                     <Button 
