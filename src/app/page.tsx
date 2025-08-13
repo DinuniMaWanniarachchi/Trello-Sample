@@ -5,6 +5,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { MainHeader } from '@/components/common/MainHeader';
+import { Drawer, Form, Input as AntInput, Button as AntButton, Space } from 'antd';
 import { 
   Plus, 
   Settings, 
@@ -15,29 +16,75 @@ import {
   Home
 } from 'lucide-react';
 
-// Mock data for demonstration
-const mockBoards = [
-  { id: '1', title: 'My Kanban board', workspace: 'Kanban Workspace' }
-];
+// Types
+interface Board {
+  id: string;
+  title: string;
+  workspace: string;
+  description?: string;
+}
+
+interface ProjectFormData {
+  name: string;
+  description: string;
+}
 
 const HomePage = () => {
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+  const [, setIsCreateModalOpen] = useState(false);
   const [boardTitle, setBoardTitle] = useState('');
+  const [isDrawerOpen, setIsDrawerOpen] = useState(false);
+  const [boards, setBoards] = useState<Board[]>([
+    { id: '1', title: 'My Kanban board', workspace: 'Kanban Workspace' }
+  ]);
+  const [form] = Form.useForm();
 
   const handleCreateBoard = () => {
     if (boardTitle.trim()) {
-      // In a real app, this would create a new board
-      console.log('Creating board:', boardTitle);
+      const newBoard: Board = {
+        id: Date.now().toString(),
+        title: boardTitle.trim(),
+        workspace: 'Kanban Workspace'
+      };
+      
+      setBoards(prev => [...prev, newBoard]);
       setBoardTitle('');
       setIsCreateModalOpen(false);
+      
       // Navigate to the new board
-      window.location.href = `/boards/${Date.now()}`;
+      window.location.href = `/boards/${newBoard.id}`;
+    }
+  };
+
+  const handleCreateProject = async (values: ProjectFormData) => {
+    try {
+      const newBoard: Board = {
+        id: Date.now().toString(),
+        title: values.name,
+        workspace: 'Kanban Workspace',
+        description: values.description
+      };
+      
+      setBoards(prev => [...prev, newBoard]);
+      setIsDrawerOpen(false);
+      form.resetFields();
+      
+      console.log('Project created:', newBoard);
+    } catch (error) {
+      console.error('Error creating project:', error);
     }
   };
 
   const navigateToBoard = (boardId: string) => {
     window.location.href = `/boards/${boardId}`;
+  };
+
+  const showDrawer = () => {
+    setIsDrawerOpen(true);
+  };
+
+  const onCloseDrawer = () => {
+    setIsDrawerOpen(false);
+    form.resetFields();
   };
 
   return (
@@ -174,14 +221,18 @@ const HomePage = () => {
                   <Star className="h-5 w-5 mr-2" />
                   Recently viewed
                 </h2>
-                <Button variant="ghost" className="text-foreground hover:bg-accent hover:text-accent-foreground">
+                <Button 
+                  variant="ghost" 
+                  className="text-foreground hover:bg-accent hover:text-accent-foreground"
+                  onClick={showDrawer}
+                >
                   <Plus className="h-4 w-4 mr-1" />
                   Create a board
                 </Button>
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                {mockBoards.map((board) => (
+                {boards.map((board) => (
                   <Card 
                     key={board.id} 
                     className="bg-card backdrop-blur-sm border-border hover:bg-accent cursor-pointer transition-colors"
@@ -190,26 +241,113 @@ const HomePage = () => {
                     <CardContent className="p-4">
                       <h3 className="text-foreground font-medium mb-1">{board.title}</h3>
                       <p className="text-muted-foreground text-sm">{board.workspace}</p>
+                      {board.description && (
+                        <p className="text-muted-foreground text-xs mt-2 truncate">
+                          {board.description}
+                        </p>
+                      )}
                     </CardContent>
                   </Card>
                 ))}
               </div>
             </div>
-
-            {/* Links Section */}
-            {/* <div className="mt-8">
-              <h2 className="text-foreground text-lg font-semibold mb-4">Links</h2>
-              <Button 
-                variant="ghost" 
-                className="text-foreground hover:bg-accent hover:text-accent-foreground flex items-center"
-              >
-                <Plus className="h-4 w-4 mr-2" />
-                Create a board
-              </Button>
-            </div> */}
           </div>
         </main>
       </div>
+
+      {/* Ant Design Drawer for Creating Project */}
+      <Drawer
+        title={<span style={{ color: 'hsl(var(--foreground))' }}>Create New Project</span>}
+        placement="right"
+        width={400}
+        onClose={onCloseDrawer}
+        open={isDrawerOpen}
+        styles={{
+          body: { 
+            paddingBottom: 80,
+            backgroundColor: 'hsl(var(--card))',
+            color: 'hsl(var(--foreground))'
+          },
+          header: {
+            backgroundColor: 'hsl(var(--card))',
+            borderBottom: '1px solid hsl(var(--border))'
+          },
+          wrapper: {
+            backgroundColor: 'rgba(0, 0, 0, 0.45)'
+          }
+        }}
+        extra={
+          <Space>
+            <AntButton 
+              onClick={onCloseDrawer}
+              style={{
+                backgroundColor: 'transparent',
+                borderColor: 'hsl(var(--border))',
+                color: 'hsl(var(--foreground))'
+              }}
+            >
+              Cancel
+            </AntButton>
+            <AntButton 
+              type="primary" 
+              onClick={() => form.submit()}
+              style={{
+                backgroundColor: 'hsl(var(--primary))',
+                borderColor: 'hsl(var(--primary))',
+                color: 'hsl(var(--primary-foreground))'
+              }}
+            >
+              Create Project
+            </AntButton>
+          </Space>
+        }
+      >
+        <Form
+          form={form}
+          layout="vertical"
+          onFinish={handleCreateProject}
+          requiredMark={false}
+        >
+          <Form.Item
+            name="name"
+            label={<span style={{ color: 'hsl(var(--foreground))' }}>Project Name</span>}
+            rules={[
+              { required: true, message: 'Please enter project name' },
+              { min: 1, message: 'Project name cannot be empty' }
+            ]}
+          >
+            <AntInput 
+              placeholder="Enter project name"
+              size="large"
+              style={{
+                backgroundColor: 'hsl(var(--background))',
+                borderColor: 'hsl(var(--border))',
+                color: 'hsl(var(--foreground))'
+              }}
+            />
+          </Form.Item>
+
+          <Form.Item
+            name="description"
+            label={<span style={{ color: 'hsl(var(--foreground))' }}>Project Description</span>}
+            rules={[
+              { max: 500, message: 'Description cannot exceed 500 characters' }
+            ]}
+          >
+            <AntInput.TextArea
+              placeholder="Enter project description (optional)"
+              rows={4}
+              showCount
+              maxLength={500}
+              style={{
+                backgroundColor: 'hsl(var(--background))',
+                borderColor: 'hsl(var(--border))',
+                color: 'hsl(var(--foreground))'
+              }}
+            />
+          </Form.Item>
+        </Form>
+      </Drawer>
     </div>
   );
 };

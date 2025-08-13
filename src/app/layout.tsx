@@ -29,9 +29,14 @@ export default function RootLayout({
     <html lang="en" suppressHydrationWarning>
       <body className={`${geistSans.variable} ${inter.variable} antialiased`}>
         <StoreProvider>
-          {/* Add I18nProvider back - this is essential for language switching */}
           <I18nProvider>
-            <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
+            <ThemeProvider 
+              attribute="class" 
+              defaultTheme="system" 
+              enableSystem
+              storageKey="kanban-theme"
+              disableTransitionOnChange={false}
+            >
               {children}
             </ThemeProvider>
           </I18nProvider>

@@ -17,6 +17,7 @@ import {
   Menu,
   X} from 'lucide-react';
 import { useTranslation } from 'react-i18next';
+import { useTheme } from 'next-themes';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -89,6 +90,7 @@ const boardTemplates: BoardTemplate[] = [
 
 const LanguageDropdown = () => {
   const { i18n, ready } = useTranslation();
+  useTheme();
   const [loading, setLoading] = useState<SupportedLanguage | null>(null);
   const [error, setError] = useState<string | null>(null);
 
@@ -100,7 +102,7 @@ const LanguageDropdown = () => {
 
   if (!ready || !i18n) {
     return (
-      <UIButton variant="ghost" size="sm" disabled className="text-white/70 h-8 w-8 sm:w-auto sm:px-2">
+      <UIButton variant="ghost" size="sm" disabled className="text-foreground/70 h-8 w-8 sm:w-auto sm:px-2">
         <Globe className="h-3.5 w-3.5" />
       </UIButton>
     );
@@ -138,7 +140,7 @@ const LanguageDropdown = () => {
         <UIButton 
           variant="ghost" 
           size="sm" 
-          className="text-white/80 hover:text-white hover:bg-white/10 h-8 w-8 sm:w-auto sm:px-2 text-xs font-medium"
+          className="text-foreground/80 hover:text-foreground hover:bg-accent h-8 w-8 sm:w-auto sm:px-2 text-xs font-medium"
           disabled={loading !== null}
         >
           {loading ? (
@@ -152,7 +154,7 @@ const LanguageDropdown = () => {
           )}
         </UIButton>
       </DropdownMenuTrigger>
-      <DropdownMenuContent align="end" className="w-48 bg-zinc-800 border-zinc-700">
+      <DropdownMenuContent align="end" className="w-48">
         {languages.map((language) => {
           const isActive = i18n.language === language.code;
           const isLoading = loading === language.code;
@@ -161,8 +163,8 @@ const LanguageDropdown = () => {
             <DropdownMenuItem
               key={language.code}
               onClick={() => handleLanguageChange(language.code)}
-              className={`cursor-pointer text-white hover:bg-zinc-700 text-sm ${
-                isActive ? 'bg-zinc-700' : ''
+              className={`cursor-pointer text-sm ${
+                isActive ? 'bg-accent' : ''
               }`}
               disabled={loading !== null}
             >
@@ -170,10 +172,10 @@ const LanguageDropdown = () => {
               <span className="flex-1">{language.name}</span>
               <div className="flex items-center gap-1">
                 {isLoading && (
-                  <Loader2 className="h-3 w-3 animate-spin text-blue-400" />
+                  <Loader2 className="h-3 w-3 animate-spin text-blue-500" />
                 )}
                 {isActive && !isLoading && (
-                  <span className="text-green-400 text-xs">✓</span>
+                  <span className="text-green-500 text-xs">✓</span>
                 )}
               </div>
             </DropdownMenuItem>
@@ -181,8 +183,8 @@ const LanguageDropdown = () => {
         })}
         {error && (
           <>
-            <DropdownMenuSeparator className="bg-zinc-700" />
-            <div className="px-3 py-2 text-xs text-red-400">
+            <DropdownMenuSeparator />
+            <div className="px-3 py-2 text-xs text-red-500">
               {error}
             </div>
           </>
@@ -197,6 +199,7 @@ const CreateButton = () => {
   const [selectedTemplate, setSelectedTemplate] = useState<BoardTemplate | null>(null);
   const [form] = Form.useForm();
   const [loading, setLoading] = useState(false);
+  const { theme } = useTheme();
 
   const showDrawer = () => {
     setDrawerOpen(true);
@@ -260,6 +263,18 @@ const CreateButton = () => {
     return 480;
   };
 
+  // Theme-aware styles
+  const drawerBodyStyle = {
+    backgroundColor: theme === 'dark' ? '#18181b' : '#ffffff',
+    color: theme === 'dark' ? '#fff' : '#000',
+    padding: typeof window !== 'undefined' && window.innerWidth < 640 ? '16px' : '24px'
+  };
+
+  const drawerHeaderStyle = {
+    backgroundColor: theme === 'dark' ? '#27272a' : '#f4f4f5',
+    borderBottom: theme === 'dark' ? '1px solid #3f3f46' : '1px solid #e4e4e7'
+  };
+
   return (
     <>
       <DropdownMenu>
@@ -272,20 +287,20 @@ const CreateButton = () => {
             <span className="hidden sm:inline">Create</span>
           </UIButton>
         </DropdownMenuTrigger>
-        <DropdownMenuContent align="end" className="w-44 bg-zinc-800 border-zinc-700">
+        <DropdownMenuContent align="end" className="w-44">
           <DropdownMenuItem 
-            className="text-white hover:bg-zinc-700 cursor-pointer text-sm"
+            className="cursor-pointer text-sm"
             onClick={handleCreateBoardClick}
           >
             <Layout className="h-3.5 w-3.5 mr-2" />
             Create Board
           </DropdownMenuItem>
-          <DropdownMenuItem className="text-white hover:bg-zinc-700 cursor-pointer text-sm">
+          <DropdownMenuItem className="cursor-pointer text-sm">
             <FileText className="h-3.5 w-3.5 mr-2" />
             Create Template
           </DropdownMenuItem>
-          <DropdownMenuSeparator className="bg-zinc-700" />
-          <DropdownMenuItem className="text-white hover:bg-zinc-700 cursor-pointer text-sm">
+          <DropdownMenuSeparator />
+          <DropdownMenuItem className="cursor-pointer text-sm">
             <Plus className="h-3.5 w-3.5 mr-2" />
             Create Workspace
           </DropdownMenuItem>
@@ -294,7 +309,7 @@ const CreateButton = () => {
 
       <Drawer
         title={
-          <div style={{ color: '#fff', fontSize: '18px', fontWeight: '600' }}>
+          <div style={{ color: theme === 'dark' ? '#fff' : '#000', fontSize: '18px', fontWeight: '600' }}>
             Create New Board
           </div>
         }
@@ -303,15 +318,8 @@ const CreateButton = () => {
         onClose={onClose}
         open={drawerOpen}
         styles={{
-          body: { 
-            backgroundColor: '#18181b', 
-            color: '#fff',
-            padding: typeof window !== 'undefined' && window.innerWidth < 640 ? '16px' : '24px'
-          },
-          header: { 
-            backgroundColor: '#27272a', 
-            borderBottom: '1px solid #3f3f46'
-          }
+          body: drawerBodyStyle,
+          header: drawerHeaderStyle
         }}
       >
         <Form
@@ -322,7 +330,12 @@ const CreateButton = () => {
         >
           {/* Board Templates Selection */}
           <div style={{ marginBottom: '24px' }}>
-            <h3 style={{ color: '#fff', marginBottom: '16px', fontSize: '16px', fontWeight: '500' }}>
+            <h3 style={{ 
+              color: theme === 'dark' ? '#fff' : '#000', 
+              marginBottom: '16px', 
+              fontSize: '16px', 
+              fontWeight: '500' 
+            }}>
               Choose a Template
             </h3>
             <Row gutter={[12, 12]}>
@@ -331,8 +344,12 @@ const CreateButton = () => {
                   <Card
                     hoverable
                     style={{
-                      backgroundColor: selectedTemplate?.id === template.id ? template.color + '20' : '#27272a',
-                      border: selectedTemplate?.id === template.id ? `2px solid ${template.color}` : '1px solid #3f3f46',
+                      backgroundColor: selectedTemplate?.id === template.id 
+                        ? template.color + '20' 
+                        : theme === 'dark' ? '#27272a' : '#f9f9f9',
+                      border: selectedTemplate?.id === template.id 
+                        ? `2px solid ${template.color}` 
+                        : theme === 'dark' ? '1px solid #3f3f46' : '1px solid #e4e4e7',
                       borderRadius: '8px',
                       minHeight: '120px',
                       cursor: 'pointer'
@@ -344,7 +361,7 @@ const CreateButton = () => {
                       {template.image}
                     </div>
                     <div style={{ 
-                      color: '#fff', 
+                      color: theme === 'dark' ? '#fff' : '#000', 
                       fontWeight: '500', 
                       fontSize: '14px', 
                       marginBottom: '4px' 
@@ -352,7 +369,7 @@ const CreateButton = () => {
                       {template.title}
                     </div>
                     <div style={{ 
-                      color: '#a1a1aa', 
+                      color: theme === 'dark' ? '#a1a1aa' : '#71717a', 
                       fontSize: '12px', 
                       lineHeight: '1.3' 
                     }}>
@@ -366,37 +383,42 @@ const CreateButton = () => {
 
           {/* Board Details Form */}
           <div style={{ marginBottom: '24px' }}>
-            <h3 style={{ color: '#fff', marginBottom: '16px', fontSize: '16px', fontWeight: '500' }}>
+            <h3 style={{ 
+              color: theme === 'dark' ? '#fff' : '#000', 
+              marginBottom: '16px', 
+              fontSize: '16px', 
+              fontWeight: '500' 
+            }}>
               Board Details
             </h3>
             
             <Form.Item
-              label={<span style={{ color: '#fff' }}>Board Title</span>}
+              label={<span style={{ color: theme === 'dark' ? '#fff' : '#000' }}>Board Title</span>}
               name="title"
               rules={[{ required: true, message: 'Please enter board title!' }]}
             >
               <Input
                 placeholder="Enter board title"
                 style={{
-                  backgroundColor: '#27272a',
-                  border: '1px solid #3f3f46',
-                  color: '#fff'
+                  backgroundColor: theme === 'dark' ? '#27272a' : '#ffffff',
+                  border: theme === 'dark' ? '1px solid #3f3f46' : '1px solid #e4e4e7',
+                  color: theme === 'dark' ? '#fff' : '#000'
                 }}
                 size="large"
               />
             </Form.Item>
 
             <Form.Item
-              label={<span style={{ color: '#fff' }}>Description (Optional)</span>}
+              label={<span style={{ color: theme === 'dark' ? '#fff' : '#000' }}>Description (Optional)</span>}
               name="description"
             >
               <TextArea
                 rows={3}
                 placeholder="Describe what this board is for..."
                 style={{
-                  backgroundColor: '#27272a',
-                  border: '1px solid #3f3f46',
-                  color: '#fff'
+                  backgroundColor: theme === 'dark' ? '#27272a' : '#ffffff',
+                  border: theme === 'dark' ? '1px solid #3f3f46' : '1px solid #e4e4e7',
+                  color: theme === 'dark' ? '#fff' : '#000'
                 }}
               />
             </Form.Item>
@@ -407,11 +429,15 @@ const CreateButton = () => {
             <div style={{ 
               marginBottom: '24px', 
               padding: '16px', 
-              backgroundColor: '#27272a', 
+              backgroundColor: theme === 'dark' ? '#27272a' : '#f9f9f9', 
               borderRadius: '8px',
               border: `1px solid ${selectedTemplate.color}50`
             }}>
-              <h4 style={{ color: '#fff', marginBottom: '8px', fontSize: '14px' }}>
+              <h4 style={{ 
+                color: theme === 'dark' ? '#fff' : '#000', 
+                marginBottom: '8px', 
+                fontSize: '14px' 
+              }}>
                 Selected Template:
               </h4>
               <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
@@ -420,7 +446,10 @@ const CreateButton = () => {
                   <div style={{ color: selectedTemplate.color, fontWeight: '500' }}>
                     {selectedTemplate.title}
                   </div>
-                  <div style={{ color: '#a1a1aa', fontSize: '12px' }}>
+                  <div style={{ 
+                    color: theme === 'dark' ? '#a1a1aa' : '#71717a', 
+                    fontSize: '12px' 
+                  }}>
                     {selectedTemplate.description}
                   </div>
                 </div>
@@ -439,8 +468,8 @@ const CreateButton = () => {
               onClick={onClose} 
               style={{ 
                 backgroundColor: 'transparent', 
-                border: '1px solid #3f3f46',
-                color: '#fff',
+                border: theme === 'dark' ? '1px solid #3f3f46' : '1px solid #e4e4e7',
+                color: theme === 'dark' ? '#fff' : '#000',
                 order: typeof window !== 'undefined' && window.innerWidth < 640 ? 2 : 1
               }}
               block={typeof window !== 'undefined' && window.innerWidth < 640}
@@ -472,13 +501,25 @@ const CreateButton = () => {
 const MobileMenu = () => {
   const [isOpen, setIsOpen] = useState(false);
   const { t } = useTranslation();
+  const { theme } = useTheme();
+
+  const drawerBodyStyle = {
+    backgroundColor: theme === 'dark' ? '#18181b' : '#ffffff',
+    color: theme === 'dark' ? '#fff' : '#000',
+    padding: '16px'
+  };
+
+  const drawerHeaderStyle = {
+    backgroundColor: theme === 'dark' ? '#27272a' : '#f4f4f5',
+    borderBottom: theme === 'dark' ? '1px solid #3f3f46' : '1px solid #e4e4e7'
+  };
 
   return (
     <>
       <UIButton 
         variant="ghost" 
         size="sm" 
-        className="lg:hidden text-white hover:bg-white/10 h-8 w-8 p-0"
+        className="lg:hidden text-foreground hover:bg-accent h-8 w-8 p-0"
         onClick={() => setIsOpen(true)}
       >
         <Menu className="h-4 w-4" />
@@ -487,14 +528,18 @@ const MobileMenu = () => {
       <Drawer
         title={
           <div className="flex items-center justify-between">
-            <span style={{ color: '#fff', fontSize: '18px', fontWeight: '600' }}>
+            <span style={{ 
+              color: theme === 'dark' ? '#fff' : '#000', 
+              fontSize: '18px', 
+              fontWeight: '600' 
+            }}>
               Menu
             </span>
             <UIButton 
               variant="ghost" 
               size="sm" 
               onClick={() => setIsOpen(false)}
-              className="text-white hover:bg-white/10 h-8 w-8 p-0"
+              className="text-foreground hover:bg-accent h-8 w-8 p-0"
             >
               <X className="h-4 w-4" />
             </UIButton>
@@ -505,22 +550,15 @@ const MobileMenu = () => {
         onClose={() => setIsOpen(false)}
         open={isOpen}
         styles={{
-          body: { 
-            backgroundColor: '#18181b', 
-            color: '#fff',
-            padding: '16px'
-          },
-          header: { 
-            backgroundColor: '#27272a', 
-            borderBottom: '1px solid #3f3f46'
-          }
+          body: drawerBodyStyle,
+          header: drawerHeaderStyle
         }}
         closable={false}
       >
         <nav className="space-y-4">
           <a 
             href="/" 
-            className="flex items-center space-x-3 text-white/80 hover:text-white hover:bg-white/10 px-3 py-2 rounded-md transition-colors duration-150 text-sm font-medium"
+            className="flex items-center space-x-3 text-foreground/80 hover:text-foreground hover:bg-accent px-3 py-2 rounded-md transition-colors duration-150 text-sm font-medium"
             onClick={() => setIsOpen(false)}
           >
             <Home className="h-4 w-4" />
@@ -528,7 +566,7 @@ const MobileMenu = () => {
           </a>
           <a 
             href="#" 
-            className="flex items-center space-x-3 text-white/80 hover:text-white hover:bg-white/10 px-3 py-2 rounded-md transition-colors duration-150 text-sm font-medium"
+            className="flex items-center space-x-3 text-foreground/80 hover:text-foreground hover:bg-accent px-3 py-2 rounded-md transition-colors duration-150 text-sm font-medium"
             onClick={() => setIsOpen(false)}
           >
             <Layout className="h-4 w-4" />
@@ -536,7 +574,7 @@ const MobileMenu = () => {
           </a>
           <a 
             href="#" 
-            className="flex items-center space-x-3 text-white/80 hover:text-white hover:bg-white/10 px-3 py-2 rounded-md transition-colors duration-150 text-sm font-medium"
+            className="flex items-center space-x-3 text-foreground/80 hover:text-foreground hover:bg-accent px-3 py-2 rounded-md transition-colors duration-150 text-sm font-medium"
             onClick={() => setIsOpen(false)}
           >
             <FileText className="h-4 w-4" />
@@ -544,13 +582,13 @@ const MobileMenu = () => {
           </a>
         </nav>
         
-        <div className="mt-8 pt-4 border-t border-zinc-700">
+        <div className="mt-8 pt-4 border-t border-border">
           <div className="space-y-3">
-            <div className="text-white/60 text-xs font-medium uppercase tracking-wider">
+            <div className="text-foreground/60 text-xs font-medium uppercase tracking-wider">
               Settings
             </div>
             <div className="flex items-center justify-between">
-              <span className="text-white text-sm">Theme</span>
+              <span className="text-foreground text-sm">Theme</span>
               <ThemeToggle />
             </div>
           </div>
@@ -564,14 +602,14 @@ export const MainHeader: React.FC = () => {
   const { t } = useTranslation();
 
   return (
-    <header className="bg-zinc-900 border-b border-zinc-800 font-['Inter',sans-serif]">
+    <header className="bg-background border-b border-border font-['Inter',sans-serif]">
       <div className="w-full px-3 sm:px-4 lg:px-6">
         <div className="flex items-center justify-between h-12 sm:h-14">
           {/* Left side - Logo and Navigation */}
           <div className="flex items-center space-x-4 lg:space-x-6 min-w-0 flex-1">
             {/* Logo */}
             <div className="flex items-center space-x-0 flex-shrink-0">
-              <span className="text-base sm:text-lg font-semibold text-white">
+              <span className="text-base sm:text-lg font-semibold text-foreground">
                 Kanban
               </span>
             </div>
@@ -580,20 +618,20 @@ export const MainHeader: React.FC = () => {
             <nav className="hidden lg:flex items-center space-x-4 min-w-0">
               <a 
                 href="/" 
-                className="text-white/80 hover:text-white flex items-center space-x-1.5 px-2 py-1.5 rounded-md transition-colors duration-150 text-sm font-medium whitespace-nowrap"
+                className="text-foreground/80 hover:text-foreground flex items-center space-x-1.5 px-2 py-1.5 rounded-md transition-colors duration-150 text-sm font-medium whitespace-nowrap"
               >
                 <Home className="h-3.5 w-3.5 flex-shrink-0" />
                 <span>{t('home', { defaultValue: 'Home' })}</span>
               </a>
               <a 
                 href="#" 
-                className="text-white/80 hover:text-white px-2 py-1.5 rounded-md transition-colors duration-150 text-sm font-medium whitespace-nowrap"
+                className="text-foreground/80 hover:text-foreground px-2 py-1.5 rounded-md transition-colors duration-150 text-sm font-medium whitespace-nowrap"
               >
                 {t('boards', { defaultValue: 'Boards' })}
               </a>
               <a 
                 href="#" 
-                className="text-white/80 hover:text-white px-2 py-1.5 rounded-md transition-colors duration-150 text-sm font-medium whitespace-nowrap"
+                className="text-foreground/80 hover:text-foreground px-2 py-1.5 rounded-md transition-colors duration-150 text-sm font-medium whitespace-nowrap"
               >
                 {t('templates', { defaultValue: 'Templates' })}
               </a>
