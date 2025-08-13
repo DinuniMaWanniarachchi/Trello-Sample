@@ -5,7 +5,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { MainHeader } from '@/components/common/MainHeader';
-import { Drawer, Form, Input as AntInput, Button as AntButton, Space } from 'antd';
+import { Form } from 'antd';
 import { 
   Plus, 
   Settings, 
@@ -15,19 +15,7 @@ import {
   Clock,
   Home
 } from 'lucide-react';
-
-// Types
-interface Board {
-  id: string;
-  title: string;
-  workspace: string;
-  description?: string;
-}
-
-interface ProjectFormData {
-  name: string;
-  description: string;
-}
+import CreateProjectDrawer, { ProjectFormData, Board } from '@/components/CreateProjectDrawer';
 
 const HomePage = () => {
   const [, setIsCreateModalOpen] = useState(false);
@@ -84,7 +72,6 @@ const HomePage = () => {
 
   const onCloseDrawer = () => {
     setIsDrawerOpen(false);
-    form.resetFields();
   };
 
   return (
@@ -255,99 +242,13 @@ const HomePage = () => {
         </main>
       </div>
 
-      {/* Ant Design Drawer for Creating Project */}
-      <Drawer
-        title={<span style={{ color: 'hsl(var(--foreground))' }}>Create New Project</span>}
-        placement="right"
-        width={400}
+      {/* Create Project Drawer */}
+      <CreateProjectDrawer
+        isOpen={isDrawerOpen}
         onClose={onCloseDrawer}
-        open={isDrawerOpen}
-        styles={{
-          body: { 
-            paddingBottom: 80,
-            backgroundColor: 'hsl(var(--card))',
-            color: 'hsl(var(--foreground))'
-          },
-          header: {
-            backgroundColor: 'hsl(var(--card))',
-            borderBottom: '1px solid hsl(var(--border))'
-          },
-          wrapper: {
-            backgroundColor: 'rgba(0, 0, 0, 0.45)'
-          }
-        }}
-        extra={
-          <Space>
-            <AntButton 
-              onClick={onCloseDrawer}
-              style={{
-                backgroundColor: 'transparent',
-                borderColor: 'hsl(var(--border))',
-                color: 'hsl(var(--foreground))'
-              }}
-            >
-              Cancel
-            </AntButton>
-            <AntButton 
-              type="primary" 
-              onClick={() => form.submit()}
-              style={{
-                backgroundColor: 'hsl(var(--primary))',
-                borderColor: 'hsl(var(--primary))',
-                color: 'hsl(var(--primary-foreground))'
-              }}
-            >
-              Create Project
-            </AntButton>
-          </Space>
-        }
-      >
-        <Form
-          form={form}
-          layout="vertical"
-          onFinish={handleCreateProject}
-          requiredMark={false}
-        >
-          <Form.Item
-            name="name"
-            label={<span style={{ color: 'hsl(var(--foreground))' }}>Project Name</span>}
-            rules={[
-              { required: true, message: 'Please enter project name' },
-              { min: 1, message: 'Project name cannot be empty' }
-            ]}
-          >
-            <AntInput 
-              placeholder="Enter project name"
-              size="large"
-              style={{
-                backgroundColor: 'hsl(var(--background))',
-                borderColor: 'hsl(var(--border))',
-                color: 'hsl(var(--foreground))'
-              }}
-            />
-          </Form.Item>
-
-          <Form.Item
-            name="description"
-            label={<span style={{ color: 'hsl(var(--foreground))' }}>Project Description</span>}
-            rules={[
-              { max: 500, message: 'Description cannot exceed 500 characters' }
-            ]}
-          >
-            <AntInput.TextArea
-              placeholder="Enter project description (optional)"
-              rows={4}
-              showCount
-              maxLength={500}
-              style={{
-                backgroundColor: 'hsl(var(--background))',
-                borderColor: 'hsl(var(--border))',
-                color: 'hsl(var(--foreground))'
-              }}
-            />
-          </Form.Item>
-        </Form>
-      </Drawer>
+        onCreateProject={handleCreateProject}
+        form={form}
+      />
     </div>
   );
 };
