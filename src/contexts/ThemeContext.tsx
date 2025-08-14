@@ -9,6 +9,7 @@ interface ThemeContextType {
   theme: Theme;
   toggleTheme: () => void;
   setTheme: (theme: Theme) => void;
+  isLoading: boolean;
 }
 
 const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
@@ -27,47 +28,93 @@ interface ThemeProviderProps {
 
 export const ThemeProvider: React.FC<ThemeProviderProps> = ({ children }) => {
   const [theme, setThemeState] = useState<Theme>('dark');
-  const [mounted, setMounted] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
 
-  // Load theme from localStorage on mount
+  // Initialize theme on mount
   useEffect(() => {
-    const savedTheme = localStorage.getItem('theme') as Theme;
-    if (savedTheme) {
-      setThemeState(savedTheme);
-    } else {
-      // Check system preference
-      const systemPrefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-      setThemeState(systemPrefersDark ? 'dark' : 'light');
-    }
-    setMounted(true);
+    const initializeTheme = () => {
+      try {
+        const savedTheme = localStorage.getItem('theme') as Theme;
+        let initialTheme: Theme;
+
+        if (savedTheme && (savedTheme === 'light' || savedTheme === 'dark')) {
+          initialTheme = savedTheme;
+        } else {
+          // Check system preference
+          const systemPrefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+          initialTheme = systemPrefersDark ? 'dark' : 'light';
+        }
+
+        setThemeState(initialTheme);
+        applyThemeToDOM(initialTheme);
+      } catch (error) {
+        console.warn('Failed to load theme from localStorage:', error);
+        setThemeState('dark');
+        applyThemeToDOM('dark');
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    initializeTheme();
   }, []);
 
-  // Apply theme to document
-  useEffect(() => {
-    if (mounted) {
-      const root = document.documentElement;
-      root.classList.remove('light', 'dark');
-      root.classList.add(theme);
-      localStorage.setItem('theme', theme);
+  // Function to apply theme to DOM
+  const applyThemeToDOM = (newTheme: Theme) => {
+    const root = document.documentElement;
+    const body = document.body;
+    
+    // Remove existing theme classes
+    root.classList.remove('light', 'dark');
+    body.classList.remove('light', 'dark');
+    
+    // Add new theme class
+    root.classList.add(newTheme);
+    body.classList.add(newTheme);
+    
+    // Set CSS custom property for additional styling
+    root.style.setProperty('--theme', newTheme);
+    
+    // Save to localStorage
+    try {
+      localStorage.setItem('theme', newTheme);
+    } catch (error) {
+      console.warn('Failed to save theme to localStorage:', error);
     }
-  }, [theme, mounted]);
-
-  const toggleTheme = () => {
-    setThemeState(prevTheme => prevTheme === 'light' ? 'dark' : 'light');
   };
 
-  const setTheme = (newTheme: Theme) => {
+  // Apply theme changes to DOM
+  useEffect(() => {
+    if (!isLoading) {
+      applyThemeToDOM(theme);
+    }
+  }, [theme, isLoading]);
+
+  const toggleTheme = () => {
+    const newTheme = theme === 'light' ? 'dark' : 'light';
     setThemeState(newTheme);
   };
 
-  // Prevent hydration mismatch
-  if (!mounted) {
-    return <div className="min-h-screen bg-background">{children}</div>;
+  const setTheme = (newTheme: Theme) => {
+    if (newTheme !== theme) {
+      setThemeState(newTheme);
+    }
+  };
+
+  // Prevent flash of wrong theme during hydration
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-gray-900 flex items-center justify-center">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-white"></div>
+      </div>
+    );
   }
 
   return (
-    <ThemeContext.Provider value={{ theme, toggleTheme, setTheme }}>
-      {children}
+    <ThemeContext.Provider value={{ theme, toggleTheme, setTheme, isLoading }}>
+      <div className={theme}>
+        {children}
+      </div>
     </ThemeContext.Provider>
   );
 };

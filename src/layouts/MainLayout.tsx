@@ -2,7 +2,6 @@
 
 import React, { useState } from 'react';
 import { usePathname } from 'next/navigation';
-import { useTheme } from '@/contexts/ThemeContext'; // Import the theme context
 import { Button } from '@/components/ui/button';
 import { 
   Plus, 
@@ -26,25 +25,26 @@ import {
 
 interface MainLayoutProps {
   children: React.ReactNode;
-  showSidebar?: boolean;
+  showSidebar?: boolean; // Optional - if not provided, auto-detects based on route
 }
+
+
 
 const MainLayout: React.FC<MainLayoutProps> = ({ children, showSidebar }) => {
   const pathname = usePathname();
-  const { theme, toggleTheme } = useTheme(); // Use the global theme context
   
   // Auto-detect: Hide sidebar on board pages, show on all other pages
   const shouldShowSidebar = showSidebar !== undefined ? showSidebar : !pathname.startsWith('/boards');
-  
-  // Remove local isDarkMode state - use theme from context instead
-  const isDarkMode = theme === 'dark';
-  
+  const [isDarkMode, setIsDarkMode] = useState(false);
   const [, setIsSearchFocused] = useState(false);
   const [showNotifications, setShowNotifications] = useState(false);
   const [showUserMenu, setShowUserMenu] = useState(false);
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
 
-  // Remove the local toggleTheme function - use the one from context
+  const toggleTheme = () => {
+    setIsDarkMode(!isDarkMode);
+    document.documentElement.classList.toggle('dark');
+  };
 
   const showDrawer = () => {
     setIsDrawerOpen(true);
@@ -192,7 +192,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children, showSidebar }) => {
           {/* Theme Toggle */}
           <div className="flex items-center space-x-2">
             <button
-              onClick={toggleTheme} // Use the toggleTheme from context
+              onClick={toggleTheme}
               className={`p-2 rounded-lg transition-colors ${
                 isDarkMode 
                   ? 'text-gray-400 hover:text-white hover:bg-gray-800' 

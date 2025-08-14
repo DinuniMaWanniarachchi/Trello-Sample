@@ -26,7 +26,7 @@ import {
   reorderCards,
   setDraggedCard 
 } from '@/lib/features/boardSlice';
-import { BoardHeader } from '@/components/board/board-header';
+// import { BoardHeader } from '@/components/board/board-header';
 import { SortableList } from '@/components/board/SortableList';
 import { AddList } from '@/components/board/add-list';
 import { CardDetailsDrawer } from '@/components/board/CardDetailsDrawer';
@@ -348,7 +348,7 @@ export default function BoardPage() {
 
   return (
     <div className="min-h-screen bg-background">
-      <BoardHeader title={currentBoard?.title || 'Loading...'} />
+      {/* <BoardHeader title={currentBoard?.title || 'Loading...'} /> */}
       
       
       <div className="p-6 flex justify-center h-[calc(100vh-120px)]">
