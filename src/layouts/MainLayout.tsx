@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { usePathname } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { 
@@ -20,31 +20,59 @@ import {
   ChevronDown,
   Grid3X3,
   BookOpen,
-  X
+  X,
+  Menu
 } from 'lucide-react';
 
 interface MainLayoutProps {
   children: React.ReactNode;
-  showSidebar?: boolean; // Optional - if not provided, auto-detects based on route
+  showSidebar?: boolean;
 }
-
-
 
 const MainLayout: React.FC<MainLayoutProps> = ({ children, showSidebar }) => {
   const pathname = usePathname();
   
-  // Auto-detect: Hide sidebar on board pages, show on all other pages
   const shouldShowSidebar = showSidebar !== undefined ? showSidebar : !pathname.startsWith('/boards');
   const [isDarkMode, setIsDarkMode] = useState(false);
   const [, setIsSearchFocused] = useState(false);
   const [showNotifications, setShowNotifications] = useState(false);
   const [showUserMenu, setShowUserMenu] = useState(false);
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+
+  // Initialize dark mode from localStorage or system preference
+  useEffect(() => {
+    const savedTheme = localStorage.getItem('theme');
+    const systemPrefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+    const shouldUseDark = savedTheme === 'dark' || (!savedTheme && systemPrefersDark);
+    
+    setIsDarkMode(shouldUseDark);
+    if (shouldUseDark) {
+      document.documentElement.classList.add('dark');
+    }
+  }, []);
 
   const toggleTheme = () => {
-    setIsDarkMode(!isDarkMode);
-    document.documentElement.classList.toggle('dark');
+    const newTheme = !isDarkMode;
+    setIsDarkMode(newTheme);
+    localStorage.setItem('theme', newTheme ? 'dark' : 'light');
+    document.documentElement.classList.toggle('dark', newTheme);
   };
+
+  // Close dropdowns when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      const target = event.target as Element;
+      if (!target.closest('[data-dropdown]')) {
+        setShowNotifications(false);
+        setShowUserMenu(false);
+        setIsMobileMenuOpen(false);
+      }
+    };
+
+    document.addEventListener('click', handleClickOutside);
+    return () => document.removeEventListener('click', handleClickOutside);
+  }, []);
 
   const showDrawer = () => {
     setIsDrawerOpen(true);
@@ -75,11 +103,26 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children, showSidebar }) => {
 
   return (
     <div className={`min-h-screen ${isDarkMode ? 'dark bg-black' : 'bg-gray-50'}`}>
-      {/* Enhanced Header */}
-      <header className={`h-16 border-b ${isDarkMode ? 'bg-gray-900 border-gray-700' : 'bg-white border-gray-200'} flex items-center justify-between px-6`}>
+      {/* Fixed Header with proper z-index and positioning */}
+      <header className={`fixed top-0 left-0 right-0 h-16 border-b z-40 ${
+        isDarkMode ? 'bg-gray-900/95 border-gray-700 backdrop-blur-sm' : 'bg-white/95 border-gray-200 backdrop-blur-sm'
+      } flex items-center justify-between px-4 lg:px-6`}>
         
         {/* Left Section - Logo & Navigation */}
-        <div className="flex items-center space-x-8">
+        <div className="flex items-center space-x-4 lg:space-x-8">
+          {/* Mobile Menu Button */}
+          <button
+            onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+            className={`md:hidden p-2 rounded-lg transition-colors ${
+              isDarkMode 
+                ? 'text-gray-300 hover:text-white hover:bg-gray-800' 
+                : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'
+            }`}
+            data-dropdown
+          >
+            <Menu className="h-5 w-5" />
+          </button>
+
           {/* Logo/Brand */}
           <div className="flex items-center space-x-3">
             <span className={`text-xl font-semibold ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
@@ -87,8 +130,8 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children, showSidebar }) => {
             </span>
           </div>
 
-          {/* Navigation Menu */}
-          <nav className="hidden md:flex items-center space-x-1">
+          {/* Desktop Navigation Menu */}
+          <nav className="hidden lg:flex items-center space-x-1">
             {headerMenuItems.map((item) => {
               const IconComponent = item.icon;
               return (
@@ -108,14 +151,16 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children, showSidebar }) => {
           </nav>
         </div>
 
-        {/* Center Section - Search */}
-        <div className="flex-1 max-w-md mx-8">
+        {/* Center Section - Search (responsive) */}
+        <div className="flex-1 max-w-md mx-4 lg:mx-8">
           <div className="relative">
-            <Search className={`absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`} />
+            <Search className={`absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 ${
+              isDarkMode ? 'text-gray-400' : 'text-gray-500'
+            }`} />
             <input
               type="text"
-              placeholder="Search boards, cards, and more..."
-              className={`w-full pl-10 pr-4 py-2 rounded-lg border ${
+              placeholder="Search boards, cards..."
+              className={`w-full pl-10 pr-4 py-2 rounded-lg border transition-colors ${
                 isDarkMode 
                   ? 'bg-gray-800 border-gray-600 text-white placeholder-gray-400 focus:border-blue-500' 
                   : 'bg-white border-gray-300 text-gray-900 placeholder-gray-500 focus:border-blue-500'
@@ -127,18 +172,19 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children, showSidebar }) => {
         </div>
 
         {/* Right Section - Actions & User */}
-        <div className="flex items-center space-x-4">
+        <div className="flex items-center space-x-2 lg:space-x-4">
           {/* Create Button */}
           <Button 
             onClick={showDrawer}
-            className="bg-blue-600 hover:bg-blue-700 text-white"
+            size="sm"
+            className="bg-blue-600 hover:bg-blue-700 text-white px-3 lg:px-4"
           >
-            <Plus className="h-4 w-4 mr-2" />
-            Create
+            <Plus className="h-4 w-4 lg:mr-2" />
+            <span className="hidden lg:inline">Create</span>
           </Button>
 
           {/* Notifications */}
-          <div className="relative">
+          <div className="relative" data-dropdown>
             <button
               onClick={() => setShowNotifications(!showNotifications)}
               className={`relative p-2 rounded-lg transition-colors ${
@@ -157,7 +203,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children, showSidebar }) => {
 
             {/* Notifications Dropdown */}
             {showNotifications && (
-              <div className={`absolute right-0 mt-2 w-80 rounded-lg shadow-lg border z-50 ${
+              <div className={`absolute right-0 mt-2 w-80 max-w-[calc(100vw-2rem)] rounded-lg shadow-lg border z-50 ${
                 isDarkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'
               }`}>
                 <div className={`px-4 py-3 border-b ${isDarkMode ? 'border-gray-700' : 'border-gray-200'}`}>
@@ -175,7 +221,9 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children, showSidebar }) => {
                 </div>
                 <div className="max-h-64 overflow-y-auto">
                   {notifications.map((notification) => (
-                    <div key={notification.id} className={`px-4 py-3 border-b last:border-b-0 ${isDarkMode ? 'border-gray-700 hover:bg-gray-700' : 'border-gray-100 hover:bg-gray-50'} cursor-pointer`}>
+                    <div key={notification.id} className={`px-4 py-3 border-b last:border-b-0 ${
+                      isDarkMode ? 'border-gray-700 hover:bg-gray-700' : 'border-gray-100 hover:bg-gray-50'
+                    } cursor-pointer`}>
                       <p className={`text-sm ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
                         {notification.message}
                       </p>
@@ -190,21 +238,19 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children, showSidebar }) => {
           </div>
 
           {/* Theme Toggle */}
-          <div className="flex items-center space-x-2">
-            <button
-              onClick={toggleTheme}
-              className={`p-2 rounded-lg transition-colors ${
-                isDarkMode 
-                  ? 'text-gray-400 hover:text-white hover:bg-gray-800' 
-                  : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'
-              }`}
-            >
-              {isDarkMode ? <Moon className="h-4 w-4" /> : <Sun className="h-4 w-4" />}
-            </button>
-          </div>
+          <button
+            onClick={toggleTheme}
+            className={`p-2 rounded-lg transition-colors ${
+              isDarkMode 
+                ? 'text-gray-400 hover:text-white hover:bg-gray-800' 
+                : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'
+            }`}
+          >
+            {isDarkMode ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
+          </button>
 
           {/* User Menu */}
-          <div className="relative">
+          <div className="relative" data-dropdown>
             <button
               onClick={() => setShowUserMenu(!showUserMenu)}
               className={`flex items-center space-x-2 p-2 rounded-lg transition-colors ${
@@ -249,120 +295,151 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children, showSidebar }) => {
             )}
           </div>
         </div>
+
+        {/* Mobile Navigation Menu */}
+        {isMobileMenuOpen && (
+          <div className={`absolute top-16 left-0 right-0 border-b md:hidden z-30 ${
+            isDarkMode ? 'bg-gray-900 border-gray-700' : 'bg-white border-gray-200'
+          }`}>
+            <nav className="px-4 py-3 space-y-1">
+              {headerMenuItems.map((item) => {
+                const IconComponent = item.icon;
+                return (
+                  <button
+                    key={item.key}
+                    className={`w-full flex items-center space-x-3 px-3 py-2 rounded-md text-sm font-medium transition-colors ${
+                      isDarkMode 
+                        ? 'text-gray-300 hover:text-white hover:bg-gray-800' 
+                        : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'
+                    }`}
+                  >
+                    <IconComponent className="h-4 w-4" />
+                    <span>{item.label}</span>
+                  </button>
+                );
+              })}
+            </nav>
+          </div>
+        )}
       </header>
 
-      <div className="flex">
-        {/* Conditional Sidebar */}
-        {shouldShowSidebar && (
-          <aside className={`w-64 min-h-screen border-r ${isDarkMode ? 'bg-gray-900 border-gray-700' : 'bg-white border-gray-200'}`}>
-            <div className="p-4">
-              <nav className="space-y-2">
-                <a 
-                  href="#" 
-                  className={`flex items-center space-x-3 rounded-lg p-2 transition-colors ${
-                    isDarkMode 
-                      ? 'text-white hover:bg-gray-800' 
-                      : 'text-gray-900 hover:bg-gray-100'
-                  }`}
-                >
-                  <Home className="h-5 w-5" />
-                  <span>Home</span>
-                </a>
-                <a 
-                  href="#" 
-                  className={`flex items-center space-x-3 rounded-lg p-2 transition-colors ${
-                    isDarkMode 
-                      ? 'text-white hover:bg-gray-800' 
-                      : 'text-gray-900 hover:bg-gray-100'
-                  }`}
-                >
-                  <span>Boards</span>
-                </a>
-                <a 
-                  href="#" 
-                  className={`flex items-center space-x-3 rounded-lg p-2 transition-colors ${
-                    isDarkMode 
-                      ? 'text-white hover:bg-gray-800' 
-                      : 'text-gray-900 hover:bg-gray-100'
-                  }`}
-                >
-                  <span>Templates</span>
-                </a>
-              </nav>
+      {/* Add top padding to prevent content being hidden under fixed header */}
+      <div className="pt-16">
+        <div className="flex">
+          {/* Conditional Sidebar */}
+          {shouldShowSidebar && (
+            <aside className={`w-64 min-h-[calc(100vh-4rem)] border-r ${
+              isDarkMode ? 'bg-gray-900 border-gray-700' : 'bg-white border-gray-200'
+            }`}>
+              <div className="p-4">
+                <nav className="space-y-2">
+                  <a 
+                    href="#" 
+                    className={`flex items-center space-x-3 rounded-lg p-2 transition-colors ${
+                      isDarkMode 
+                        ? 'text-white hover:bg-gray-800' 
+                        : 'text-gray-900 hover:bg-gray-100'
+                    }`}
+                  >
+                    <Home className="h-5 w-5" />
+                    <span>Home</span>
+                  </a>
+                  <a 
+                    href="#" 
+                    className={`flex items-center space-x-3 rounded-lg p-2 transition-colors ${
+                      isDarkMode 
+                        ? 'text-white hover:bg-gray-800' 
+                        : 'text-gray-900 hover:bg-gray-100'
+                    }`}
+                  >
+                    <span>Boards</span>
+                  </a>
+                  <a 
+                    href="#" 
+                    className={`flex items-center space-x-3 rounded-lg p-2 transition-colors ${
+                      isDarkMode 
+                        ? 'text-white hover:bg-gray-800' 
+                        : 'text-gray-900 hover:bg-gray-100'
+                    }`}
+                  >
+                    <span>Templates</span>
+                  </a>
+                </nav>
 
-              <div className="mt-8">
-                <h3 className={`text-sm font-semibold mb-2 ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
-                  Workspaces
-                </h3>
-                <div className="space-y-2">
-                  <div className={`flex items-center space-x-2 ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
-                    <div className="w-6 h-6 bg-blue-600 rounded flex items-center justify-center text-xs font-bold text-white">
-                      T
+                <div className="mt-8">
+                  <h3 className={`text-sm font-semibold mb-2 ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
+                    Workspaces
+                  </h3>
+                  <div className="space-y-2">
+                    <div className={`flex items-center space-x-2 ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
+                      <div className="w-6 h-6 bg-blue-600 rounded flex items-center justify-center text-xs font-bold text-white">
+                        T
+                      </div>
+                      <span className="text-sm">Kanban Workspace</span>
                     </div>
-                    <span className="text-sm">Kanban Workspace</span>
+                    
+                    <nav className="ml-8 space-y-1">
+                      <a 
+                        href="#" 
+                        className={`flex items-center space-x-2 text-sm transition-colors ${
+                          isDarkMode 
+                            ? 'text-gray-400 hover:text-white' 
+                            : 'text-gray-600 hover:text-gray-900'
+                        }`}
+                      >
+                        <span>Boards</span>
+                      </a>
+                      <a 
+                        href="#" 
+                        className={`flex items-center space-x-2 text-sm transition-colors ${
+                          isDarkMode 
+                            ? 'text-gray-400 hover:text-white' 
+                            : 'text-gray-600 hover:text-gray-900'
+                        }`}
+                      >
+                        <Users className="h-4 w-4" />
+                        <span>Members</span>
+                      </a>
+                      <a 
+                        href="#" 
+                        className={`flex items-center space-x-2 text-sm transition-colors ${
+                          isDarkMode 
+                            ? 'text-gray-400 hover:text-white' 
+                            : 'text-gray-600 hover:text-gray-900'
+                        }`}
+                      >
+                        <Settings className="h-4 w-4" />
+                        <span>Settings</span>
+                      </a>
+                      <a 
+                        href="#" 
+                        className={`flex items-center space-x-2 text-sm transition-colors ${
+                          isDarkMode 
+                            ? 'text-gray-400 hover:text-white' 
+                            : 'text-gray-600 hover:text-gray-900'
+                        }`}
+                      >
+                        <CreditCard className="h-4 w-4" />
+                        <span>Billing</span>
+                      </a>
+                    </nav>
                   </div>
-                  
-                  <nav className="ml-8 space-y-1">
-                    <a 
-                      href="#" 
-                      className={`flex items-center space-x-2 text-sm transition-colors ${
-                        isDarkMode 
-                          ? 'text-gray-400 hover:text-white' 
-                          : 'text-gray-600 hover:text-gray-900'
-                      }`}
-                    >
-                      <span>Boards</span>
-                    </a>
-                    <a 
-                      href="#" 
-                      className={`flex items-center space-x-2 text-sm transition-colors ${
-                        isDarkMode 
-                          ? 'text-gray-400 hover:text-white' 
-                          : 'text-gray-600 hover:text-gray-900'
-                      }`}
-                    >
-                      <Users className="h-4 w-4" />
-                      <span>Members</span>
-                    </a>
-                    <a 
-                      href="#" 
-                      className={`flex items-center space-x-2 text-sm transition-colors ${
-                        isDarkMode 
-                          ? 'text-gray-400 hover:text-white' 
-                          : 'text-gray-600 hover:text-gray-900'
-                      }`}
-                    >
-                      <Settings className="h-4 w-4" />
-                      <span>Settings</span>
-                    </a>
-                    <a 
-                      href="#" 
-                      className={`flex items-center space-x-2 text-sm transition-colors ${
-                        isDarkMode 
-                          ? 'text-gray-400 hover:text-white' 
-                          : 'text-gray-600 hover:text-gray-900'
-                      }`}
-                    >
-                      <CreditCard className="h-4 w-4" />
-                      <span>Billing</span>
-                    </a>
-                  </nav>
                 </div>
               </div>
-            </div>
-          </aside>
-        )}
+            </aside>
+          )}
 
-        {/* Main Content - Adjusts width based on sidebar visibility */}
-        <main className={`flex-1 ${isDarkMode ? 'bg-black' : 'bg-gray-50'}`}>
-          {children}
-        </main>
+          {/* Main Content */}
+          <main className={`flex-1 min-h-[calc(100vh-4rem)] ${isDarkMode ? 'bg-black' : 'bg-gray-50'}`}>
+            {children}
+          </main>
+        </div>
       </div>
 
-      {/* Simple Create Modal */}
+      {/* Create Modal */}
       {isDrawerOpen && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className={`max-w-md w-full mx-4 rounded-lg p-6 ${isDarkMode ? 'bg-gray-900' : 'bg-white'}`}>
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className={`max-w-md w-full rounded-lg p-6 ${isDarkMode ? 'bg-gray-900' : 'bg-white'}`}>
             <div className="flex items-center justify-between mb-4">
               <h2 className={`text-lg font-semibold ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
                 Create New Board
@@ -396,7 +473,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children, showSidebar }) => {
                 </label>
                 <textarea 
                   placeholder="Enter board description"
-                  className={`w-full p-3 rounded-md border ${
+                  className={`w-full p-3 rounded-md border resize-none ${
                     isDarkMode 
                       ? 'bg-gray-800 border-gray-600 text-white placeholder-gray-400' 
                       : 'bg-white border-gray-300 text-gray-900 placeholder-gray-500'
