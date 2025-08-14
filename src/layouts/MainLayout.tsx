@@ -49,6 +49,10 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children, showSidebar }) => {
     setIsDarkMode(shouldUseDark);
     if (shouldUseDark) {
       document.documentElement.classList.add('dark');
+      // Set custom dark background color
+      document.body.style.backgroundColor = 'rgb(30, 30, 30)';
+    } else {
+      document.body.style.backgroundColor = '';
     }
   }, []);
 
@@ -57,6 +61,13 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children, showSidebar }) => {
     setIsDarkMode(newTheme);
     localStorage.setItem('theme', newTheme ? 'dark' : 'light');
     document.documentElement.classList.toggle('dark', newTheme);
+    
+    // Apply custom background color
+    if (newTheme) {
+      document.body.style.backgroundColor = 'rgb(30, 30, 30)';
+    } else {
+      document.body.style.backgroundColor = '';
+    }
   };
 
   // Close dropdowns when clicking outside
@@ -102,11 +113,12 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children, showSidebar }) => {
   ];
 
   return (
-    <div className={`min-h-screen ${isDarkMode ? 'dark bg-black' : 'bg-gray-50'}`}>
+    <div className={`min-h-screen ${isDarkMode ? 'dark' : ''}`} style={{ backgroundColor: isDarkMode ? 'rgb(30, 30, 30)' : '#f9fafb' }}>
       {/* Fixed Header with proper z-index and positioning */}
       <header className={`fixed top-0 left-0 right-0 h-16 border-b z-40 ${
-        isDarkMode ? 'bg-gray-900/95 border-gray-700 backdrop-blur-sm' : 'bg-white/95 border-gray-200 backdrop-blur-sm'
-      } flex items-center justify-between px-4 lg:px-6`}>
+        isDarkMode ? 'border-gray-700 backdrop-blur-sm' : 'bg-white/95 border-gray-200 backdrop-blur-sm'
+      } flex items-center justify-between px-4 lg:px-6`}
+      style={{ backgroundColor: isDarkMode ? 'rgba(30, 30, 30, 0.95)' : 'rgba(255, 255, 255, 0.95)' }}>
         
         {/* Left Section - Logo & Navigation */}
         <div className="flex items-center space-x-4 lg:space-x-8">
@@ -162,9 +174,10 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children, showSidebar }) => {
               placeholder="Search boards, cards..."
               className={`w-full pl-10 pr-4 py-2 rounded-lg border transition-colors ${
                 isDarkMode 
-                  ? 'bg-gray-800 border-gray-600 text-white placeholder-gray-400 focus:border-blue-500' 
+                  ? 'border-gray-600 text-white placeholder-gray-400 focus:border-blue-500' 
                   : 'bg-white border-gray-300 text-gray-900 placeholder-gray-500 focus:border-blue-500'
               } focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-20`}
+              style={{ backgroundColor: isDarkMode ? 'rgb(40, 40, 40)' : '#ffffff' }}
               onFocus={() => setIsSearchFocused(true)}
               onBlur={() => setIsSearchFocused(false)}
             />
@@ -189,7 +202,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children, showSidebar }) => {
               onClick={() => setShowNotifications(!showNotifications)}
               className={`relative p-2 rounded-lg transition-colors ${
                 isDarkMode 
-                  ? 'text-gray-400 hover:text-white hover:bg-gray-800' 
+                  ? 'text-gray-400 hover:text-white hover:bg-gray-700' 
                   : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'
               }`}
             >
@@ -204,8 +217,9 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children, showSidebar }) => {
             {/* Notifications Dropdown */}
             {showNotifications && (
               <div className={`absolute right-0 mt-2 w-80 max-w-[calc(100vw-2rem)] rounded-lg shadow-lg border z-50 ${
-                isDarkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'
-              }`}>
+                isDarkMode ? 'border-gray-700' : 'bg-white border-gray-200'
+              }`}
+              style={{ backgroundColor: isDarkMode ? 'rgb(30, 30, 30)' : '#ffffff' }}>
                 <div className={`px-4 py-3 border-b ${isDarkMode ? 'border-gray-700' : 'border-gray-200'}`}>
                   <div className="flex items-center justify-between">
                     <h3 className={`text-sm font-semibold ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
@@ -213,7 +227,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children, showSidebar }) => {
                     </h3>
                     <button
                       onClick={() => setShowNotifications(false)}
-                      className={`p-1 rounded ${isDarkMode ? 'hover:bg-gray-700' : 'hover:bg-gray-100'}`}
+                      className={`p-1 rounded ${isDarkMode ? 'hover:bg-gray-600' : 'hover:bg-gray-100'}`}
                     >
                       <X className="h-4 w-4" />
                     </button>
@@ -222,7 +236,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children, showSidebar }) => {
                 <div className="max-h-64 overflow-y-auto">
                   {notifications.map((notification) => (
                     <div key={notification.id} className={`px-4 py-3 border-b last:border-b-0 ${
-                      isDarkMode ? 'border-gray-700 hover:bg-gray-700' : 'border-gray-100 hover:bg-gray-50'
+                      isDarkMode ? 'border-gray-600 hover:bg-gray-700' : 'border-gray-100 hover:bg-gray-50'
                     } cursor-pointer`}>
                       <p className={`text-sm ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
                         {notification.message}
@@ -242,7 +256,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children, showSidebar }) => {
             onClick={toggleTheme}
             className={`p-2 rounded-lg transition-colors ${
               isDarkMode 
-                ? 'text-gray-400 hover:text-white hover:bg-gray-800' 
+                ? 'text-gray-400 hover:text-white hover:bg-gray-700' 
                 : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'
             }`}
           >
@@ -255,7 +269,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children, showSidebar }) => {
               onClick={() => setShowUserMenu(!showUserMenu)}
               className={`flex items-center space-x-2 p-2 rounded-lg transition-colors ${
                 isDarkMode 
-                  ? 'text-gray-300 hover:text-white hover:bg-gray-800' 
+                  ? 'text-gray-300 hover:text-white hover:bg-gray-700' 
                   : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'
               }`}
             >
@@ -271,8 +285,9 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children, showSidebar }) => {
             {/* User Dropdown */}
             {showUserMenu && (
               <div className={`absolute right-0 mt-2 w-48 rounded-lg shadow-lg border z-50 ${
-                isDarkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'
-              }`}>
+                isDarkMode ? 'border-gray-700' : 'bg-white border-gray-200'
+              }`}
+              style={{ backgroundColor: isDarkMode ? 'rgb(30, 30, 30)' : '#ffffff' }}>
                 {userMenuItems.map((item) => {
                   const IconComponent = item.icon;
                   return (
@@ -282,7 +297,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children, showSidebar }) => {
                         item.danger
                           ? 'text-red-600 hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-900/20'
                           : isDarkMode 
-                            ? 'text-gray-300 hover:text-white hover:bg-gray-700' 
+                            ? 'text-gray-300 hover:text-white hover:bg-gray-600' 
                             : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
                       } first:rounded-t-lg last:rounded-b-lg`}
                     >
@@ -299,8 +314,9 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children, showSidebar }) => {
         {/* Mobile Navigation Menu */}
         {isMobileMenuOpen && (
           <div className={`absolute top-16 left-0 right-0 border-b md:hidden z-30 ${
-            isDarkMode ? 'bg-gray-900 border-gray-700' : 'bg-white border-gray-200'
-          }`}>
+            isDarkMode ? 'border-gray-700' : 'bg-white border-gray-200'
+          }`}
+          style={{ backgroundColor: isDarkMode ? 'rgb(30, 30, 30)' : '#ffffff' }}>
             <nav className="px-4 py-3 space-y-1">
               {headerMenuItems.map((item) => {
                 const IconComponent = item.icon;
@@ -309,7 +325,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children, showSidebar }) => {
                     key={item.key}
                     className={`w-full flex items-center space-x-3 px-3 py-2 rounded-md text-sm font-medium transition-colors ${
                       isDarkMode 
-                        ? 'text-gray-300 hover:text-white hover:bg-gray-800' 
+                        ? 'text-gray-300 hover:text-white hover:bg-gray-600' 
                         : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'
                     }`}
                   >
@@ -329,15 +345,16 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children, showSidebar }) => {
           {/* Conditional Sidebar */}
           {shouldShowSidebar && (
             <aside className={`w-64 min-h-[calc(100vh-4rem)] border-r ${
-              isDarkMode ? 'bg-gray-900 border-gray-700' : 'bg-white border-gray-200'
-            }`}>
+              isDarkMode ? 'border-gray-700' : 'bg-white border-gray-200'
+            }`}
+            style={{ backgroundColor: isDarkMode ? 'rgb(30, 30, 30)' : '#ffffff' }}>
               <div className="p-4">
                 <nav className="space-y-2">
                   <a 
                     href="#" 
                     className={`flex items-center space-x-3 rounded-lg p-2 transition-colors ${
                       isDarkMode 
-                        ? 'text-white hover:bg-gray-800' 
+                        ? 'text-white hover:bg-gray-700' 
                         : 'text-gray-900 hover:bg-gray-100'
                     }`}
                   >
@@ -348,7 +365,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children, showSidebar }) => {
                     href="#" 
                     className={`flex items-center space-x-3 rounded-lg p-2 transition-colors ${
                       isDarkMode 
-                        ? 'text-white hover:bg-gray-800' 
+                        ? 'text-white hover:bg-gray-700' 
                         : 'text-gray-900 hover:bg-gray-100'
                     }`}
                   >
@@ -358,7 +375,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children, showSidebar }) => {
                     href="#" 
                     className={`flex items-center space-x-3 rounded-lg p-2 transition-colors ${
                       isDarkMode 
-                        ? 'text-white hover:bg-gray-800' 
+                        ? 'text-white hover:bg-gray-700' 
                         : 'text-gray-900 hover:bg-gray-100'
                     }`}
                   >
@@ -430,7 +447,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children, showSidebar }) => {
           )}
 
           {/* Main Content */}
-          <main className={`flex-1 min-h-[calc(100vh-4rem)] ${isDarkMode ? 'bg-black' : 'bg-gray-50'}`}>
+          <main className={`flex-1 min-h-[calc(100vh-4rem)]`} style={{ backgroundColor: isDarkMode ? 'rgb(30, 30, 30)' : '#f9fafb' }}>
             {children}
           </main>
         </div>
@@ -439,14 +456,15 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children, showSidebar }) => {
       {/* Create Modal */}
       {isDrawerOpen && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className={`max-w-md w-full rounded-lg p-6 ${isDarkMode ? 'bg-gray-900' : 'bg-white'}`}>
+          <div className={`max-w-md w-full rounded-lg p-6`}
+          style={{ backgroundColor: isDarkMode ? 'rgb(30, 30, 30)' : '#ffffff' }}>
             <div className="flex items-center justify-between mb-4">
               <h2 className={`text-lg font-semibold ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
                 Create New Board
               </h2>
               <button
                 onClick={onCloseDrawer}
-                className={`p-2 rounded-lg ${isDarkMode ? 'hover:bg-gray-800' : 'hover:bg-gray-100'}`}
+                className={`p-2 rounded-lg ${isDarkMode ? 'hover:bg-gray-700' : 'hover:bg-gray-100'}`}
               >
                 <X className="h-4 w-4" />
               </button>
@@ -461,9 +479,10 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children, showSidebar }) => {
                   placeholder="Enter board name"
                   className={`w-full p-3 rounded-md border ${
                     isDarkMode 
-                      ? 'bg-gray-800 border-gray-600 text-white placeholder-gray-400' 
+                      ? 'border-gray-600 text-white placeholder-gray-400' 
                       : 'bg-white border-gray-300 text-gray-900 placeholder-gray-500'
                   } focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500`}
+                  style={{ backgroundColor: isDarkMode ? 'rgb(40, 40, 40)' : '#ffffff' }}
                 />
               </div>
               
@@ -475,9 +494,10 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children, showSidebar }) => {
                   placeholder="Enter board description"
                   className={`w-full p-3 rounded-md border resize-none ${
                     isDarkMode 
-                      ? 'bg-gray-800 border-gray-600 text-white placeholder-gray-400' 
+                      ? 'border-gray-600 text-white placeholder-gray-400' 
                       : 'bg-white border-gray-300 text-gray-900 placeholder-gray-500'
                   } focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500`}
+                  style={{ backgroundColor: isDarkMode ? 'rgb(40, 40, 40)' : '#ffffff' }}
                   rows={3}
                 />
               </div>
@@ -494,7 +514,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children, showSidebar }) => {
                   onClick={onCloseDrawer}
                   className={`flex-1 ${
                     isDarkMode 
-                      ? 'border-gray-600 text-gray-300 hover:bg-gray-800' 
+                      ? 'border-gray-600 text-gray-300 hover:bg-gray-700' 
                       : 'border-gray-300 text-gray-700 hover:bg-gray-50'
                   }`}
                 >
