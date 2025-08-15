@@ -1,4 +1,3 @@
- 
 // components/common/SharedHeader.tsx
 "use client";
 
@@ -10,6 +9,7 @@ import {
   Plus} from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { useState, useCallback } from 'react';
+import { useTheme } from '@/contexts/ThemeContext'; // Add this import
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -32,8 +32,10 @@ interface Language {
 
 const LanguageDropdown = () => {
   const { i18n, ready } = useTranslation();
+  const { theme } = useTheme(); // Add theme context
   const [loading, setLoading] = useState<SupportedLanguage | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const isDarkMode = theme === 'dark';
 
   const languages: Language[] = [
     { code: 'en', name: 'English', flag: '🇺🇸' },
@@ -88,7 +90,11 @@ const LanguageDropdown = () => {
         <Button 
           variant="ghost" 
           size="sm" 
-          className="text-foreground hover:bg-accent"
+          className={`transition-colors ${
+            isDarkMode 
+              ? 'text-gray-300 hover:text-white hover:bg-gray-800' 
+              : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'
+          }`}
           disabled={loading !== null}
         >
           {loading ? (
@@ -100,7 +106,14 @@ const LanguageDropdown = () => {
           <span className="sm:hidden">{currentLanguage.flag}</span>
         </Button>
       </DropdownMenuTrigger>
-      <DropdownMenuContent align="end" className="w-48">
+      <DropdownMenuContent 
+        align="end" 
+        className={`w-48 ${
+          isDarkMode 
+            ? 'bg-gray-800 border-gray-700' 
+            : 'bg-white border-gray-200'
+        }`}
+      >
         {languages.map((language) => {
           const isActive = i18n.language === language.code;
           const isLoading = loading === language.code;
@@ -109,7 +122,13 @@ const LanguageDropdown = () => {
             <DropdownMenuItem
               key={language.code}
               onClick={() => handleLanguageChange(language.code)}
-              className={`cursor-pointer ${isActive ? 'bg-accent' : ''}`}
+              className={`cursor-pointer transition-colors ${
+                isActive 
+                  ? (isDarkMode ? 'bg-gray-700' : 'bg-gray-100')
+                  : (isDarkMode ? 'hover:bg-gray-700' : 'hover:bg-gray-50')
+              } ${
+                isDarkMode ? 'text-gray-300' : 'text-gray-700'
+              }`}
               disabled={loading !== null}
             >
               <span className="mr-2">{language.flag}</span>
@@ -141,30 +160,59 @@ export const SharedHeader: React.FC<SharedHeaderProps> = ({
   showBoardActions = false 
 }) => {
   const { t } = useTranslation();
+  const { theme } = useTheme(); // Add theme context
+  const isDarkMode = theme === 'dark';
 
   if (variant === 'main') {
     return (
-      <header className="bg-zinc-900 backdrop-blur-sm border-b border-white/20">
+      <header className={`backdrop-blur-sm border-b transition-colors ${
+        isDarkMode 
+          ? 'border-gray-700' 
+          : 'bg-white border-gray-200'
+      }`}
+      style={isDarkMode ? { backgroundColor: 'rgb(30, 30, 30)' } : {}}>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16">
             <div className="flex items-center space-x-4">
               {/* <div className="flex items-center space-x-2">
-                <span className="text-xl font-bold text-white">Kanban</span>
+                <span className={`text-xl font-bold ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
+                  Kanban
+                </span>
               </div> */}
               
               {/* <nav className="hidden md:flex space-x-8">
-                <a href="#" className="text-white hover:text-blue-200 flex items-center space-x-1">
+                <a href="#" className={`flex items-center space-x-1 transition-colors ${
+                  isDarkMode 
+                    ? 'text-white hover:text-blue-200' 
+                    : 'text-gray-900 hover:text-blue-600'
+                }`}>
                   <Home className="h-4 w-4" />
                   <span>Home</span>
                 </a>
-                <a href="#" className="text-white hover:text-blue-200">Boards</a>
-                <a href="#" className="text-white hover:text-blue-200">Templates</a>
+                <a href="#" className={`transition-colors ${
+                  isDarkMode 
+                    ? 'text-white hover:text-blue-200' 
+                    : 'text-gray-900 hover:text-blue-600'
+                }`}>Boards</a>
+                <a href="#" className={`transition-colors ${
+                  isDarkMode 
+                    ? 'text-white hover:text-blue-200' 
+                    : 'text-gray-900 hover:text-blue-600'
+                }`}>Templates</a>
               </nav> */}
             </div>
 
             <div className="flex items-center space-x-4">
               <LanguageDropdown />
-              <Button variant="ghost" size="sm" className="text-white hover:bg-white/20">
+              <Button 
+                variant="ghost" 
+                size="sm" 
+                className={`transition-colors ${
+                  isDarkMode 
+                    ? 'text-gray-300 hover:text-white hover:bg-gray-800' 
+                    : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'
+                }`}
+              >
                 <Plus className="h-4 w-4 mr-1" />
                 Create
               </Button>
@@ -177,25 +225,40 @@ export const SharedHeader: React.FC<SharedHeaderProps> = ({
 
   // Board variant
   return (
-    <div className="px-6 py-4 border-b border-border bg-zinc-900">
+    <div className={`px-6 py-4 border-b transition-colors ${
+      isDarkMode 
+        ? 'border-gray-700' 
+        : 'bg-white border-gray-200'
+    }`}
+    style={isDarkMode ? { backgroundColor: 'rgb(30, 30, 30)' } : {}}>
       <div className="flex items-center justify-between">
         <div className="flex items-center space-x-4">
           {/* <div className="flex items-center space-x-2">
-            <span className="text-xl font-bold text-white">Kanban</span>
+            <span className={`text-xl font-bold ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
+              Kanban
+            </span>
           </div> */}
           
           {title && (
-            <h1 className="text-2xl font-bold text-white">
+            <h1 className={`text-2xl font-bold ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
               {t(title, { defaultValue: title })}
             </h1>
           )}
           
           {showBoardActions && (
             <div className="flex items-center space-x-2">
-              {/* <Button variant="ghost" size="sm" className="text-white hover:bg-white/20">
+              {/* <Button variant="ghost" size="sm" className={`transition-colors ${
+                isDarkMode 
+                  ? 'text-gray-300 hover:text-white hover:bg-gray-800' 
+                  : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'
+              }`}>
                 <Star className="h-4 w-4" />
               </Button>
-              <Button variant="ghost" size="sm" className="text-white hover:bg-white/20">
+              <Button variant="ghost" size="sm" className={`transition-colors ${
+                isDarkMode 
+                  ? 'text-gray-300 hover:text-white hover:bg-gray-800' 
+                  : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'
+              }`}>
                 <Users className="h-4 w-4" />
               </Button> */}
             </div>
@@ -204,20 +267,44 @@ export const SharedHeader: React.FC<SharedHeaderProps> = ({
                 
         <div className="flex items-center space-x-2">
           {/* <nav className="hidden md:flex space-x-4 mr-4">
-            <a href="/" className="text-white hover:text-blue-200 flex items-center space-x-1">
+            <a href="/" className={`flex items-center space-x-1 transition-colors ${
+              isDarkMode 
+                ? 'text-white hover:text-blue-200' 
+                : 'text-gray-900 hover:text-blue-600'
+            }`}>
               <Home className="h-4 w-4" />
               <span>Home</span>
             </a>
-            <a href="#" className="text-white hover:text-blue-200">Boards</a>
-            <a href="#" className="text-white hover:text-blue-200">Templates</a>
+            <a href="#" className={`transition-colors ${
+              isDarkMode 
+                ? 'text-white hover:text-blue-200' 
+                : 'text-gray-900 hover:text-blue-600'
+            }`}>Boards</a>
+            <a href="#" className={`transition-colors ${
+              isDarkMode 
+                ? 'text-white hover:text-blue-200' 
+                : 'text-gray-900 hover:text-blue-600'
+            }`}>Templates</a>
           </nav> */}
           
           <LanguageDropdown />
-          {/* <Button variant="ghost" size="sm" className="text-white hover:bg-white/20">
+          {/* <Button variant="ghost" size="sm" className={`transition-colors ${
+            isDarkMode 
+              ? 'text-gray-300 hover:text-white hover:bg-gray-800' 
+              : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'
+          }`}>
             <Plus className="h-4 w-4 mr-1" />
             Create
           </Button> */}
-          <Button variant="ghost" size="sm" className="text-white hover:bg-white/20">
+          <Button 
+            variant="ghost" 
+            size="sm" 
+            className={`transition-colors ${
+              isDarkMode 
+                ? 'text-gray-300 hover:text-white hover:bg-gray-800' 
+                : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'
+            }`}
+          >
             <MoreHorizontal className="h-4 w-4" />
           </Button>
         </div>

@@ -117,27 +117,18 @@ export default function BoardPage() {
 
   // Configure sensors for better drag experience
   const sensors = useSensors(
-    useSensor(PointerSensor, {
-      activationConstraint: {
-        distance: 8,
-      },
-    }),
-    useSensor(KeyboardSensor, {
-      coordinateGetter: sortableKeyboardCoordinates,
-    })
+    useSensor(PointerSensor, { activationConstraint: { distance: 8 } }),
+    useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates })
   );
 
   const handleDragStart = (event: DragStartEvent) => {
     const { active } = event;
-    
     if (!currentBoard) return;
-    
-    // Find the active card
+
     for (const list of currentBoard.lists) {
       const card = list.cards.find(card => card.id === active.id);
       if (card) {
         setActiveCard(card);
-        // Set dragged card in Redux for potential use elsewhere
         dispatch(setDraggedCard({
           card,
           sourceListId: list.id,
@@ -150,20 +141,15 @@ export default function BoardPage() {
 
   const handleDragOver = (event: DragOverEvent) => {
     const { active, over } = event;
-    
     if (!over || !currentBoard) return;
 
     const activeId = active.id as string;
     const overId = over.id as string;
-
-    // Don't do anything if we're over the same item
     if (activeId === overId) return;
 
-    // Find the containers
     let activeContainer = '';
     let overContainer = '';
 
-    // Find which list the active card belongs to
     for (const list of currentBoard.lists) {
       if (list.cards.some(card => card.id === activeId)) {
         activeContainer = list.id;
@@ -171,8 +157,6 @@ export default function BoardPage() {
       }
     }
 
-    // Find which container we're over
-    // Check if we're over a card
     for (const list of currentBoard.lists) {
       if (list.cards.some(card => card.id === overId)) {
         overContainer = list.id;
@@ -180,31 +164,22 @@ export default function BoardPage() {
       }
     }
 
-    // If we're over a list directly
     if (!overContainer) {
       const overList = currentBoard.lists.find(list => list.id === overId);
-      if (overList) {
-        overContainer = overId;
-      }
+      if (overList) overContainer = overId;
     }
 
-    // If we couldn't find containers, return
     if (!activeContainer || !overContainer) return;
 
-    // If we're moving to a different container
     if (activeContainer !== overContainer) {
       const activeList = currentBoard.lists.find(list => list.id === activeContainer);
       const overList = currentBoard.lists.find(list => list.id === overContainer);
-      
       if (!activeList || !overList) return;
 
       const activeIndex = activeList.cards.findIndex(card => card.id === activeId);
       const overIndex = overList.cards.findIndex(card => card.id === overId);
-      
-      // Calculate the new index
       const newIndex = overIndex >= 0 ? overIndex : overList.cards.length;
-      
-      // Move the card between lists using Redux
+
       dispatch(moveCard({
         sourceListId: activeContainer,
         destinationListId: overContainer,
@@ -216,20 +191,17 @@ export default function BoardPage() {
 
   const handleDragEnd = (event: DragEndEvent) => {
     const { active, over } = event;
-    
     setActiveCard(null);
     dispatch(setDraggedCard(null));
-    
+
     if (!over || active.id === over.id || !currentBoard) return;
 
     const activeId = active.id as string;
     const overId = over.id as string;
 
-    // Find the containers
     let activeContainer = '';
     let overContainer = '';
 
-    // Find which list the active card belongs to
     for (const list of currentBoard.lists) {
       if (list.cards.some(card => card.id === activeId)) {
         activeContainer = list.id;
@@ -237,7 +209,6 @@ export default function BoardPage() {
       }
     }
 
-    // Find which container we're over
     for (const list of currentBoard.lists) {
       if (list.cards.some(card => card.id === overId)) {
         overContainer = list.id;
@@ -245,17 +216,13 @@ export default function BoardPage() {
       }
     }
 
-    // If we're over a list directly
     if (!overContainer) {
       const overList = currentBoard.lists.find(list => list.id === overId);
-      if (overList) {
-        overContainer = overId;
-      }
+      if (overList) overContainer = overId;
     }
 
     if (!activeContainer || !overContainer) return;
 
-    // If we're in the same container, reorder
     if (activeContainer === overContainer) {
       const list = currentBoard.lists.find(list => list.id === activeContainer);
       if (!list) return;
@@ -273,7 +240,6 @@ export default function BoardPage() {
     }
   };
 
-  // Redux-connected functions
   const handleAddCard = (listId: string, title: string) => {
     const newCard: Card = {
       id: `card-${Date.now()}`,
@@ -289,8 +255,6 @@ export default function BoardPage() {
 
   const handleUpdateCard = (cardId: string, updates: Partial<Card>) => {
     if (!currentBoard) return;
-    
-    // Find which list contains the card
     for (const list of currentBoard.lists) {
       if (list.cards.some(card => card.id === cardId)) {
         dispatch(updateCard({ listId: list.id, cardId, updates }));
@@ -323,7 +287,6 @@ export default function BoardPage() {
     setSelectedCard(null);
   };
 
-  // Show error if there's an actual error
   if (error) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
@@ -332,7 +295,6 @@ export default function BoardPage() {
     );
   }
 
-  // Only show loading if we're actually loading and haven't initialized yet
   if (loading && !isInitialized) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
@@ -341,9 +303,8 @@ export default function BoardPage() {
     );
   }
 
-  // Don't show "No board found" during initialization
   if (!currentBoard && !isInitialized) {
-    return null; // or a minimal loading state
+    return null;
   }
 
   return (
@@ -353,6 +314,7 @@ export default function BoardPage() {
         title={currentBoard?.title || 'Loading...'}
         variant="board"
         showBoardActions={true}
+        data-shared-header // ✅ Added attribute
       />
       
       <div className="p-6 flex justify-center h-[calc(100vh-120px)]">

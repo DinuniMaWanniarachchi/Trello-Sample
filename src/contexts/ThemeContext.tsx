@@ -1,120 +1,131 @@
-// File: contexts/ThemeContext.tsx
+// contexts/ThemeContext.tsx
 "use client";
 
-import React, { createContext, useContext, useEffect, useState } from 'react';
+import React, { createContext, useContext, useEffect } from 'react';
+import { useTheme } from 'next-themes';
 
-type Theme = 'light' | 'dark';
-
-interface ThemeContextType {
-  theme: Theme;
+interface SharedThemeContextType {
+  isDarkMode: boolean;
   toggleTheme: () => void;
-  setTheme: (theme: Theme) => void;
-  isLoading: boolean;
 }
 
-const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
+const SharedThemeContext = createContext<SharedThemeContextType | undefined>(undefined);
 
-export const useTheme = () => {
-  const context = useContext(ThemeContext);
+export const useSharedTheme = () => {
+  const context = useContext(SharedThemeContext);
   if (context === undefined) {
-    throw new Error('useTheme must be used within a ThemeProvider');
+    throw new Error('useSharedTheme must be used within a SharedThemeProvider');
   }
   return context;
 };
 
-interface ThemeProviderProps {
+interface SharedThemeProviderProps {
   children: React.ReactNode;
 }
 
-export const ThemeProvider: React.FC<ThemeProviderProps> = ({ children }) => {
-  const [theme, setThemeState] = useState<Theme>('dark');
-  const [isLoading, setIsLoading] = useState(true);
-
-  // Initialize theme on mount
-  useEffect(() => {
-    const initializeTheme = () => {
-      try {
-        const savedTheme = localStorage.getItem('theme') as Theme;
-        let initialTheme: Theme;
-
-        if (savedTheme && (savedTheme === 'light' || savedTheme === 'dark')) {
-          initialTheme = savedTheme;
-        } else {
-          // Check system preference
-          const systemPrefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-          initialTheme = systemPrefersDark ? 'dark' : 'light';
-        }
-
-        setThemeState(initialTheme);
-        applyThemeToDOM(initialTheme);
-      } catch (error) {
-        console.warn('Failed to load theme from localStorage:', error);
-        setThemeState('dark');
-        applyThemeToDOM('dark');
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    initializeTheme();
-  }, []);
-
-  // Function to apply theme to DOM
-  const applyThemeToDOM = (newTheme: Theme) => {
-    const root = document.documentElement;
-    const body = document.body;
-    
-    // Remove existing theme classes
-    root.classList.remove('light', 'dark');
-    body.classList.remove('light', 'dark');
-    
-    // Add new theme class
-    root.classList.add(newTheme);
-    body.classList.add(newTheme);
-    
-    // Set CSS custom property for additional styling
-    root.style.setProperty('--theme', newTheme);
-    
-    // Save to localStorage
-    try {
-      localStorage.setItem('theme', newTheme);
-    } catch (error) {
-      console.warn('Failed to save theme to localStorage:', error);
-    }
-  };
-
-  // Apply theme changes to DOM
-  useEffect(() => {
-    if (!isLoading) {
-      applyThemeToDOM(theme);
-    }
-  }, [theme, isLoading]);
+export const SharedThemeProvider: React.FC<SharedThemeProviderProps> = ({ children }) => {
+  const { theme, setTheme, resolvedTheme } = useTheme();
+  
+  const isDarkMode = resolvedTheme === 'dark';
 
   const toggleTheme = () => {
-    const newTheme = theme === 'light' ? 'dark' : 'light';
-    setThemeState(newTheme);
+    setTheme(theme === 'dark' ? 'light' : 'dark');
   };
 
-  const setTheme = (newTheme: Theme) => {
-    if (newTheme !== theme) {
-      setThemeState(newTheme);
-    }
-  };
+  // Apply styles to SharedHeader components
+  useEffect(() => {
+    const applySharedHeaderStyles = () => {
+      const sharedHeaders = document.querySelectorAll('[data-shared-header]');
+      sharedHeaders.forEach(header => {
+        if (isDarkMode) {
+          header.classList.add('theme-dark');
+          header.classList.remove('theme-light');
+        } else {
+          header.classList.add('theme-light');
+          header.classList.remove('theme-dark');
+        }
+      });
+    };
 
-  // Prevent flash of wrong theme during hydration
-  if (isLoading) {
-    return (
-      <div className="min-h-screen bg-gray-900 flex items-center justify-center">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-white"></div>
-      </div>
-    );
-  }
+    // Initial application
+    applySharedHeaderStyles();
+
+    // Watch for new SharedHeader components being added
+    const observer = new MutationObserver(() => {
+      applySharedHeaderStyles();
+    });
+
+    observer.observe(document.body, {
+      childList: true,
+      subtree: true
+    });
+
+    return () => observer.disconnect();
+  }, [isDarkMode]);
 
   return (
-    <ThemeContext.Provider value={{ theme, toggleTheme, setTheme, isLoading }}>
-      <div className={theme}>
-        {children}
-      </div>
-    </ThemeContext.Provider>
+    <SharedThemeContext.Provider value={{ isDarkMode, toggleTheme }}>
+      <style jsx global>{`
+        /* Styles for SharedHeader when theme changes */
+        [data-shared-header].theme-dark {
+          background-color: rgba(24, 24, 27, 0.95) !important;
+          border-color: rgba(255, 255, 255, 0.2) !important;
+        }
+        
+        [data-shared-header].theme-dark h1,
+        [data-shared-header].theme-dark span,
+        [data-shared-header].theme-dark div {
+          color: white !important;
+        }
+        
+        [data-shared-header].theme-dark button {
+          color: rgb(209, 213, 219) !important;
+          border-color: rgba(255, 255, 255, 0.2) !important;
+        }
+        
+        [data-shared-header].theme-dark button:hover {
+          background-color: rgba(255, 255, 255, 0.2) !important;
+          color: white !important;
+        }
+        
+        [data-shared-header].theme-dark [data-radix-popper-content-wrapper] > div {
+          background-color: rgb(39, 39, 42) !important;
+          border-color: rgb(63, 63, 70) !important;
+        }
+        
+        [data-shared-header].theme-light {
+          background-color: rgba(255, 255, 255, 0.95) !important;
+          border-color: rgb(229, 231, 235) !important;
+        }
+        
+        [data-shared-header].theme-light h1,
+        [data-shared-header].theme-light span,
+        [data-shared-header].theme-light div {
+          color: rgb(17, 24, 39) !important;
+        }
+        
+        [data-shared-header].theme-light button {
+          color: rgb(75, 85, 99) !important;
+          border-color: rgb(229, 231, 235) !important;
+        }
+        
+        [data-shared-header].theme-light button:hover {
+          background-color: rgb(243, 244, 246) !important;
+          color: rgb(17, 24, 39) !important;
+        }
+
+        /* Dark mode background for the entire app */
+        .dark {
+          background-color: rgb(30, 30, 30);
+        }
+        
+        .dark body {
+          background-color: rgb(30, 30, 30);
+        }
+      `}</style>
+      {children}
+    </SharedThemeContext.Provider>
   );
 };
+
+export { useTheme };
