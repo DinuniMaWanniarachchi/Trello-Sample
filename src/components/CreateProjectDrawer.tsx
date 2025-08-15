@@ -24,18 +24,19 @@ interface CreateProjectDrawerProps {
   form: any; // Form instance from antd
 }
 
-const useStyle = createStyles(({ token }) => ({
+const useStyle = createStyles(({ token, isDarkMode }) => ({
   'project-drawer-body': {
-    background: token.blue1,
+    background: token.colorBgContainer,
     padding: '24px',
   },
   'project-drawer-mask': {
     backdropFilter: 'blur(10px)',
-    backgroundColor: 'rgba(0, 0, 0, 0.45)',
+    backgroundColor: isDarkMode ? 'rgba(0, 0, 0, 0.65)' : 'rgba(0, 0, 0, 0.45)',
   },
   'project-drawer-header': {
-    background: token.green1,
-    borderBottom: `1px solid ${token.colorPrimary}`,
+    background: token.colorBgContainer,
+    borderBottom: `1px solid ${token.colorBorder}`,
+    color: token.colorText,
   },
   'project-drawer-footer': {
     background: token.colorBgContainer,
@@ -43,8 +44,15 @@ const useStyle = createStyles(({ token }) => ({
     padding: '16px 24px',
   },
   'project-drawer-content': {
-    borderInlineStart: '2px dotted #333',
+    background: token.colorBgContainer,
+    borderInlineStart: `2px solid ${token.colorBorder}`,
   },
+  'tip-container': {
+    backgroundColor: token.colorInfoBg,
+    borderRadius: token.borderRadius,
+    border: `1px solid ${token.colorInfoBorder}`,
+    color: token.colorText,
+  }
 }));
 
 const CreateProjectDrawer: React.FC<CreateProjectDrawerProps> = ({
@@ -84,18 +92,24 @@ const CreateProjectDrawer: React.FC<CreateProjectDrawerProps> = ({
       backdropFilter: 'blur(10px)',
     },
     content: {
-      boxShadow: '-10px 0 10px #666',
+      boxShadow: token.boxShadowSecondary,
+      backgroundColor: token.colorBgContainer,
     },
     header: {
-      borderBottom: `1px solid ${token.colorPrimary}`,
+      borderBottom: `1px solid ${token.colorBorder}`,
       fontSize: token.fontSizeLG,
       fontWeight: token.fontWeightStrong,
+      backgroundColor: token.colorBgContainer,
+      color: token.colorText,
     },
     body: {
       fontSize: token.fontSizeLG,
+      backgroundColor: token.colorBgContainer,
+      color: token.colorText,
     },
     footer: {
       borderTop: `1px solid ${token.colorBorder}`,
+      backgroundColor: token.colorBgContainer,
     },
   };
 
@@ -167,13 +181,13 @@ const CreateProjectDrawer: React.FC<CreateProjectDrawerProps> = ({
           />
         </Form.Item>
 
-        <div style={{ 
-          marginTop: '24px', 
-          padding: '16px', 
-          backgroundColor: token.colorInfoBg, 
-          borderRadius: token.borderRadius,
-          border: `1px solid ${token.colorInfoBorder}`
-        }}>
+        <div 
+          className={styles['tip-container']}
+          style={{ 
+            marginTop: '24px', 
+            padding: '16px'
+          }}
+        >
           <p style={{ 
             margin: 0, 
             fontSize: token.fontSizeSM, 

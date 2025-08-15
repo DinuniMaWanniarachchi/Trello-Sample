@@ -4,6 +4,7 @@
 import React, { useState, useEffect } from 'react';
 import { usePathname } from 'next/navigation';
 import { Button } from '@/components/ui/button';
+import { Form } from 'antd'; // Add this import
 import { 
   Plus, 
   Settings, 
@@ -25,6 +26,7 @@ import {
   Menu
 } from 'lucide-react';
 import { useSharedTheme } from '@/contexts/ThemeContext';
+import CreateProjectDrawer, { ProjectFormData } from '@/components/CreateProjectDrawer'; // Import your drawer
 
 interface MainLayoutProps {
   children: React.ReactNode;
@@ -41,6 +43,9 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children, showSidebar }) => {
   const [showUserMenu, setShowUserMenu] = useState(false);
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+
+  // Add Form instance for the drawer
+  const [form] = Form.useForm();
 
   // Close dropdowns when clicking outside
   useEffect(() => {
@@ -63,6 +68,24 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children, showSidebar }) => {
 
   const onCloseDrawer = () => {
     setIsDrawerOpen(false);
+  };
+
+  // Handle project creation
+  const handleCreateProject = async (values: ProjectFormData) => {
+    try {
+      console.log('Creating project with values:', values);
+      // Here you would typically make an API call to create the project
+      // await createProjectAPI(values);
+      
+      // Show success message or redirect
+      alert(`Project "${values.name}" created successfully!`);
+      
+      // Close the drawer after successful creation
+      setIsDrawerOpen(false);
+    } catch (error) {
+      console.error('Error creating project:', error);
+      // Handle error (show error message to user)
+    }
   };
 
   const headerMenuItems = [
@@ -327,63 +350,13 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children, showSidebar }) => {
         </div>
       </div>
 
-      {/* Create Modal */}
-      {isDrawerOpen && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="max-w-md w-full rounded-lg p-6">
-            <div className="flex items-center justify-between mb-4">
-              <h2 className="text-lg font-semibold">
-                Create New Board
-              </h2>
-              <button
-                onClick={onCloseDrawer}
-                className="p-2 rounded-lg"
-              >
-                <X className="h-4 w-4" />
-              </button>
-            </div>
-            
-            <div className="space-y-4">
-              <div>
-                <label className="block text-sm font-medium mb-2">
-                  Board Name
-                </label>
-                <input 
-                  placeholder="Enter board name"
-                  className="w-full p-3 rounded-md border focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                />
-              </div>
-              
-              <div>
-                <label className="block text-sm font-medium mb-2">
-                  Description
-                </label>
-                <textarea 
-                  placeholder="Enter board description"
-                  className="w-full p-3 rounded-md border resize-none focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                  rows={3}
-                />
-              </div>
-              
-              <div className="flex space-x-3 pt-4">
-                <Button 
-                  onClick={onCloseDrawer}
-                  className="flex-1 bg-blue-600 hover:bg-blue-700 text-white"
-                >
-                  Create Board
-                </Button>
-                <Button 
-                  variant="outline"
-                  onClick={onCloseDrawer}
-                  className="flex-1"
-                >
-                  Cancel
-                </Button>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
+      {/* Replace the old modal with the CreateProjectDrawer */}
+      <CreateProjectDrawer
+        isOpen={isDrawerOpen}
+        onClose={onCloseDrawer}
+        onCreateProject={handleCreateProject}
+        form={form}
+      />
     </div>
   );
 };
