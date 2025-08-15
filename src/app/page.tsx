@@ -5,7 +5,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { 
-  Plus, 
+  // Plus, 
   Star,
   Clock,
   X
@@ -62,6 +62,7 @@ export default function HomePage() {
     router.push(`/boards/${boardId}`);
   };
 
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const showDrawer = () => {
     setIsDrawerOpen(true);
   };
@@ -157,14 +158,14 @@ export default function HomePage() {
                 <Star className="h-5 w-5 mr-2" />
                 Recently viewed
               </h2>
-              <Button 
+              {/* <Button 
                 variant="ghost"
                 onClick={showDrawer}
                 className="text-gray-600 hover:text-gray-900 dark:text-gray-300 dark:hover:text-white"
               >
                 <Plus className="h-4 w-4 mr-1" />
                 Create a board
-              </Button>
+              </Button> */}
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">

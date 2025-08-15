@@ -16,7 +16,7 @@ import {
   Moon,
   Sun,
   Search,
-  Bell,
+  // Bell,
   User,
   LogOut,
   // ChevronDown,
@@ -39,7 +39,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children, showSidebar }) => {
   
   const shouldShowSidebar = showSidebar !== undefined ? showSidebar : !pathname.startsWith('/boards');
   const [, setIsSearchFocused] = useState(false);
-  const [showNotifications, setShowNotifications] = useState(false);
+  const [, setShowNotifications] = useState(false);
   const [showUserMenu, setShowUserMenu] = useState(false);
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -95,11 +95,11 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children, showSidebar }) => {
     { key: 'templates', label: 'Templates', icon: BookOpen }
   ];
 
-  const notifications = [
-    { id: 1, message: 'John assigned you to "Design System"', time: '2 min ago' },
-    { id: 2, message: 'New comment on "Marketing Campaign"', time: '5 min ago' },
-    { id: 3, message: 'Board "Development Sprint" updated', time: '1 hour ago' }
-  ];
+  // const notifications = [
+  //   { id: 1, message: 'John assigned you to "Design System"', time: '2 min ago' },
+  //   { id: 2, message: 'New comment on "Marketing Campaign"', time: '5 min ago' },
+  //   { id: 3, message: 'Board "Development Sprint" updated', time: '1 hour ago' }
+  // ];
 
   const userMenuItems = [
     { key: 'profile', label: 'Profile', icon: User },
@@ -175,7 +175,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children, showSidebar }) => {
 
           {/* Notifications */}
           <div className="relative" data-dropdown>
-            <button
+            {/* <button
               onClick={() => setShowNotifications(!showNotifications)}
               className="relative p-2 rounded-lg transition-colors"
             >
@@ -185,7 +185,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children, showSidebar }) => {
                   {notifications.length}
                 </span>
               )}
-            </button>
+            </button> */}
 
             {/* Notifications Dropdown */}
             {/* {showNotifications && (

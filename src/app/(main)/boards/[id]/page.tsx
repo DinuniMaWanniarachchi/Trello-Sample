@@ -289,8 +289,11 @@ export default function BoardPage() {
 
   if (error) {
     return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
-        <div className="text-red-500">Error: {error}</div>
+      <div className="min-h-screen bg-background flex items-center justify-center p-4">
+        <div className="text-red-500 text-center max-w-md">
+          <h2 className="text-lg font-semibold mb-2">Error</h2>
+          <p className="text-sm break-words">{error}</p>
+        </div>
       </div>
     );
   }
@@ -298,7 +301,10 @@ export default function BoardPage() {
   if (loading && !isInitialized) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
-        <div>Loading...</div>
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-2"></div>
+          <p>Loading...</p>
+        </div>
       </div>
     );
   }
@@ -308,50 +314,77 @@ export default function BoardPage() {
   }
 
   return (
-    <div className="min-h-screen bg-background">
-      {/* SharedHeader with board variant */}
-      <SharedHeader 
-        title={currentBoard?.title || 'Loading...'}
-        variant="board"
-        showBoardActions={true}
-        data-shared-header // ✅ Added attribute
-      />
+    <div className="min-h-screen bg-background flex flex-col">
+      {/* SharedHeader with responsive padding */}
+      <div className="sticky top-0 z-50 bg-background border-b">
+        <SharedHeader 
+          title={currentBoard?.title || 'Loading...'}
+          variant="board"
+          showBoardActions={true}
+          data-shared-header
+        />
+      </div>
       
-      <div className="p-6 flex justify-center h-[calc(100vh-120px)]">
-        <DndContext
-          sensors={sensors}
-          collisionDetection={closestCorners}
-          onDragStart={handleDragStart}
-          onDragOver={handleDragOver}
-          onDragEnd={handleDragEnd}
-        >
-          <div className="flex space-x-4 overflow-x-auto pb-4 h-full">
-            {currentBoard?.lists.map((list) => (
-              <SortableList
-                key={list.id}
-                list={list}
-                onCardClick={handleCardClick}
-                onAddCard={handleAddCard}
-                onDeleteList={handleDeleteList}
-              />
-            ))}
-            <AddList onAddList={handleAddList} />
-          </div>
-          
-          <DragOverlay>
-            {activeCard ? (
-              <SortableCard
-                card={activeCard}
-                listId=""
-                index={0}
-                onClick={() => {}}
-                isDragOverlay
-              />
-            ) : null}
-          </DragOverlay>
-        </DndContext>
+      {/* Main board content with responsive layout */}
+      <div className="flex-1 overflow-hidden">
+        <div className="h-full p-2 sm:p-4 lg:p-6">
+          <DndContext
+            sensors={sensors}
+            collisionDetection={closestCorners}
+            onDragStart={handleDragStart}
+            onDragOver={handleDragOver}
+            onDragEnd={handleDragEnd}
+          >
+            {/* Mobile: Stack vertically, Desktop: Horizontal scroll */}
+            <div className="h-full">
+              {/* Desktop view */}
+              <div className="hidden md:flex md:space-x-3 lg:space-x-4 md:overflow-x-auto md:pb-4 md:h-full">
+                {currentBoard?.lists.map((list) => (
+                  <div key={list.id} className="flex-shrink-0">
+                    <SortableList
+                      list={list}
+                      onCardClick={handleCardClick}
+                      onAddCard={handleAddCard}
+                      onDeleteList={handleDeleteList}
+                    />
+                  </div>
+                ))}
+                <div className="flex-shrink-0">
+                  <AddList onAddList={handleAddList} />
+                </div>
+              </div>
+
+              {/* Mobile view - Vertical stack */}
+              <div className="md:hidden space-y-4 h-full overflow-y-auto pb-4">
+                {currentBoard?.lists.map((list) => (
+                  <SortableList
+                    key={list.id}
+                    list={list}
+                    onCardClick={handleCardClick}
+                    onAddCard={handleAddCard}
+                    onDeleteList={handleDeleteList}
+                  />
+                ))}
+                <AddList onAddList={handleAddList} />
+              </div>
+            </div>
+            
+            <DragOverlay>
+              {activeCard ? (
+                <SortableCard
+                  card={activeCard}
+                  listId=""
+                  index={0}
+                  onClick={() => {}}
+                  isDragOverlay
+                />
+              ) : null}
+            </DragOverlay>
+          </DndContext>
+        </div>
       </div>
 
+      {/* Responsive drawer */}
       <CardDetailsDrawer
         card={selectedCard}
         isOpen={isCardDrawerOpen}
