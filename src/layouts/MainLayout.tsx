@@ -19,10 +19,10 @@ import {
   Bell,
   User,
   LogOut,
-  ChevronDown,
+  // ChevronDown,
   Grid3X3,
   BookOpen,
-  X,
+  // X,
   Menu
 } from 'lucide-react';
 import { useSharedTheme } from '@/contexts/ThemeContext';
@@ -188,7 +188,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children, showSidebar }) => {
             </button>
 
             {/* Notifications Dropdown */}
-            {showNotifications && (
+            {/* {showNotifications && (
               <div className="absolute right-0 mt-2 w-80 max-w-[calc(100vw-2rem)] rounded-lg shadow-lg border z-50">
                 <div className="px-4 py-3 border-b">
                   <div className="flex items-center justify-between">
@@ -216,7 +216,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children, showSidebar }) => {
                   ))}
                 </div>
               </div>
-            )}
+            )} */}
           </div>
 
           {/* Theme Toggle Button - This controls the entire app theme including SharedHeader */}
@@ -230,7 +230,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children, showSidebar }) => {
 
           {/* User Menu */}
           <div className="relative" data-dropdown>
-            <button
+            {/* <button
               onClick={() => setShowUserMenu(!showUserMenu)}
               className="flex items-center space-x-2 p-2 rounded-lg transition-colors"
             >
@@ -241,7 +241,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children, showSidebar }) => {
                 John Doe
               </span>
               <ChevronDown className="h-3 w-3" />
-            </button>
+            </button> */}
 
             {/* User Dropdown */}
             {showUserMenu && (

@@ -24,36 +24,67 @@ interface CreateProjectDrawerProps {
   form: any; // Form instance from antd
 }
 
-const useStyle = createStyles(({ token, isDarkMode }) => ({
-  'project-drawer-body': {
-    background: token.colorBgContainer,
-    padding: '24px',
-  },
-  'project-drawer-mask': {
-    backdropFilter: 'blur(10px)',
-    backgroundColor: isDarkMode ? 'rgba(0, 0, 0, 0.65)' : 'rgba(0, 0, 0, 0.45)',
-  },
-  'project-drawer-header': {
-    background: token.colorBgContainer,
-    borderBottom: `1px solid ${token.colorBorder}`,
-    color: token.colorText,
-  },
-  'project-drawer-footer': {
-    background: token.colorBgContainer,
-    borderTop: `1px solid ${token.colorBorder}`,
-    padding: '16px 24px',
-  },
-  'project-drawer-content': {
-    background: token.colorBgContainer,
-    borderInlineStart: `2px solid ${token.colorBorder}`,
-  },
-  'tip-container': {
-    backgroundColor: token.colorInfoBg,
-    borderRadius: token.borderRadius,
-    border: `1px solid ${token.colorInfoBorder}`,
-    color: token.colorText,
-  }
-}));
+const useStyle = createStyles(({ token, isDarkMode }) => {
+  const backgroundColor = isDarkMode ? token.colorBgElevated : token.colorBgContainer;
+  const borderColor = isDarkMode ? token.colorBorder : token.colorBorderSecondary;
+  
+  return {
+    'project-drawer-body': {
+      background: backgroundColor,
+      padding: '24px',
+      color: token.colorText,
+    },
+    'project-drawer-mask': {
+      backdropFilter: 'blur(10px)',
+      backgroundColor: isDarkMode ? 'rgba(0, 0, 0, 0.75)' : 'rgba(0, 0, 0, 0.45)',
+    },
+    'project-drawer-header': {
+      background: backgroundColor,
+      borderBottom: `1px solid ${borderColor}`,
+      color: token.colorText,
+    },
+    'project-drawer-footer': {
+      background: backgroundColor,
+      borderTop: `1px solid ${borderColor}`,
+      padding: '16px 24px',
+    },
+    'project-drawer-content': {
+      background: backgroundColor,
+      borderInlineStart: `2px solid ${borderColor}`,
+    },
+    'tip-container': {
+      backgroundColor: isDarkMode ? token.colorInfoBg : token.colorBgContainer,
+      borderRadius: token.borderRadius,
+      border: `1px solid ${isDarkMode ? token.colorInfoBorder : token.colorBorder}`,
+      color: token.colorText,
+      transition: 'all 0.3s ease',
+    },
+    'form-input': {
+      backgroundColor: isDarkMode ? token.colorBgElevated : token.colorBgContainer,
+      borderColor: isDarkMode ? token.colorBorder : token.colorBorderSecondary,
+      color: token.colorText,
+      '&:hover': {
+        borderColor: token.colorPrimaryHover,
+      },
+      '&:focus': {
+        borderColor: token.colorPrimary,
+        boxShadow: `0 0 0 2px ${token.colorPrimary}14`,
+      }
+    },
+    'form-textarea': {
+      backgroundColor: isDarkMode ? token.colorBgElevated : token.colorBgContainer,
+      borderColor: isDarkMode ? token.colorBorder : token.colorBorderSecondary,
+      color: token.colorText,
+      '&:hover': {
+        borderColor: token.colorPrimaryHover,
+      },
+      '&:focus': {
+        borderColor: token.colorPrimary,
+        boxShadow: `0 0 0 2px ${token.colorPrimary}14`,
+      }
+    }
+  };
+});
 
 const CreateProjectDrawer: React.FC<CreateProjectDrawerProps> = ({
   isOpen,
@@ -61,7 +92,7 @@ const CreateProjectDrawer: React.FC<CreateProjectDrawerProps> = ({
   onCreateProject,
   form
 }) => {
-  const { styles } = useStyle();
+  const { styles, theme } = useStyle();
   const token = useTheme();
 
   const handleClose = () => {
@@ -90,35 +121,55 @@ const CreateProjectDrawer: React.FC<CreateProjectDrawerProps> = ({
   const drawerStyles: DrawerStyles = {
     mask: {
       backdropFilter: 'blur(10px)',
+      backgroundColor: theme.isDarkMode ? 'rgba(0, 0, 0, 0.75)' : 'rgba(0, 0, 0, 0.45)',
+      transition: 'all 0.3s ease',
     },
     content: {
-      boxShadow: token.boxShadowSecondary,
-      backgroundColor: token.colorBgContainer,
+      boxShadow: theme.isDarkMode ? token.boxShadowTertiary : token.boxShadowSecondary,
+      backgroundColor: theme.isDarkMode ? token.colorBgElevated : token.colorBgContainer,
+      transition: 'all 0.3s ease',
     },
     header: {
-      borderBottom: `1px solid ${token.colorBorder}`,
+      borderBottom: `1px solid ${theme.isDarkMode ? token.colorBorder : token.colorBorderSecondary}`,
       fontSize: token.fontSizeLG,
       fontWeight: token.fontWeightStrong,
-      backgroundColor: token.colorBgContainer,
+      backgroundColor: theme.isDarkMode ? token.colorBgElevated : token.colorBgContainer,
       color: token.colorText,
+      transition: 'all 0.3s ease',
     },
     body: {
       fontSize: token.fontSizeLG,
-      backgroundColor: token.colorBgContainer,
+      backgroundColor: theme.isDarkMode ? token.colorBgElevated : token.colorBgContainer,
       color: token.colorText,
+      transition: 'all 0.3s ease',
     },
     footer: {
-      borderTop: `1px solid ${token.colorBorder}`,
-      backgroundColor: token.colorBgContainer,
+      borderTop: `1px solid ${theme.isDarkMode ? token.colorBorder : token.colorBorderSecondary}`,
+      backgroundColor: theme.isDarkMode ? token.colorBgElevated : token.colorBgContainer,
+      transition: 'all 0.3s ease',
     },
   };
 
   const footerContent = (
     <Space style={{ width: '100%', justifyContent: 'flex-end' }}>
-      <Button onClick={handleClose}>
+      <Button 
+        onClick={handleClose}
+        style={{
+          backgroundColor: 'transparent',
+          borderColor: theme.isDarkMode ? token.colorBorder : token.colorBorderSecondary,
+          color: token.colorText,
+        }}
+      >
         Cancel
       </Button>
-      <Button type="primary" onClick={handleSubmit}>
+      <Button 
+        type="primary" 
+        onClick={handleSubmit}
+        style={{
+          backgroundColor: token.colorPrimary,
+          borderColor: token.colorPrimary,
+        }}
+      >
         Create Project
       </Button>
     </Space>
@@ -134,6 +185,7 @@ const CreateProjectDrawer: React.FC<CreateProjectDrawerProps> = ({
       classNames={classNames}
       styles={drawerStyles}
       footer={footerContent}
+      destroyOnClose={true} // This helps with theme switching
     >
       <Form
         form={form}
@@ -144,7 +196,11 @@ const CreateProjectDrawer: React.FC<CreateProjectDrawerProps> = ({
       >
         <Form.Item
           name="name"
-          label="Project Title"
+          label={
+            <span style={{ color: token.colorText, fontWeight: token.fontWeightStrong }}>
+              Project Title
+            </span>
+          }
           rules={[
             { required: true, message: 'Please enter project title' },
             { min: 1, message: 'Project title cannot be empty' },
@@ -154,16 +210,24 @@ const CreateProjectDrawer: React.FC<CreateProjectDrawerProps> = ({
           <Input 
             placeholder="Enter your project title"
             size="large"
+            className={styles['form-input']}
             style={{
               fontSize: token.fontSize,
               padding: '12px 16px',
+              backgroundColor: theme.isDarkMode ? token.colorBgElevated : token.colorBgContainer,
+              borderColor: theme.isDarkMode ? token.colorBorder : token.colorBorderSecondary,
+              color: token.colorText,
             }}
           />
         </Form.Item>
 
         <Form.Item
           name="description"
-          label="Project Description"
+          label={
+            <span style={{ color: token.colorText, fontWeight: token.fontWeightStrong }}>
+              Project Description
+            </span>
+          }
           rules={[
             { max: 500, message: 'Description cannot exceed 500 characters' }
           ]}
@@ -173,10 +237,14 @@ const CreateProjectDrawer: React.FC<CreateProjectDrawerProps> = ({
             rows={6}
             showCount
             maxLength={500}
+            className={styles['form-textarea']}
             style={{
               fontSize: token.fontSize,
               padding: '12px 16px',
               resize: 'none',
+              backgroundColor: theme.isDarkMode ? token.colorBgElevated : token.colorBgContainer,
+              borderColor: theme.isDarkMode ? token.colorBorder : token.colorBorderSecondary,
+              color: token.colorText,
             }}
           />
         </Form.Item>
@@ -185,15 +253,18 @@ const CreateProjectDrawer: React.FC<CreateProjectDrawerProps> = ({
           className={styles['tip-container']}
           style={{ 
             marginTop: '24px', 
-            padding: '16px'
+            padding: '16px',
+            backgroundColor: theme.isDarkMode ? token.colorBgElevated : token.colorFillQuaternary,
+            borderColor: theme.isDarkMode ? token.colorBorder : token.colorBorderSecondary,
           }}
         >
           <p style={{ 
             margin: 0, 
             fontSize: token.fontSizeSM, 
-            color: token.colorTextSecondary 
+            color: token.colorTextSecondary,
+            lineHeight: '1.5'
           }}>
-            💡 <strong>Tip:</strong> Choose a descriptive title that clearly identifies your project&apos;s purpose.
+            💡 <strong style={{ color: token.colorText }}>Tip:</strong> Choose a descriptive title that clearly identifies your project&apos;s purpose.
           </p>
         </div>
       </Form>
