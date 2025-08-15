@@ -208,7 +208,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children, showSidebar }) => {
             >
               <Bell className="h-5 w-5" />
               {notifications.length > 0 && (
-                <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
+                <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-md w-5 h-5 flex items-center justify-center">
                   {notifications.length}
                 </span>
               )}
@@ -216,7 +216,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children, showSidebar }) => {
 
             {/* Notifications Dropdown */}
             {showNotifications && (
-              <div className={`absolute right-0 mt-2 w-80 max-w-[calc(100vw-2rem)] rounded-lg shadow-lg border z-50 ${
+              <div className={`absolute right-0 mt-2 w-80 max-w-[calc(100vw-2rem)] rounded-md shadow-lg border z-50 ${
                 isDarkMode ? 'border-gray-700' : 'bg-white border-gray-200'
               }`}
               style={{ backgroundColor: isDarkMode ? 'rgb(30, 30, 30)' : '#ffffff' }}>
@@ -254,7 +254,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children, showSidebar }) => {
           {/* Theme Toggle */}
           <button
             onClick={toggleTheme}
-            className={`p-2 rounded-lg transition-colors ${
+            className={`p-2 rounded-md transition-colors ${
               isDarkMode 
                 ? 'text-gray-400 hover:text-white hover:bg-gray-700' 
                 : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'
@@ -273,7 +273,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children, showSidebar }) => {
                   : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'
               }`}
             >
-              <div className="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center text-white text-sm font-medium">
+              <div className="w-8 h-8 bg-blue-600 rounded-md flex items-center justify-center text-white text-sm font-medium">
                 JD
               </div>
               <span className={`text-sm font-medium hidden sm:block ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
@@ -284,7 +284,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children, showSidebar }) => {
 
             {/* User Dropdown */}
             {showUserMenu && (
-              <div className={`absolute right-0 mt-2 w-48 rounded-lg shadow-lg border z-50 ${
+              <div className={`absolute right-0 mt-2 w-48 rounded-md shadow-lg border z-50 ${
                 isDarkMode ? 'border-gray-700' : 'bg-white border-gray-200'
               }`}
               style={{ backgroundColor: isDarkMode ? 'rgb(30, 30, 30)' : '#ffffff' }}>
@@ -352,7 +352,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children, showSidebar }) => {
                 <nav className="space-y-2">
                   <a 
                     href="#" 
-                    className={`flex items-center space-x-3 rounded-lg p-2 transition-colors ${
+                    className={`flex items-center space-x-3 rounded-md p-2 transition-colors ${
                       isDarkMode 
                         ? 'text-white hover:bg-gray-700' 
                         : 'text-gray-900 hover:bg-gray-100'
@@ -363,7 +363,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children, showSidebar }) => {
                   </a>
                   <a 
                     href="#" 
-                    className={`flex items-center space-x-3 rounded-lg p-2 transition-colors ${
+                    className={`flex items-center space-x-3 rounded-md p-2 transition-colors ${
                       isDarkMode 
                         ? 'text-white hover:bg-gray-700' 
                         : 'text-gray-900 hover:bg-gray-100'
@@ -373,7 +373,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children, showSidebar }) => {
                   </a>
                   <a 
                     href="#" 
-                    className={`flex items-center space-x-3 rounded-lg p-2 transition-colors ${
+                    className={`flex items-center space-x-3 rounded-md p-2 transition-colors ${
                       isDarkMode 
                         ? 'text-white hover:bg-gray-700' 
                         : 'text-gray-900 hover:bg-gray-100'
@@ -456,7 +456,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children, showSidebar }) => {
       {/* Create Modal */}
       {isDrawerOpen && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className={`max-w-md w-full rounded-lg p-6`}
+          <div className={`max-w-md w-full rounded-md p-6`}
           style={{ backgroundColor: isDarkMode ? 'rgb(30, 30, 30)' : '#ffffff' }}>
             <div className="flex items-center justify-between mb-4">
               <h2 className={`text-lg font-semibold ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
@@ -464,7 +464,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children, showSidebar }) => {
               </h2>
               <button
                 onClick={onCloseDrawer}
-                className={`p-2 rounded-lg ${isDarkMode ? 'hover:bg-gray-700' : 'hover:bg-gray-100'}`}
+                className={`p-2 rounded-md ${isDarkMode ? 'hover:bg-gray-700' : 'hover:bg-gray-100'}`}
               >
                 <X className="h-4 w-4" />
               </button>
