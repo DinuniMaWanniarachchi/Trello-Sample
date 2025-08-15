@@ -1,6 +1,7 @@
 import React from 'react';
 import { Button, Drawer, Form, Input, Space } from 'antd';
 import { createStyles, useTheme } from 'antd-style';
+import { useSharedTheme } from '@/contexts/ThemeContext'; // Import to access the global theme state
 import type { DrawerClassNames, DrawerStyles } from 'antd/es/drawer/DrawerPanel';
 
 // Types
@@ -92,8 +93,9 @@ const CreateProjectDrawer: React.FC<CreateProjectDrawerProps> = ({
   onCreateProject,
   form
 }) => {
-  const { styles, theme } = useStyle();
+  const { styles } = useStyle();
   const token = useTheme();
+  const { isDarkMode } = useSharedTheme(); // Access global theme state
 
   const handleClose = () => {
     onClose();
@@ -118,34 +120,35 @@ const CreateProjectDrawer: React.FC<CreateProjectDrawerProps> = ({
     content: styles['project-drawer-content'],
   };
 
+  // Use the global isDarkMode from context instead of theme.isDarkMode for consistency
   const drawerStyles: DrawerStyles = {
     mask: {
       backdropFilter: 'blur(10px)',
-      backgroundColor: theme.isDarkMode ? 'rgba(0, 0, 0, 0.75)' : 'rgba(0, 0, 0, 0.45)',
+      backgroundColor: isDarkMode ? 'rgba(0, 0, 0, 0.75)' : 'rgba(0, 0, 0, 0.45)',
       transition: 'all 0.3s ease',
     },
     content: {
-      boxShadow: theme.isDarkMode ? token.boxShadowTertiary : token.boxShadowSecondary,
-      backgroundColor: theme.isDarkMode ? token.colorBgElevated : token.colorBgContainer,
+      boxShadow: isDarkMode ? token.boxShadowTertiary : token.boxShadowSecondary,
+      backgroundColor: isDarkMode ? token.colorBgElevated : token.colorBgContainer,
       transition: 'all 0.3s ease',
     },
     header: {
-      borderBottom: `1px solid ${theme.isDarkMode ? token.colorBorder : token.colorBorderSecondary}`,
+      borderBottom: `1px solid ${isDarkMode ? token.colorBorder : token.colorBorderSecondary}`,
       fontSize: token.fontSizeLG,
       fontWeight: token.fontWeightStrong,
-      backgroundColor: theme.isDarkMode ? token.colorBgElevated : token.colorBgContainer,
+      backgroundColor: isDarkMode ? token.colorBgElevated : token.colorBgContainer,
       color: token.colorText,
       transition: 'all 0.3s ease',
     },
     body: {
       fontSize: token.fontSizeLG,
-      backgroundColor: theme.isDarkMode ? token.colorBgElevated : token.colorBgContainer,
+      backgroundColor: isDarkMode ? token.colorBgElevated : token.colorBgContainer,
       color: token.colorText,
       transition: 'all 0.3s ease',
     },
     footer: {
-      borderTop: `1px solid ${theme.isDarkMode ? token.colorBorder : token.colorBorderSecondary}`,
-      backgroundColor: theme.isDarkMode ? token.colorBgElevated : token.colorBgContainer,
+      borderTop: `1px solid ${isDarkMode ? token.colorBorder : token.colorBorderSecondary}`,
+      backgroundColor: isDarkMode ? token.colorBgElevated : token.colorBgContainer,
       transition: 'all 0.3s ease',
     },
   };
@@ -156,7 +159,7 @@ const CreateProjectDrawer: React.FC<CreateProjectDrawerProps> = ({
         onClick={handleClose}
         style={{
           backgroundColor: 'transparent',
-          borderColor: theme.isDarkMode ? token.colorBorder : token.colorBorderSecondary,
+          borderColor: isDarkMode ? token.colorBorder : token.colorBorderSecondary,
           color: token.colorText,
         }}
       >
@@ -186,6 +189,8 @@ const CreateProjectDrawer: React.FC<CreateProjectDrawerProps> = ({
       styles={drawerStyles}
       footer={footerContent}
       destroyOnClose={true} // This helps with theme switching
+      // Add a key that changes when theme changes to force re-render
+      key={isDarkMode ? 'dark' : 'light'}
     >
       <Form
         form={form}
@@ -214,8 +219,8 @@ const CreateProjectDrawer: React.FC<CreateProjectDrawerProps> = ({
             style={{
               fontSize: token.fontSize,
               padding: '12px 16px',
-              backgroundColor: theme.isDarkMode ? token.colorBgElevated : token.colorBgContainer,
-              borderColor: theme.isDarkMode ? token.colorBorder : token.colorBorderSecondary,
+              backgroundColor: isDarkMode ? token.colorBgElevated : token.colorBgContainer,
+              borderColor: isDarkMode ? token.colorBorder : token.colorBorderSecondary,
               color: token.colorText,
             }}
           />
@@ -242,8 +247,8 @@ const CreateProjectDrawer: React.FC<CreateProjectDrawerProps> = ({
               fontSize: token.fontSize,
               padding: '12px 16px',
               resize: 'none',
-              backgroundColor: theme.isDarkMode ? token.colorBgElevated : token.colorBgContainer,
-              borderColor: theme.isDarkMode ? token.colorBorder : token.colorBorderSecondary,
+              backgroundColor: isDarkMode ? token.colorBgElevated : token.colorBgContainer,
+              borderColor: isDarkMode ? token.colorBorder : token.colorBorderSecondary,
               color: token.colorText,
             }}
           />
@@ -254,8 +259,8 @@ const CreateProjectDrawer: React.FC<CreateProjectDrawerProps> = ({
           style={{ 
             marginTop: '24px', 
             padding: '16px',
-            backgroundColor: theme.isDarkMode ? token.colorBgElevated : token.colorFillQuaternary,
-            borderColor: theme.isDarkMode ? token.colorBorder : token.colorBorderSecondary,
+            backgroundColor: isDarkMode ? token.colorBgElevated : token.colorFillQuaternary,
+            borderColor: isDarkMode ? token.colorBorder : token.colorBorderSecondary,
           }}
         >
           <p style={{ 
