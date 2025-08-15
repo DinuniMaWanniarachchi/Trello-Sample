@@ -68,20 +68,20 @@ export default function HomePage() {
 
           {/* Organize Anything Section */}
           <div className="text-center mb-8">
-            <div className="rounded-lg p-8 mb-6 shadow-sm border bg-white dark:bg-gray-900 border-gray-200 dark:border-gray-700">
+            <div className="rounded-md p-8 mb-6 shadow-sm border bg-white dark:bg-gray-900 border-gray-200 dark:border-gray-700">
               <div className="mb-6">
-                <div className="w-48 h-32 mx-auto rounded-lg relative overflow-hidden bg-gradient-to-br from-purple-500 to-purple-700">
+                <div className="w-48 h-32 mx-auto rounded-md relative overflow-hidden bg-gradient-to-br from-purple-500 to-purple-700">
                   <div className="absolute inset-4 space-y-2">
-                    <div className="rounded p-2 shadow-sm border bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-600">
-                      <div className="h-2 rounded mb-1 bg-gray-200 dark:bg-gray-600"></div>
-                      <div className="h-2 rounded w-2/3 bg-gray-200 dark:bg-gray-600"></div>
+                    <div className="rounded-md p-2 shadow-sm border bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-600">
+                      <div className="h-2 rounded-md mb-1 bg-gray-200 dark:bg-gray-600"></div>
+                      <div className="h-2 rounded-md w-2/3 bg-gray-200 dark:bg-gray-600"></div>
                     </div>
-                    <div className="rounded p-2 shadow-sm bg-blue-100 border border-blue-200 flex items-center justify-center">
-                      <div className="w-2 h-2 rounded-full bg-blue-600 mr-1"></div>
-                      <div className="w-2 h-2 rounded-full bg-blue-600"></div>
+                    <div className="rounded-md p-2 shadow-sm bg-blue-100 border border-blue-200 flex items-center justify-center">
+                      <div className="w-2 h-2 rounded-md bg-blue-600 mr-1"></div>
+                      <div className="w-2 h-2 rounded-md bg-blue-600"></div>
                     </div>
-                    <div className="rounded p-2 shadow-sm bg-green-100 border border-green-200">
-                      <div className="w-6 h-6 rounded bg-green-500"></div>
+                    <div className="rounded-md p-2 shadow-sm bg-green-100 border border-green-200">
+                      <div className="w-6 h-6 rounded-md bg-green-500"></div>
                     </div>
                   </div>
                 </div>
@@ -181,7 +181,7 @@ export default function HomePage() {
                 </h2>
                 <button
                   onClick={onCloseDrawer}
-                  className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800"
+                  className="p-2 rounded-md hover:bg-gray-100 dark:hover:bg-gray-800"
                 >
                   <X className="h-4 w-4" />
                 </button>
