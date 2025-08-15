@@ -200,7 +200,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children, showSidebar }) => {
           <div className="relative" data-dropdown>
             <button
               onClick={() => setShowNotifications(!showNotifications)}
-              className={`relative p-2 rounded-lg transition-colors ${
+              className={`relative p-2 rounded-md transition-colors ${
                 isDarkMode 
                   ? 'text-gray-400 hover:text-white hover:bg-gray-700' 
                   : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'
