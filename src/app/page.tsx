@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -18,9 +18,28 @@ export default function HomePage() {
   const [, setIsCreateModalOpen] = useState(false);
   const [boardTitle, setBoardTitle] = useState('');
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
+  const [isDarkMode, setIsDarkMode] = useState(false);
   const [boards, setBoards] = useState([
     { id: '1', title: 'My Kanban board', workspace: 'Kanban Workspace', description: '' }
   ]);
+
+  // Check for dark mode
+  useEffect(() => {
+    const checkDarkMode = () => {
+      setIsDarkMode(document.documentElement.classList.contains('dark'));
+    };
+    
+    checkDarkMode();
+    
+    // Watch for changes to the dark class
+    const observer = new MutationObserver(checkDarkMode);
+    observer.observe(document.documentElement, { 
+      attributes: true, 
+      attributeFilter: ['class'] 
+    });
+    
+    return () => observer.disconnect();
+  }, []);
 
   const handleCreateBoard = () => {
     if (boardTitle.trim()) {
@@ -68,7 +87,10 @@ export default function HomePage() {
 
           {/* Organize Anything Section */}
           <div className="text-center mb-8">
-            <div className="rounded-md p-8 mb-6 shadow-sm border bg-white dark:bg-gray-900 border-gray-200 dark:border-gray-700">
+            <div 
+              className="rounded-md p-8 mb-6 shadow-sm border border-gray-200 dark:border-gray-700"
+              style={{ backgroundColor: isDarkMode ? 'rgb(30, 30, 30)' : 'white' }}
+            >
               <div className="mb-6">
                 <div className="w-48 h-32 mx-auto rounded-md relative overflow-hidden bg-gradient-to-br from-purple-500 to-purple-700">
                   <div className="absolute inset-4 space-y-2">
@@ -90,7 +112,7 @@ export default function HomePage() {
               <h3 className="text-2xl font-bold mb-2 text-gray-900 dark:text-white">
                 Organize anything
               </h3>
-              <p className="mb-6 text-gray-600 dark:text-gray-400">
+              <p className="mb-6 text-gray-600 dark:text-gray-300">
                 Put everything in one place and start moving things forward with your first Kanban board!
               </p>
               
@@ -174,16 +196,19 @@ export default function HomePage() {
         {/* Simple Create Modal */}
         {isDrawerOpen && (
           <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-            <div className="max-w-md w-full mx-4 rounded-lg p-6 bg-white dark:bg-gray-900">
+            <div 
+              className="max-w-md w-full mx-4 rounded-lg p-6"
+              style={{ backgroundColor: isDarkMode ? 'rgb(30, 30, 30)' : 'white' }}
+            >
               <div className="flex items-center justify-between mb-4">
                 <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
                   Create New Board
                 </h2>
                 <button
                   onClick={onCloseDrawer}
-                  className="p-2 rounded-md hover:bg-gray-100 dark:hover:bg-gray-800"
+                  className="p-2 rounded-md hover:bg-gray-100 dark:hover:bg-gray-700"
                 >
-                  <X className="h-4 w-4" />
+                  <X className="h-4 w-4 text-gray-600 dark:text-gray-300" />
                 </button>
               </div>
               
@@ -204,7 +229,7 @@ export default function HomePage() {
                   </label>
                   <textarea 
                     placeholder="Enter board description"
-                    className="w-full p-3 rounded-md border bg-white dark:bg-gray-800 border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    className="w-full p-3 rounded-md border bg-white dark:bg-gray-700 border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                     rows={3}
                   />
                 </div>
@@ -219,7 +244,7 @@ export default function HomePage() {
                   <Button 
                     variant="outline"
                     onClick={onCloseDrawer}
-                    className="flex-1 border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800"
+                    className="flex-1 border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700"
                   >
                     Cancel
                   </Button>

@@ -1,18 +1,13 @@
-/* eslint-disable @next/next/no-html-link-for-pages */
+ 
 // components/common/SharedHeader.tsx
 "use client";
 
 import { Button } from '@/components/ui/button';
-import { ThemeToggle } from '@/components/common/ThemeToggle';
 import { 
-  Star, 
-  Users, 
   MoreHorizontal, 
   Globe, 
   Loader2,
-  Plus,
-  Home
-} from 'lucide-react';
+  Plus} from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { useState, useCallback } from 'react';
 import {
@@ -153,23 +148,22 @@ export const SharedHeader: React.FC<SharedHeaderProps> = ({
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16">
             <div className="flex items-center space-x-4">
-              <div className="flex items-center space-x-2">
+              {/* <div className="flex items-center space-x-2">
                 <span className="text-xl font-bold text-white">Kanban</span>
-              </div>
+              </div> */}
               
-              <nav className="hidden md:flex space-x-8">
+              {/* <nav className="hidden md:flex space-x-8">
                 <a href="#" className="text-white hover:text-blue-200 flex items-center space-x-1">
                   <Home className="h-4 w-4" />
                   <span>Home</span>
                 </a>
                 <a href="#" className="text-white hover:text-blue-200">Boards</a>
                 <a href="#" className="text-white hover:text-blue-200">Templates</a>
-              </nav>
+              </nav> */}
             </div>
 
             <div className="flex items-center space-x-4">
               <LanguageDropdown />
-              <ThemeToggle />
               <Button variant="ghost" size="sm" className="text-white hover:bg-white/20">
                 <Plus className="h-4 w-4 mr-1" />
                 Create
@@ -186,9 +180,9 @@ export const SharedHeader: React.FC<SharedHeaderProps> = ({
     <div className="px-6 py-4 border-b border-border bg-zinc-900">
       <div className="flex items-center justify-between">
         <div className="flex items-center space-x-4">
-          <div className="flex items-center space-x-2">
+          {/* <div className="flex items-center space-x-2">
             <span className="text-xl font-bold text-white">Kanban</span>
-          </div>
+          </div> */}
           
           {title && (
             <h1 className="text-2xl font-bold text-white">
@@ -198,32 +192,31 @@ export const SharedHeader: React.FC<SharedHeaderProps> = ({
           
           {showBoardActions && (
             <div className="flex items-center space-x-2">
-              <Button variant="ghost" size="sm" className="text-white hover:bg-white/20">
+              {/* <Button variant="ghost" size="sm" className="text-white hover:bg-white/20">
                 <Star className="h-4 w-4" />
               </Button>
               <Button variant="ghost" size="sm" className="text-white hover:bg-white/20">
                 <Users className="h-4 w-4" />
-              </Button>
+              </Button> */}
             </div>
           )}
         </div>
                 
         <div className="flex items-center space-x-2">
-          <nav className="hidden md:flex space-x-4 mr-4">
+          {/* <nav className="hidden md:flex space-x-4 mr-4">
             <a href="/" className="text-white hover:text-blue-200 flex items-center space-x-1">
               <Home className="h-4 w-4" />
               <span>Home</span>
             </a>
             <a href="#" className="text-white hover:text-blue-200">Boards</a>
             <a href="#" className="text-white hover:text-blue-200">Templates</a>
-          </nav>
+          </nav> */}
           
           <LanguageDropdown />
-          <ThemeToggle />
-          <Button variant="ghost" size="sm" className="text-white hover:bg-white/20">
+          {/* <Button variant="ghost" size="sm" className="text-white hover:bg-white/20">
             <Plus className="h-4 w-4 mr-1" />
             Create
-          </Button>
+          </Button> */}
           <Button variant="ghost" size="sm" className="text-white hover:bg-white/20">
             <MoreHorizontal className="h-4 w-4" />
           </Button>

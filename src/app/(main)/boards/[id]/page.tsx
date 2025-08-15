@@ -26,7 +26,7 @@ import {
   reorderCards,
   setDraggedCard 
 } from '@/lib/features/boardSlice';
-// import { BoardHeader } from '@/components/board/board-header';
+import { SharedHeader } from '@/components/common/SharedHeader';
 import { SortableList } from '@/components/board/SortableList';
 import { AddList } from '@/components/board/add-list';
 import { CardDetailsDrawer } from '@/components/board/CardDetailsDrawer';
@@ -348,8 +348,12 @@ export default function BoardPage() {
 
   return (
     <div className="min-h-screen bg-background">
-      {/* <BoardHeader title={currentBoard?.title || 'Loading...'} /> */}
-      
+      {/* SharedHeader with board variant */}
+      <SharedHeader 
+        title={currentBoard?.title || 'Loading...'}
+        variant="board"
+        showBoardActions={true}
+      />
       
       <div className="p-6 flex justify-center h-[calc(100vh-120px)]">
         <DndContext
@@ -390,10 +394,11 @@ export default function BoardPage() {
         card={selectedCard}
         isOpen={isCardDrawerOpen}
         onClose={handleCloseDrawer}
-        // eslint-disable-next-line @typescript-eslint/no-unused-vars
-        onUpdate={handleUpdateCard} onDelete={function (cardId: string): void {
+        onUpdate={handleUpdateCard} 
+        onDelete={function (): void {
           throw new Error('Function not implemented.');
-        } }      />
+        }} 
+      />
     </div>
   );
 }
