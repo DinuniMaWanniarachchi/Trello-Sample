@@ -118,9 +118,11 @@
     @apply border-border outline-ring/50;
   }
   body {
-    @apply bg-background text-foreground;
+    @apply bg-background text-foreground ;
+    font-size: 0.875rem;
   }
   html {
+    font-size: 16px;
     scroll-behavior: smooth;
   }
   

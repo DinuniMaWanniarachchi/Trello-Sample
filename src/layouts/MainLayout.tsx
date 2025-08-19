@@ -169,7 +169,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children, showSidebar }) => {
           <Button 
             onClick={showDrawer}
             size="sm"
-            className="bg-blue-600 hover:bg-blue-700 text-white px-3 lg:px-4"
+            className="bg-blue-600 hover:bg-blue-700 text-white px-1 lg:px-4"
           >
             <Plus className="h-4 w-4 lg:mr-2" />
             <span className="hidden lg:inline">Create</span>
