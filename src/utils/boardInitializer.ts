@@ -3,7 +3,7 @@ import { Board } from '@/types/kanban';
 
 export const createDefaultBoard = (): Board => ({
   id: 'board-1',
-  title: 'My Project Board',
+  title: 'My project board',
   lists: [
     {
       id: 'list-1',

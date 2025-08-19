@@ -43,7 +43,7 @@ export const BoardProvider: React.FC<BoardProviderProps> = ({ children }) => {
   const [boards, setBoards] = useState<Board[]>([
     {
       id: '1',
-      title: 'My Kanban board',
+      title: 'My project board',
       workspace: 'Kanban Workspace',
       template: 'kanban',
       templateColor: '#4F46E5',

@@ -54,7 +54,7 @@ export default function BoardPage() {
       
       if (project) {
         // Check if this is the default project (first project or specific ID)
-        const isDefaultProject = project.name === 'My Kanban board' || projects[0]?.id === projectId;
+        const isDefaultProject = project.name === 'My project board' || projects[0]?.id === projectId;
         
         let boardData: Board;
         
