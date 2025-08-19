@@ -74,6 +74,7 @@ export default function HomePage() {
   // Wrap your content with MainLayout
   return (
     <MainLayout>
+      
       <div className="p-8">
         <div className="max-w-4xl mx-auto">
           {/* Your Items Section */}
@@ -172,7 +173,24 @@ export default function HomePage() {
               {boards.map((board) => (
                 <Card 
                   key={board.id} 
-                  className="cursor-pointer transition-all duration-200 hover:shadow-md bg-white dark:bg-gray-900 border-gray-200 dark:border-gray-700 dark:hover:bg-gray-800"
+                  className="cursor-pointer transition-all duration-200 hover:shadow-md border-gray-200 dark:border-gray-700 hover:bg-gray-50"
+                  style={{
+                    backgroundColor: isDarkMode ? 'rgb(30,30,30)' : 'white'
+                  }}
+                  onMouseEnter={(e) => {
+                    if (isDarkMode) {
+                      e.currentTarget.style.backgroundColor = 'rgb(40,40,40)'; // Slightly lighter on hover
+                    } else {
+                      e.currentTarget.style.backgroundColor = 'rgb(249, 250, 251)'; // gray-50 equivalent
+                    }
+                  }}
+                  onMouseLeave={(e) => {
+                    if (isDarkMode) {
+                      e.currentTarget.style.backgroundColor = 'rgb(30,30,30)';
+                    } else {
+                      e.currentTarget.style.backgroundColor = 'white';
+                    }
+                  }}
                   onClick={() => navigateToBoard(board.id)}
                 >
                   <CardContent className="p-4">
