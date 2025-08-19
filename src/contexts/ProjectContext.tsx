@@ -34,7 +34,7 @@ export const ProjectProvider: React.FC<ProjectProviderProps> = ({ children }) =>
     // Initial project for testing
     { 
       id: '1', 
-      name: 'My Kanban board', 
+      name: 'My project board', 
       workspace: 'Kanban Workspace', 
       description: '',
       createdAt: new Date(),
