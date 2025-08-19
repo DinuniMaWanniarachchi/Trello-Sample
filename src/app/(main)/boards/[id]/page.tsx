@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from 'react';
+import { useParams } from 'next/navigation';
 import { 
   DndContext, 
   DragEndEvent,
@@ -31,89 +32,133 @@ import { SortableList } from '@/components/board/SortableList';
 import { AddList } from '@/components/board/add-list';
 import { CardDetailsDrawer } from '@/components/board/CardDetailsDrawer';
 import { SortableCard } from '@/components/board/SortableCards';
+import { useProjects } from '@/contexts/ProjectContext'; // Add this import
 
 export default function BoardPage() {
   const dispatch = useAppDispatch();
+  const params = useParams();
+  const projectId = params.id as string; // Get project ID from URL
+  
   const { currentBoard, loading, error } = useAppSelector((state) => state.kanban);
+  const { projects, getProject } = useProjects(); // Get projects from context
   
   const [selectedCard, setSelectedCard] = useState<Card | null>(null);
   const [isCardDrawerOpen, setIsCardDrawerOpen] = useState(false);
   const [activeCard, setActiveCard] = useState<Card | null>(null);
   const [isInitialized, setIsInitialized] = useState(false);
 
-  // Initialize with sample data if no board exists
+  // Initialize board based on project ID
   useEffect(() => {
-    if (!currentBoard && !isInitialized) {
-      const sampleBoard: Board = {
-        id: 'board-1',
-        title: 'My Project Board',
-        lists: [
-          {
-            id: 'list-1',
-            title: 'To Do',
-            titleColor: 'gray',
-            cards: [
+    if (projectId && !isInitialized) {
+      const project = getProject(projectId);
+      
+      if (project) {
+        // Check if this is the default project (first project or specific ID)
+        const isDefaultProject = project.name === 'My Kanban board' || projects[0]?.id === projectId;
+        
+        let boardData: Board;
+        
+        if (isDefaultProject) {
+          // Default project gets sample data
+          boardData = {
+            id: projectId,
+            title: project.name,
+            lists: [
               {
-                id: 'card-1',
-                title: 'Setup Redux Toolkit',
-                description: 'Configure Redux store with TypeScript',
-                color: 'blue',
-                statusBadges: [
-                  { id: 'badge-1', text: 'High Priority', color: 'red' },
-                  { id: 'badge-2', text: 'Backend', color: 'purple' }
-                ],
-                dueDate: '2025-08-10',
+                id: 'list-1',
+                title: 'To Do',
+                titleColor: 'gray',
+                cards: [
+                  {
+                    id: 'card-1',
+                    title: 'Setup Redux Toolkit',
+                    description: 'Configure Redux store with TypeScript',
+                    color: 'blue',
+                    statusBadges: [
+                      { id: 'badge-1', text: 'High Priority', color: 'red' },
+                      { id: 'badge-2', text: 'Backend', color: 'purple' }
+                    ],
+                    dueDate: '2025-08-10',
+                  },
+                  {
+                    id: 'card-2',
+                    title: 'Design UI Components',
+                    description: 'Create reusable components',
+                    color: 'green',
+                    statusBadges: [
+                      { id: 'badge-3', text: 'Design', color: 'orange' }
+                    ],
+                  }
+                ]
               },
               {
-                id: 'card-2',
-                title: 'Design UI Components',
-                description: 'Create reusable components',
-                color: 'green',
-                statusBadges: [
-                  { id: 'badge-3', text: 'Design', color: 'orange' }
-                ],
-              }
-            ]
-          },
-          {
-            id: 'list-2',
-            title: 'Doing',
-            titleColor: 'blue',
-            cards: [
+                id: 'list-2',
+                title: 'Doing',
+                titleColor: 'blue',
+                cards: [
+                  {
+                    id: 'card-3',
+                    title: 'Implement Drag & Drop',
+                    description: 'Add drag and drop functionality',
+                    color: 'yellow',
+                    statusBadges: [
+                      { id: 'badge-4', text: 'Frontend', color: 'blue' },
+                      { id: 'badge-5', text: 'In Review', color: 'yellow' }
+                    ],
+                  }
+                ]
+              },
               {
-                id: 'card-3',
-                title: 'Implement Drag & Drop',
-                description: 'Add drag and drop functionality',
-                color: 'yellow',
-                statusBadges: [
-                  { id: 'badge-4', text: 'Frontend', color: 'blue' },
-                  { id: 'badge-5', text: 'In Review', color: 'yellow' }
-                ],
+                id: 'list-3',
+                title: 'Done',
+                titleColor: 'green',
+                cards: [
+                  {
+                    id: 'card-4',
+                    title: 'Project Setup',
+                    description: 'Initialize Next.js project',
+                    color: 'white',
+                    statusBadges: [
+                      { id: 'badge-6', text: 'Completed', color: 'green' }
+                    ],
+                  }
+                ]
               }
             ]
-          },
-          {
-            id: 'list-3',
-            title: 'Done',
-            titleColor: 'green',
-            cards: [
+          };
+        } else {
+          // New projects get empty board with just the three sections
+          boardData = {
+            id: projectId,
+            title: project.name,
+            lists: [
               {
-                id: 'card-4',
-                title: 'Project Setup',
-                description: 'Initialize Next.js project',
-                color: 'white',
-                statusBadges: [
-                  { id: 'badge-6', text: 'Completed', color: 'green' }
-                ],
+                id: `${projectId}-list-1`,
+                title: 'To Do',
+                titleColor: 'gray',
+                cards: []
+              },
+              {
+                id: `${projectId}-list-2`,
+                title: 'Doing',
+                titleColor: 'blue',
+                cards: []
+              },
+              {
+                id: `${projectId}-list-3`,
+                title: 'Done',
+                titleColor: 'green',
+                cards: []
               }
             ]
-          }
-        ]
-      };
-      dispatch(setCurrentBoard(sampleBoard));
-      setIsInitialized(true);
+          };
+        }
+        
+        dispatch(setCurrentBoard(boardData));
+        setIsInitialized(true);
+      }
     }
-  }, [dispatch, currentBoard, isInitialized]);
+  }, [dispatch, projectId, projects, getProject, isInitialized]);
 
   // Configure sensors for better drag experience
   const sensors = useSensors(
@@ -298,7 +343,7 @@ export default function BoardPage() {
     );
   }
 
-  if (loading && !isInitialized) {
+  if (loading || !isInitialized) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
         <div className="text-center">
@@ -309,8 +354,15 @@ export default function BoardPage() {
     );
   }
 
-  if (!currentBoard && !isInitialized) {
-    return null;
+  if (!currentBoard) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="text-center">
+          <h2 className="text-lg font-semibold mb-2">Project Not Found</h2>
+          <p>The requested project could not be found.</p>
+        </div>
+      </div>
+    );
   }
 
   return (
@@ -318,7 +370,7 @@ export default function BoardPage() {
       {/* SharedHeader with responsive padding */}
       <div className="sticky top-0 z-50 bg-background border-b">
         <SharedHeader 
-          title={currentBoard?.title || 'Loading...'}
+          title={currentBoard.title}
           variant="board"
           showBoardActions={true}
           data-shared-header
@@ -339,7 +391,7 @@ export default function BoardPage() {
             <div className="h-full">
               {/* Desktop view */}
               <div className="hidden md:flex md:space-x-3 lg:space-x-4 md:overflow-x-auto md:pb-4 md:h-full">
-                {currentBoard?.lists.map((list) => (
+                {currentBoard.lists.map((list) => (
                   <div key={list.id} className="flex-shrink-0">
                     <SortableList
                       list={list}
@@ -356,7 +408,7 @@ export default function BoardPage() {
 
               {/* Mobile view - Vertical stack */}
               <div className="md:hidden space-y-4 h-full overflow-y-auto pb-4">
-                {currentBoard?.lists.map((list) => (
+                {currentBoard.lists.map((list) => (
                   <SortableList
                     key={list.id}
                     list={list}

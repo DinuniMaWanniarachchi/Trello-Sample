@@ -14,11 +14,14 @@ export interface Project {
 
 interface ProjectContextType {
   projects: Project[];
-  addProject: (projectData: { name: string; description: string; workspace: string }) => Project;
-  updateProject: (id: string, projectData: Partial<Project>) => void;
+  addProject: (project: Omit<Project, 'id' | 'createdAt' | 'updatedAt'>) => Project;
+  updateProject: (id: string, updates: Partial<Project>) => void;
   deleteProject: (id: string) => void;
-  getProject: (id: string) => Project | undefined;
+  getProject: (id: string) => Project | undefined; // Add this line
+  loading: boolean;
+  setLoading: (loading: boolean) => void;
 }
+
 
 const ProjectContext = createContext<ProjectContextType | undefined>(undefined);
 
@@ -72,11 +75,16 @@ export const ProjectProvider: React.FC<ProjectProviderProps> = ({ children }) =>
   };
 
   const value: ProjectContextType = {
-    projects,
-    addProject,
-    updateProject,
-    deleteProject,
-    getProject
+      projects,
+      addProject,
+      updateProject,
+      deleteProject,
+      getProject,
+      loading: false,
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      setLoading: function (loading: boolean): void {
+          throw new Error('Function not implemented.');
+      }
   };
 
   return (
