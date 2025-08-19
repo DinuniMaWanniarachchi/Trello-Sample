@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 "use client";
 
 import React, { useState, useEffect } from 'react';
@@ -5,13 +6,13 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { 
-  // Plus, 
   Star,
   Clock,
   X
 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
-import MainLayout from '@/layouts/MainLayout'; // Add this import
+import MainLayout from '@/layouts/MainLayout';
+import { useProjects } from '@/contexts/ProjectContext'; // Import the projects context
 
 export default function HomePage() {
   const router = useRouter();
@@ -19,9 +20,9 @@ export default function HomePage() {
   const [boardTitle, setBoardTitle] = useState('');
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const [isDarkMode, setIsDarkMode] = useState(false);
-  const [boards, setBoards] = useState([
-    { id: '1', title: 'My Kanban board', workspace: 'Kanban Workspace', description: '' }
-  ]);
+  
+  // Use projects from context instead of local state
+  const { projects, addProject } = useProjects();
 
   // Check for dark mode
   useEffect(() => {
@@ -43,14 +44,12 @@ export default function HomePage() {
 
   const handleCreateBoard = () => {
     if (boardTitle.trim()) {
-      const newBoard = {
-        id: Date.now().toString(),
-        title: boardTitle.trim(),
-        workspace: 'Kanban Workspace',
-        description: ''
-      };
+      const newBoard = addProject({
+        name: boardTitle.trim(),
+        description: '',
+        workspace: 'Kanban Workspace'
+      });
       
-      setBoards(prev => [...prev, newBoard]);
       setBoardTitle('');
       setIsCreateModalOpen(false);
       
@@ -62,7 +61,6 @@ export default function HomePage() {
     router.push(`/boards/${boardId}`);
   };
 
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const showDrawer = () => {
     setIsDrawerOpen(true);
   };
@@ -71,10 +69,8 @@ export default function HomePage() {
     setIsDrawerOpen(false);
   };
 
-  // Wrap your content with MainLayout
   return (
     <MainLayout>
-      
       <div className="p-8">
         <div className="max-w-4xl mx-auto">
           {/* Your Items Section */}
@@ -87,7 +83,7 @@ export default function HomePage() {
             </div>
           </div>
 
-          {/* Organize Anything Section */}
+          {/* Organize Anything Section - Always visible */}
           <div className="text-center mb-8">
             <div 
               className="rounded-md p-8 mb-6 shadow-sm border border-gray-200 dark:border-gray-700"
@@ -159,60 +155,58 @@ export default function HomePage() {
                 <Star className="h-5 w-5 mr-2" />
                 Recently viewed
               </h2>
-              {/* <Button 
-                variant="ghost"
-                onClick={showDrawer}
-                className="text-gray-600 hover:text-gray-900 dark:text-gray-300 dark:hover:text-white"
-              >
-                <Plus className="h-4 w-4 mr-1" />
-                Create a board
-              </Button> */}
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {boards.map((board) => (
-                <Card 
-                  key={board.id} 
-                  className="cursor-pointer transition-all duration-200 hover:shadow-md border-gray-200 dark:border-gray-700 hover:bg-gray-50"
-                  style={{
-                    backgroundColor: isDarkMode ? 'rgb(30,30,30)' : 'white'
-                  }}
-                  onMouseEnter={(e) => {
-                    if (isDarkMode) {
-                      e.currentTarget.style.backgroundColor = 'rgb(40,40,40)'; // Slightly lighter on hover
-                    } else {
-                      e.currentTarget.style.backgroundColor = 'rgb(249, 250, 251)'; // gray-50 equivalent
-                    }
-                  }}
-                  onMouseLeave={(e) => {
-                    if (isDarkMode) {
-                      e.currentTarget.style.backgroundColor = 'rgb(30,30,30)';
-                    } else {
-                      e.currentTarget.style.backgroundColor = 'white';
-                    }
-                  }}
-                  onClick={() => navigateToBoard(board.id)}
-                >
-                  <CardContent className="p-4">
-                    <h3 className="font-medium mb-1 text-gray-900 dark:text-white">
-                      {board.title}
-                    </h3>
-                    <p className="text-sm text-gray-600 dark:text-gray-400">
-                      {board.workspace}
-                    </p>
-                    {board.description && (
-                      <p className="text-xs mt-2 truncate text-gray-600 dark:text-gray-400">
-                        {board.description}
+            {projects.length > 0 ? (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                {projects.map((project) => (
+                  <Card 
+                    key={project.id} 
+                    className="cursor-pointer transition-all duration-200 hover:shadow-md border-gray-200 dark:border-gray-700 hover:bg-gray-50"
+                    style={{
+                      backgroundColor: isDarkMode ? 'rgb(30,30,30)' : 'white'
+                    }}
+                    onMouseEnter={(e) => {
+                      if (isDarkMode) {
+                        e.currentTarget.style.backgroundColor = 'rgb(40,40,40)';
+                      } else {
+                        e.currentTarget.style.backgroundColor = 'rgb(249, 250, 251)';
+                      }
+                    }}
+                    onMouseLeave={(e) => {
+                      if (isDarkMode) {
+                        e.currentTarget.style.backgroundColor = 'rgb(30,30,30)';
+                      } else {
+                        e.currentTarget.style.backgroundColor = 'white';
+                      }
+                    }}
+                    onClick={() => navigateToBoard(project.id)}
+                  >
+                    <CardContent className="p-4">
+                      <h3 className="font-medium mb-1 text-gray-900 dark:text-white">
+                        {project.name}
+                      </h3>
+                      <p className="text-sm text-gray-600 dark:text-gray-400">
+                        {project.workspace}
                       </p>
-                    )}
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
+                      {project.description && (
+                        <p className="text-xs mt-2 truncate text-gray-600 dark:text-gray-400">
+                          {project.description}
+                        </p>
+                      )}
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            ) : (
+              <div className="text-center py-8 text-gray-500 dark:text-gray-400">
+                <p>No projects yet. Create your first project to get started!</p>
+              </div>
+            )}
           </div>
         </div>
 
-        {/* Simple Create Modal */}
+        {/* Simple Create Modal (Legacy - can be removed if not needed) */}
         {isDrawerOpen && (
           <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
             <div 

@@ -6,7 +6,8 @@ import "antd/dist/reset.css"; // Ant Design reset
 import StoreProvider from "@/lib/StoreProvider";
 import { ThemeProvider } from "@/components/theme-provider";
 import { I18nProvider } from "@/components/providers/I18nProvider";
-import { SharedThemeProvider } from "@/contexts/ThemeContext"; // Add this
+import { SharedThemeProvider } from "@/contexts/ThemeContext";
+import { ProjectProvider } from "@/contexts/ProjectContext"; // Add this import
 
 // Geist font
 const geistSans = Geist({
@@ -42,7 +43,9 @@ export default function RootLayout({
               disableTransitionOnChange={false}
             >
               <SharedThemeProvider>
-                {children}
+                <ProjectProvider>
+                  {children}
+                </ProjectProvider>
               </SharedThemeProvider>
             </ThemeProvider>
           </I18nProvider>
