@@ -3,7 +3,7 @@
 import { useAppSelector, useAppDispatch } from '@/lib/hooks'
 import { 
   setCurrentBoard, 
-  addCard, 
+  addCard,
   deleteCard,
   addStatusBadgeToCard 
 } from '@/lib/features/boardSlice'

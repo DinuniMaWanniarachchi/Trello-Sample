@@ -31,7 +31,11 @@ interface MainLayoutProps {
 
 const MainLayout: React.FC<MainLayoutProps> = ({ children, showSidebar }) => {
   const pathname = usePathname();
-  const { theme, toggleTheme } = useTheme(); // Use the global theme context
+  const { theme, setTheme } = useTheme(); // Use the global theme context
+  
+  const toggleTheme = () => {
+    setTheme(theme === 'dark' ? 'light' : 'dark');
+  };
   
   // Auto-detect: Hide sidebar on board pages, show on all other pages
   const shouldShowSidebar = showSidebar !== undefined ? showSidebar : !pathname.startsWith('/boards');

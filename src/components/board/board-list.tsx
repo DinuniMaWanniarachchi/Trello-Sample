@@ -138,7 +138,7 @@ export const BoardList: React.FC<BoardListProps> = ({
           )}
 
           {/* Add Card */}
-          <AddCard listId={list.id} onAddCard={onAddCard} />
+          <AddCard listId={list.id} />
         </div>
       </div>
     </div>

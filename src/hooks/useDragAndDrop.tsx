@@ -1,7 +1,7 @@
 // hooks/useDragAndDrop.ts (Updated with @dnd-kit/sortable)
 "use client";
 
-import { useState } from 'react';
+import React, { useState } from 'react';
 import {
   DndContext,
   DragEndEvent,
@@ -11,12 +11,11 @@ import {
   useSensor,
   useSensors,
   DragOverlay,
-  closestCorners
+  closestCenter
 } from '@dnd-kit/core';
 import {
   SortableContext,
-  verticalListSortingStrategy,
-  arrayMove
+  verticalListSortingStrategy
 } from '@dnd-kit/sortable';
 import { Card } from '@/types/kanban';
 
@@ -90,7 +89,7 @@ export const useDragAndDrop = ({ onMoveCard }: UseDragAndDropProps) => {
   const DndContextProvider = ({ children }: { children: React.ReactNode }) => (
     <DndContext
       sensors={sensors}
-      collisionDetection={closestCorners}
+      collisionDetection={closestCenter}
       onDragStart={handleDragStart}
       onDragOver={handleDragOver}
       onDragEnd={handleDragEnd}

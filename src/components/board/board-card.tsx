@@ -17,6 +17,7 @@ interface BoardCardProps {
   isDragging?: boolean;
   onDragStart: (e: React.DragEvent) => void;
   onClick: () => void;
+  onUpdateCard?: (cardId: string, updates: Partial<Card>) => void;
 }
 
 export const BoardCard: React.FC<BoardCardProps> = ({ 

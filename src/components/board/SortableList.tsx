@@ -98,7 +98,7 @@ export const SortableList: React.FC<SortableListProps> = ({
           </SortableContext>
 
           {/* Add Card */}
-          <AddCard listId={list.id} onAddCard={onAddCard} />
+          <AddCard listId={list.id} />
         </div>
       </div>
 

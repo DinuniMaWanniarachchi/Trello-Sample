@@ -1,7 +1,6 @@
 import React, { useState, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 import { loadLanguage } from '../i18n-dynamic';
-import isLanguageLoaded from '../i18n-dynamic';
 import type { SupportedLanguage } from '../types/i18n.types';
 
 type Language = {
@@ -60,7 +59,7 @@ const AdvancedLanguageSwitcher: React.FC<LanguageSwitcherProps> = ({
           const langCode = lang.code as SupportedLanguage;
           const isActive = i18n.language === langCode;
           const isLoading = loading === langCode;
-          const isLoaded = isLanguageLoaded(langCode);
+          const isLoaded = i18n.hasResourceBundle(langCode, 'common');
           
           return (
             <button

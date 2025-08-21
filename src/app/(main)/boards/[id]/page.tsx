@@ -8,7 +8,7 @@ import {
   DragOverEvent,
   DragStartEvent,
   DragOverlay,
-  closestCorners,
+  closestCenter,
   KeyboardSensor,
   PointerSensor,
   useSensor,
@@ -162,7 +162,13 @@ export default function BoardPage() {
 
   // Configure sensors for better drag experience
   const sensors = useSensors(
-    useSensor(PointerSensor, { activationConstraint: { distance: 8 } }),
+    useSensor(PointerSensor, { 
+      activationConstraint: { 
+        distance: 8,
+        delay: 100,
+        tolerance: 5
+      } 
+    }),
     useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates })
   );
 
@@ -186,44 +192,48 @@ export default function BoardPage() {
 
   const handleDragOver = (event: DragOverEvent) => {
     const { active, over } = event;
-    if (!over || !currentBoard) return;
+    if (!over || !currentBoard || active.id === over.id) return;
 
     const activeId = active.id as string;
     const overId = over.id as string;
-    if (activeId === overId) return;
 
+    // Find the active container (list containing the dragged card)
     let activeContainer = '';
     let overContainer = '';
 
-    for (const list of currentBoard.lists) {
-      if (list.cards.some(card => card.id === activeId)) {
-        activeContainer = list.id;
-        break;
-      }
+    // First, check if we're dragging over a card or a list
+    const activeData = active.data.current;
+    const overData = over.data.current;
+
+    if (activeData?.type === 'card') {
+      activeContainer = activeData.listId;
     }
 
-    for (const list of currentBoard.lists) {
-      if (list.cards.some(card => card.id === overId)) {
-        overContainer = list.id;
-        break;
-      }
-    }
-
-    if (!overContainer) {
+    if (overData?.type === 'card') {
+      overContainer = overData.listId;
+    } else if (overData?.type === 'list') {
+      overContainer = overData.listId;
+    } else {
+      // If dropping directly on a list ID
       const overList = currentBoard.lists.find(list => list.id === overId);
       if (overList) overContainer = overId;
     }
 
     if (!activeContainer || !overContainer) return;
 
+    // Only handle cross-list movement in dragOver
     if (activeContainer !== overContainer) {
       const activeList = currentBoard.lists.find(list => list.id === activeContainer);
       const overList = currentBoard.lists.find(list => list.id === overContainer);
       if (!activeList || !overList) return;
 
       const activeIndex = activeList.cards.findIndex(card => card.id === activeId);
-      const overIndex = overList.cards.findIndex(card => card.id === overId);
-      const newIndex = overIndex >= 0 ? overIndex : overList.cards.length;
+      let newIndex = overList.cards.length;
+
+      // If dropping over a card, insert before that card
+      if (overData?.type === 'card') {
+        newIndex = overData.index;
+      }
 
       dispatch(moveCard({
         sourceListId: activeContainer,
@@ -244,38 +254,41 @@ export default function BoardPage() {
     const activeId = active.id as string;
     const overId = over.id as string;
 
+    const activeData = active.data.current;
+    const overData = over.data.current;
+
     let activeContainer = '';
     let overContainer = '';
 
-    for (const list of currentBoard.lists) {
-      if (list.cards.some(card => card.id === activeId)) {
-        activeContainer = list.id;
-        break;
-      }
+    if (activeData?.type === 'card') {
+      activeContainer = activeData.listId;
     }
 
-    for (const list of currentBoard.lists) {
-      if (list.cards.some(card => card.id === overId)) {
-        overContainer = list.id;
-        break;
-      }
-    }
-
-    if (!overContainer) {
+    if (overData?.type === 'card') {
+      overContainer = overData.listId;
+    } else if (overData?.type === 'list') {
+      overContainer = overData.listId;
+    } else {
+      // If dropping directly on a list ID
       const overList = currentBoard.lists.find(list => list.id === overId);
       if (overList) overContainer = overId;
     }
 
     if (!activeContainer || !overContainer) return;
 
+    // Handle reordering within the same list
     if (activeContainer === overContainer) {
       const list = currentBoard.lists.find(list => list.id === activeContainer);
       if (!list) return;
 
-      const oldIndex = list.cards.findIndex(card => card.id === activeId);
-      const newIndex = list.cards.findIndex(card => card.id === overId);
+      const oldIndex = activeData?.index ?? list.cards.findIndex(card => card.id === activeId);
+      let newIndex = oldIndex;
 
-      if (oldIndex !== newIndex) {
+      if (overData?.type === 'card') {
+        newIndex = overData.index;
+      }
+
+      if (oldIndex !== newIndex && oldIndex >= 0 && newIndex >= 0) {
         dispatch(reorderCards({
           listId: activeContainer,
           sourceIndex: oldIndex,
@@ -283,6 +296,7 @@ export default function BoardPage() {
         }));
       }
     }
+    // Cross-list movement is handled in dragOver, but we can finalize here if needed
   };
 
   const handleAddCard = (listId: string, title: string) => {
@@ -382,7 +396,7 @@ export default function BoardPage() {
         <div className="h-full p-2 sm:p-4 lg:p-6">
           <DndContext
             sensors={sensors}
-            collisionDetection={closestCorners}
+            collisionDetection={closestCenter}
             onDragStart={handleDragStart}
             onDragOver={handleDragOver}
             onDragEnd={handleDragEnd}

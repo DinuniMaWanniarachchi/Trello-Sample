@@ -1,6 +1,6 @@
 // In your boardSlice.ts file
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
-import { Board, Card, List } from '@/types/kanban';
+import { Board, Card, List, ColorType } from '@/types/kanban';
 
 interface BoardState {
   currentBoard: Board | null;
@@ -67,6 +67,15 @@ const boardSlice = createSlice({
       }
     },
 
+    deleteCard: (state, action: PayloadAction<{ listId: string; cardId: string }>) => {
+      if (state.currentBoard) {
+        const list = state.currentBoard.lists.find(list => list.id === action.payload.listId);
+        if (list) {
+          list.cards = list.cards.filter(card => card.id !== action.payload.cardId);
+        }
+      }
+    },
+
     deleteList: (state, action: PayloadAction<string>) => {
       if (state.currentBoard) {
         state.currentBoard.lists = state.currentBoard.lists.filter(list => list.id !== action.payload);
@@ -115,6 +124,23 @@ const boardSlice = createSlice({
     } | null>) => {
       state.draggedCard = action.payload;
     },
+
+    addStatusBadgeToCard: (state, action: PayloadAction<{ 
+      listId: string; 
+      cardId: string; 
+      badge: { id: string; text: string; color: ColorType } 
+    }>) => {
+      if (state.currentBoard) {
+        const list = state.currentBoard.lists.find(list => list.id === action.payload.listId);
+        if (list) {
+          const card = list.cards.find(card => card.id === action.payload.cardId);
+          if (card) {
+            if (!card.statusBadges) card.statusBadges = [];
+            card.statusBadges.push(action.payload.badge);
+          }
+        }
+      }
+    },
   },
 });
 
@@ -125,10 +151,12 @@ export const {
   addCard,
   addList,
   updateCard,
+  deleteCard,
   deleteList,
   moveCard,
   reorderCards,
   setDraggedCard,
+  addStatusBadgeToCard,
 } = boardSlice.actions;
 
 export default boardSlice.reducer;

@@ -1,6 +1,6 @@
 "use client";
 import { useTranslation } from 'react-i18next';
-import { LanguageSwitcher } from './LanguageSwitcher';
+import LanguageSwitcher from './LanguageSwitcher';
 
 export function ExampleComponent() {
   const { t } = useTranslation();

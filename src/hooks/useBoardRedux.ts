@@ -7,10 +7,8 @@ import {
   deleteList, 
   moveCard,
   reorderCards,
-  duplicateCard,
   deleteCard,
-  addStatusBadgeToCard,
-  removeStatusBadgeFromCard
+  addStatusBadgeToCard
 } from '@/lib/features/boardSlice';
 import { Card, List, StatusBadge, ColorType } from '@/types/kanban';
 
@@ -41,7 +39,7 @@ export const useBoardRedux = () => {
   };
 
   const handleDuplicateCard = (listId: string, cardId: string) => {
-    dispatch(duplicateCard({ listId, cardId }));
+    console.log('Duplicate card functionality not implemented yet:', listId, cardId);
   };
 
   // List operations
@@ -91,7 +89,7 @@ export const useBoardRedux = () => {
   };
 
   const handleRemoveStatusBadge = (listId: string, cardId: string, badgeId: string) => {
-    dispatch(removeStatusBadgeFromCard({ listId, cardId, badgeId }));
+    console.log('Remove status badge functionality not implemented yet:', listId, cardId, badgeId);
   };
 
   // Utility functions

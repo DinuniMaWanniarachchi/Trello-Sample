@@ -17,6 +17,8 @@ interface SortableCardProps {
 
 export const SortableCard: React.FC<SortableCardProps> = ({
   card,
+  listId,
+  index,
   onClick,
   isDragOverlay = false}) => {
   const {
@@ -28,6 +30,12 @@ export const SortableCard: React.FC<SortableCardProps> = ({
     isDragging,
   } = useSortable({
     id: card.id,
+    data: {
+      type: 'card',
+      card,
+      listId,
+      index,
+    },
     disabled: isDragOverlay,
   });
 
@@ -36,9 +44,42 @@ export const SortableCard: React.FC<SortableCardProps> = ({
     transition,
   };
 
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  function onUpdateCard(cardId: string, updates: Partial<Card>): void {
-    throw new Error('Function not implemented.');
+  // Note: onUpdateCard functionality is handled by BoardCard component directly
+
+  // Render drag overlay version
+  if (isDragOverlay) {
+    return (
+      <div className="p-3 rounded-md border shadow-lg cursor-grab rotate-3 bg-card">
+        <h4 className="text-sm font-medium mb-2 text-card-foreground">{card.title}</h4>
+        {card.description && (
+          <p className="text-xs text-muted-foreground mb-3 line-clamp-2">
+            {card.description}
+          </p>
+        )}
+        
+        <div className="flex items-center justify-between">
+          <div className="flex items-center space-x-2">
+            {card.dueDate && (
+              <div className="flex items-center text-xs text-muted-foreground">
+                📅 {new Date(card.dueDate).toLocaleDateString()}
+              </div>
+            )}
+          </div>
+          
+          <div className="flex items-center space-x-1">
+            {card.attachments && card.attachments > 0 && (
+              <span className="text-xs text-muted-foreground">📎 {card.attachments}</span>
+            )}
+            {card.comments && card.comments > 0 && (
+              <span className="text-xs text-muted-foreground">💬 {card.comments}</span>
+            )}
+            {card.assignee && (
+              <span className="text-xs text-muted-foreground">👤 {card.assignee}</span>
+            )}
+          </div>
+        </div>
+      </div>
+    );
   }
 
   return (
@@ -50,10 +91,10 @@ export const SortableCard: React.FC<SortableCardProps> = ({
     >
       <BoardCard
         card={card}
+        listId={listId}
         isDragging={isDragging}
         onDragStart={() => {}}
         onClick={onClick}
-        onUpdateCard={onUpdateCard} 
       />
     </div>
   );

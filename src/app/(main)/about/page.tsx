@@ -1,6 +1,6 @@
-import { GetStaticProps } from 'next';
-import { useTranslation } from 'next-i18next';
-import { serverSideTranslations } from 'next-i18next/serverSideTranslations';
+"use client";
+
+import { useTranslation } from 'react-i18next';
 import { Target, Users, Zap } from 'lucide-react';
 
 export default function About() {
@@ -96,10 +96,5 @@ export default function About() {
   );
 }
 
-export const getStaticProps: GetStaticProps = async ({ locale }) => {
-  return {
-    props: {
-      ...(await serverSideTranslations(locale ?? 'en', ['common'])),
-    },
-  };
-};
+// Note: getStaticProps is not supported in app router
+// Translation is handled at the layout level or through client-side hooks
