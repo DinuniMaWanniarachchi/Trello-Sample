@@ -1,6 +1,6 @@
-// In your boardSlice.ts file
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
-import { Board, Card, List } from '@/types/kanban';
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+import { Board, Card, List, StatusBadge, ColorType } from '@/types/kanban';
 
 interface BoardState {
   currentBoard: Board | null;
@@ -13,10 +13,9 @@ interface BoardState {
   } | null;
 }
 
-// Fix: Set loading to false initially
 const initialState: BoardState = {
   currentBoard: null,
-  loading: false, // Changed from true to false
+  loading: false,
   error: null,
   draggedCard: null,
 };
@@ -63,6 +62,16 @@ const boardSlice = createSlice({
           if (cardIndex !== -1) {
             list.cards[cardIndex] = { ...list.cards[cardIndex], ...action.payload.updates };
           }
+        }
+      }
+    },
+
+    // ADD THIS: deleteCard reducer
+    deleteCard: (state, action: PayloadAction<{ listId: string; cardId: string }>) => {
+      if (state.currentBoard) {
+        const list = state.currentBoard.lists.find(list => list.id === action.payload.listId);
+        if (list) {
+          list.cards = list.cards.filter(card => card.id !== action.payload.cardId);
         }
       }
     },
@@ -115,6 +124,43 @@ const boardSlice = createSlice({
     } | null>) => {
       state.draggedCard = action.payload;
     },
+
+    // ADD THIS: addStatusBadgeToCard reducer
+    addStatusBadgeToCard: (state, action: PayloadAction<{ 
+      listId: string; 
+      cardId: string; 
+      badge: StatusBadge 
+    }>) => {
+      if (state.currentBoard) {
+        const list = state.currentBoard.lists.find(list => list.id === action.payload.listId);
+        if (list) {
+          const card = list.cards.find(card => card.id === action.payload.cardId);
+          if (card) {
+            if (!card.statusBadges) {
+              card.statusBadges = [];
+            }
+            card.statusBadges.push(action.payload.badge);
+          }
+        }
+      }
+    },
+
+    // ADD THIS: removeStatusBadgeFromCard reducer (you might need this too)
+    removeStatusBadgeFromCard: (state, action: PayloadAction<{ 
+      listId: string; 
+      cardId: string; 
+      badgeId: string; 
+    }>) => {
+      if (state.currentBoard) {
+        const list = state.currentBoard.lists.find(list => list.id === action.payload.listId);
+        if (list) {
+          const card = list.cards.find(card => card.id === action.payload.cardId);
+          if (card && card.statusBadges) {
+            card.statusBadges = card.statusBadges.filter(badge => badge.id !== action.payload.badgeId);
+          }
+        }
+      }
+    },
   },
 });
 
@@ -125,10 +171,13 @@ export const {
   addCard,
   addList,
   updateCard,
+  deleteCard,
   deleteList,
   moveCard,
   reorderCards,
   setDraggedCard,
+  addStatusBadgeToCard, // ADD THIS
+  removeStatusBadgeFromCard, // ADD THIS
 } = boardSlice.actions;
 
 export default boardSlice.reducer;

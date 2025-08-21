@@ -106,7 +106,7 @@ export const SortableList: React.FC<SortableListProps> = ({
         .flex-1::-webkit-scrollbar {
           width: 8px;
         }
-        .flex-1::-webkit-scrollbar-track {
+        .flex-1::-webkit-scrollbar-track {   
           background: #f1f5f9;
           border-radius: 4px;
         }
