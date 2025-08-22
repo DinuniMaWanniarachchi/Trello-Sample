@@ -1,70 +1,44 @@
-// types/auth.ts
 export interface User {
-  id: string;
-  username: string;
+  id: number;
   email: string;
-  role?: string;
-  firstName?: string;
-  lastName?: string;
-  avatar?: string;
+  name: string;
   createdAt?: string;
-  updatedAt?: string;
 }
 
-export interface LoginCredentials {
-  username: string;
-  password: string;
-  remember?: boolean;
-}
-
-export interface RegisterData {
-  username: string;
+export interface JWTPayload {
+  userId: number;
   email: string;
-  password: string;
-  confirmPassword: string;
-  firstName?: string;
-  lastName?: string;
+  iat?: number;
+  exp?: number;
 }
 
-export interface AuthState {
-  user: User | null;
-  isAuthenticated: boolean;
-  isLoading: boolean;
-  error: string | null;
-}
-
-export interface AuthContextType extends AuthState {
-  login: (credentials: LoginCredentials) => Promise<User>;
-  logout: () => void;
-  register: (data: RegisterData) => Promise<User>;
-  clearError: () => void;
-}
-
-export interface LoginFormData {
-  username: string;
-  password: string;
-  remember: boolean;
-}
-
-export interface RegisterFormData {
-  username: string;
-  email: string;
-  password: string;
-  confirmPassword: string;
-  firstName?: string;
-  lastName?: string;
-}
-
-// API Response types
 export interface AuthResponse {
+  message: string;
+  token: string;
   user: User;
-  token?: string;
-  refreshToken?: string;
-  message?: string;
 }
 
 export interface AuthError {
   message: string;
-  code?: string;
-  field?: string;
+}
+
+export interface LoginCredentials {
+  email: string;
+  password: string;
+}
+
+export interface SignupCredentials {
+  email: string;
+  password: string;
+  name: string;
+}
+
+export interface AuthContextType {
+  user: User | null;
+  login: (email: string, password: string) => Promise<void>;
+  signup: (email: string, password: string, name: string) => Promise<void>;
+  logout: () => Promise<void>;
+  loading: boolean;
+  error: string | null;
+  clearError: () => void;
 }

@@ -8,6 +8,7 @@ import { ThemeProvider } from "@/components/theme-provider";
 import { I18nProvider } from "@/components/providers/I18nProvider";
 import { SharedThemeProvider } from "@/contexts/ThemeContext";
 import { ProjectProvider } from "@/contexts/ProjectContext"; // Add this import
+import { AuthProvider } from "@/hooks/useAuth";
 
 // Geist font
 const geistSans = Geist({
@@ -44,7 +45,9 @@ export default function RootLayout({
             >
               <SharedThemeProvider>
                 <ProjectProvider>
-                  {children}
+                  <AuthProvider>
+                    {children}
+                  </AuthProvider>
                 </ProjectProvider>
               </SharedThemeProvider>
             </ThemeProvider>

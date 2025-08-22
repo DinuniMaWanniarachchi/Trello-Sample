@@ -1,37 +1,53 @@
-// app/(auth)/login/page.tsx
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card } from '@/components/ui/card';
 import { Lock, User, Eye, EyeOff } from 'lucide-react';
+import { useAuth } from '@/hooks/useAuth';
 
 interface LoginFormData {
-  username: string;
+  email: string;
   password: string;
   remember: boolean;
 }
 
 export default function LoginPage() {
   const router = useRouter();
+  const { login, user, loading, error, clearError } = useAuth();
+  
   const [formData, setFormData] = useState<LoginFormData>({
-    username: '',
+    email: '',
     password: '',
     remember: false,
   });
   
   const [errors, setErrors] = useState<Partial<LoginFormData>>({});
   const [showPassword, setShowPassword] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
-  const [loginError, setLoginError] = useState<string>('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  // Redirect if already logged in
+  useEffect(() => {
+    if (!loading && user) {
+      router.push('/boards');
+    }
+  }, [user, loading, router]);
+
+  // Clear error on mount
+  useEffect(() => {
+    clearError();
+  }, [clearError]);
 
   const validateForm = (): boolean => {
     const newErrors: Partial<LoginFormData> = {};
     
-    if (!formData.username.trim()) {
-      newErrors.username = 'Please input your Username!';
+    if (!formData.email.trim()) {
+      newErrors.email = 'Please input your Email!';
+    } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
+      newErrors.email = 'Please enter a valid email address!';
     }
     
     if (!formData.password) {
@@ -44,43 +60,45 @@ export default function LoginPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setLoginError('');
+    clearError();
     
     if (!validateForm()) return;
     
-    setIsLoading(true);
+    setIsSubmitting(true);
     
     try {
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
-      // Mock authentication - replace with your actual auth logic
-      if (formData.username === 'admin' && formData.password === 'admin') {
-        console.log('Login successful:', formData);
-        // Redirect to dashboard
-        router.push('/');
-      } else {
-        setLoginError('Invalid username or password');
-      }
+      await login(formData.email, formData.password);
+      // Success redirect is handled by the auth context and useEffect above
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     } catch (error) {
-      setLoginError('Login failed. Please try again.');
+      // Error is handled by auth context
     } finally {
-      setIsLoading(false);
+      setIsSubmitting(false);
     }
   };
 
   const handleInputChange = (field: keyof LoginFormData, value: string | boolean) => {
     setFormData(prev => ({ ...prev, [field]: value }));
-    // Clear error when user starts typing
+    
+    // Clear field error when user starts typing
     if (errors[field]) {
       setErrors(prev => ({ ...prev, [field]: undefined }));
     }
-    // Clear login error
-    if (loginError) {
-      setLoginError('');
+    
+    // Clear auth error
+    if (error) {
+      clearError();
     }
   };
+
+  // Show loading state during initial auth check
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+        <div className="text-lg">Loading...</div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4">
@@ -91,28 +109,28 @@ export default function LoginPage() {
             <p className="text-gray-600 mt-2">Enter your credentials to continue</p>
           </div>
 
-          {/* Login Error */}
-          {loginError && (
+          {/* Auth Error from Context */}
+          {error && (
             <div className="p-4 bg-red-50 border border-red-200 rounded-md">
-              <p className="text-sm text-red-600">{loginError}</p>
+              <p className="text-sm text-red-600">{error}</p>
             </div>
           )}
 
-          {/* Username Field */}
+          {/* Email Field */}
           <div className="space-y-2">
             <div className="relative">
               <User className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
               <Input
-                type="text"
-                placeholder="Username"
-                value={formData.username}
-                onChange={(e) => handleInputChange('username', e.target.value)}
-                className={`pl-10 ${errors.username ? 'border-red-500' : ''}`}
-                disabled={isLoading}
+                type="email"
+                placeholder="Email address"
+                value={formData.email}
+                onChange={(e) => handleInputChange('email', e.target.value)}
+                className={`pl-10 ${errors.email ? 'border-red-500' : ''}`}
+                disabled={isSubmitting}
               />
             </div>
-            {errors.username && (
-              <p className="text-sm text-red-500">{errors.username}</p>
+            {errors.email && (
+              <p className="text-sm text-red-500">{errors.email}</p>
             )}
           </div>
 
@@ -126,13 +144,13 @@ export default function LoginPage() {
                 value={formData.password}
                 onChange={(e) => handleInputChange('password', e.target.value)}
                 className={`pl-10 pr-10 ${errors.password ? 'border-red-500' : ''}`}
-                disabled={isLoading}
+                disabled={isSubmitting}
               />
               <button
                 type="button"
                 onClick={() => setShowPassword(!showPassword)}
                 className="absolute right-3 top-3 h-4 w-4 text-gray-400 hover:text-gray-600"
-                disabled={isLoading}
+                disabled={isSubmitting}
               >
                 {showPassword ? <EyeOff /> : <Eye />}
               </button>
@@ -150,34 +168,36 @@ export default function LoginPage() {
                 checked={formData.remember}
                 onChange={(e) => handleInputChange('remember', e.target.checked)}
                 className="h-4 w-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
-                disabled={isLoading}
+                disabled={isSubmitting}
               />
               <span className="text-sm text-gray-600">Remember me</span>
             </label>
-            <div className="text-center">
-  
+            <Link 
+              href="/forgot-password" 
+              className="text-sm text-blue-600 hover:text-blue-800 hover:underline"
+            >
               Forgot password?
-            </div>
+            </Link>
           </div>
 
           {/* Submit Button */}
           <Button 
             type="submit" 
             className="w-full" 
-            disabled={isLoading}
+            disabled={isSubmitting}
           >
-            {isLoading ? 'Signing in...' : 'Sign In'}
+            {isSubmitting ? 'Signing in...' : 'Sign In'}
           </Button>
 
           {/* Register Link */}
           <div className="text-center">
             <span className="text-sm text-gray-600">Don&apos;t have an account? </span>
-            <a 
+            <Link 
               href="/register" 
               className="text-sm text-blue-600 hover:text-blue-800 hover:underline"
             >
               Register now!
-            </a>
+            </Link>
           </div>
         </form>
       </Card>

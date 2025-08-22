@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
-"use client";
+'use client';
 
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
@@ -11,17 +11,91 @@ import {
   X
 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 import MainLayout from '@/layouts/MainLayout';
-import { useProjects } from '@/contexts/ProjectContext'; // Import the projects context
+import { useProjects } from '@/contexts/ProjectContext';
+import { useAuth } from '@/hooks/useAuth';
 
-export default function HomePage() {
+// Landing page component for unauthenticated users
+function LandingPage() {
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
+      <div className="sm:mx-auto sm:w-full sm:max-w-md">
+        <h1 className="mt-6 text-center text-4xl font-extrabold text-gray-900">
+          Kanban Board
+        </h1>
+        <p className="mt-2 text-center text-lg text-gray-600">
+          Organize your tasks efficiently with our powerful kanban system
+        </p>
+      </div>
+      <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
+        <Card className="bg-white py-8 px-4 shadow-xl sm:rounded-lg sm:px-10">
+          <div className="space-y-4">
+            <Link href="/login" className="w-full">
+              <Button className="w-full" size="lg">
+                Sign In
+              </Button>
+            </Link>
+            
+            <Link href="/register" className="w-full">
+              <Button variant="outline" className="w-full" size="lg">
+                Create Account
+              </Button>
+            </Link>
+          </div>
+          <div className="mt-6">
+            <div className="relative">
+              <div className="absolute inset-0 flex items-center">
+                <div className="w-full border-t border-gray-300" />
+              </div>
+              <div className="relative flex justify-center text-sm">
+                <span className="px-2 bg-white text-gray-500 font-medium">Features</span>
+              </div>
+            </div>
+            <div className="mt-6">
+              <ul className="space-y-3 text-sm text-gray-600">
+                <li className="flex items-center">
+                  <svg className="h-4 w-4 text-green-500 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7"></path>
+                  </svg>
+                  Create and manage multiple boards
+                </li>
+                <li className="flex items-center">
+                  <svg className="h-4 w-4 text-green-500 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7"></path>
+                  </svg>
+                  Organize tasks with drag & drop
+                </li>
+                <li className="flex items-center">
+                  <svg className="h-4 w-4 text-green-500 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7"></path>
+                  </svg>
+                  Secure authentication & data
+                </li>
+                <li className="flex items-center">
+                  <svg className="h-4 w-4 text-green-500 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7"></path>
+                  </svg>
+                  Multi-language support
+                </li>
+              </ul>
+            </div>
+          </div>
+        </Card>
+      </div>
+    </div>
+  );
+}
+
+// Dashboard component for authenticated users
+function Dashboard() {
   const router = useRouter();
   const [, setIsCreateModalOpen] = useState(false);
   const [boardTitle, setBoardTitle] = useState('');
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const [isDarkMode, setIsDarkMode] = useState(false);
   
-  // Use projects from context instead of local state
+  // Use projects from context
   const { projects, addProject } = useProjects();
 
   // Check for dark mode
@@ -269,4 +343,21 @@ export default function HomePage() {
       </div>
     </MainLayout>
   );
+}
+
+// Main HomePage component that decides what to show
+export default function HomePage() {
+  const { user, loading } = useAuth();
+
+  // Show loading spinner during auth check
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600"></div>
+      </div>
+    );
+  }
+
+  // Show dashboard for authenticated users, landing page for others
+  return user ? <Dashboard /> : <LandingPage />;
 }
