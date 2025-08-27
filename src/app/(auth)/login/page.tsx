@@ -9,7 +9,7 @@ import { Card } from '@/components/ui/card';
 import { Lock, User, Eye, EyeOff } from 'lucide-react';
 
 interface LoginFormData {
-  username: string;
+  email: string; // Changed from username to email to match API
   password: string;
   remember: boolean;
 }
@@ -17,7 +17,7 @@ interface LoginFormData {
 export default function LoginPage() {
   const router = useRouter();
   const [formData, setFormData] = useState<LoginFormData>({
-    username: '',
+    email: '', // Changed from username to email
     password: '',
     remember: false,
   });
@@ -30,8 +30,10 @@ export default function LoginPage() {
   const validateForm = (): boolean => {
     const newErrors: Partial<LoginFormData> = {};
     
-    if (!formData.username.trim()) {
-      newErrors.username = 'Please input your Username!';
+    if (!formData.email.trim()) {
+      newErrors.email = 'Please input your Email!';
+    } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
+      newErrors.email = 'Please enter a valid email address!';
     }
     
     if (!formData.password) {
@@ -51,19 +53,41 @@ export default function LoginPage() {
     setIsLoading(true);
     
     try {
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
-      // Mock authentication - replace with your actual auth logic
-      if (formData.username === 'admin' && formData.password === 'admin') {
-        console.log('Login successful:', formData);
-        // Redirect to dashboard
-        router.push('/');
+      const response = await fetch('/api/auth/login', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          email: formData.email,
+          password: formData.password,
+        }),
+      });
+
+      const data = await response.json();
+
+      if (data.success) {
+        // Store token in cookie or localStorage
+        if (formData.remember) {
+          // Store for 7 days if remember is checked
+          document.cookie = `token=${data.token}; path=/; max-age=${7 * 24 * 60 * 60}`;
+        } else {
+          // Session cookie
+          document.cookie = `token=${data.token}; path=/`;
+        }
+        
+        // Store user data in localStorage (optional)
+        localStorage.setItem('user', JSON.stringify(data.user));
+        
+        console.log('Login successful:', data.user);
+        
+        // Redirect to boards page
+        router.push('/boards');
       } else {
-        setLoginError('Invalid username or password');
+        setLoginError(data.message || 'Login failed');
       }
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     } catch (error) {
+      console.error('Login error:', error);
       setLoginError('Login failed. Please try again.');
     } finally {
       setIsLoading(false);
@@ -98,21 +122,21 @@ export default function LoginPage() {
             </div>
           )}
 
-          {/* Username Field */}
+          {/* Email Field */}
           <div className="space-y-2">
             <div className="relative">
               <User className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
               <Input
-                type="text"
-                placeholder="Username"
-                value={formData.username}
-                onChange={(e) => handleInputChange('username', e.target.value)}
-                className={`pl-10 ${errors.username ? 'border-red-500' : ''}`}
+                type="email"
+                placeholder="Email Address"
+                value={formData.email}
+                onChange={(e) => handleInputChange('email', e.target.value)}
+                className={`pl-10 ${errors.email ? 'border-red-500' : ''}`}
                 disabled={isLoading}
               />
             </div>
-            {errors.username && (
-              <p className="text-sm text-red-500">{errors.username}</p>
+            {errors.email && (
+              <p className="text-sm text-red-500">{errors.email}</p>
             )}
           </div>
 
@@ -155,7 +179,6 @@ export default function LoginPage() {
               <span className="text-sm text-gray-600">Remember me</span>
             </label>
             <div className="text-center">
-  
               Forgot password?
             </div>
           </div>

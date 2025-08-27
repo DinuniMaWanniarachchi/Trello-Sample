@@ -51,6 +51,19 @@ npm run dev
 yarn dev
 ```
 
+### Database Setup
+
+This project requires a PostgreSQL database. 
+
+1.  Create a `.env.local` file in the root of the project.
+2.  Add your database connection string to the `.env.local` file:
+
+```
+DATABASE_URL="postgresql://user:password@host:port/database"
+```
+
+Replace `user`, `password`, `host`, `port`, and `database` with your actual database credentials.
+
 4. Open [http://localhost:3000](http://localhost:3000) in your browser.
 
 ## Project Structure

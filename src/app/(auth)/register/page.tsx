@@ -6,40 +6,31 @@ import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card } from '@/components/ui/card';
-import { Lock, User, Eye, EyeOff, Mail, Calendar, Phone } from 'lucide-react';
+import { Lock, User, Eye, EyeOff, Mail } from 'lucide-react';
 
 interface RegisterFormData {
-  username: string;
+  name: string; // Changed from fullName to match API
   email: string;
   password: string;
   confirmPassword: string;
-  fullName: string;
-  phone: string;
-  birthDate: string;
   agreeToTerms: boolean;
 }
 
 interface RegisterFormErrors {
-  username?: string;
+  name?: string;
   email?: string;
   password?: string;
   confirmPassword?: string;
-  fullName?: string;
-  phone?: string;
-  birthDate?: string;
   agreeToTerms?: string;
 }
 
 export default function RegisterPage() {
   const router = useRouter();
   const [formData, setFormData] = useState<RegisterFormData>({
-    username: '',
+    name: '', // Simplified to match API
     email: '',
     password: '',
     confirmPassword: '',
-    fullName: '',
-    phone: '',
-    birthDate: '',
     agreeToTerms: false,
   });
   
@@ -52,14 +43,8 @@ export default function RegisterPage() {
   const validateForm = (): boolean => {
     const newErrors: RegisterFormErrors = {};
     
-    if (!formData.fullName.trim()) {
-      newErrors.fullName = 'Please input your full name!';
-    }
-    
-    if (!formData.username.trim()) {
-      newErrors.username = 'Please input your username!';
-    } else if (formData.username.length < 3) {
-      newErrors.username = 'Username must be at least 3 characters!';
+    if (!formData.name.trim()) {
+      newErrors.name = 'Please input your full name!';
     }
     
     if (!formData.email.trim()) {
@@ -80,14 +65,6 @@ export default function RegisterPage() {
       newErrors.confirmPassword = 'Passwords do not match!';
     }
     
-    if (!formData.phone.trim()) {
-      newErrors.phone = 'Please input your phone number!';
-    }
-    
-    if (!formData.birthDate) {
-      newErrors.birthDate = 'Please select your birth date!';
-    }
-    
     if (!formData.agreeToTerms) {
       newErrors.agreeToTerms = 'Please agree to the terms and conditions!';
     }
@@ -105,17 +82,34 @@ export default function RegisterPage() {
     setIsLoading(true);
     
     try {
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1500));
-      
-      // Mock registration - replace with your actual registration logic
-      console.log('Registration successful:', formData);
-      
-      // Redirect to login page after successful registration
-      router.push('/login?registered=true');
-      
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      const response = await fetch('/api/auth/register', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          name: formData.name,
+          email: formData.email,
+          password: formData.password,
+        }),
+      });
+
+      const data = await response.json();
+
+      if (data.success) {
+        console.log('Registration successful:', data.user);
+        
+        // Automatically log the user in by storing the token
+        document.cookie = `token=${data.token}; path=/`;
+        localStorage.setItem('user', JSON.stringify(data.user));
+        
+        // Redirect to boards page after successful registration
+        router.push('/login');
+      } else {
+        setRegisterError(data.message || 'Registration failed');
+      }
     } catch (error) {
+      console.error('Registration error:', error);
       setRegisterError('Registration failed. Please try again.');
     } finally {
       setIsLoading(false);
@@ -157,32 +151,14 @@ export default function RegisterPage() {
               <Input
                 type="text"
                 placeholder="Full Name"
-                value={formData.fullName}
-                onChange={(e) => handleInputChange('fullName', e.target.value)}
-                className={`pl-10 ${errors.fullName ? 'border-red-500' : ''}`}
+                value={formData.name}
+                onChange={(e) => handleInputChange('name', e.target.value)}
+                className={`pl-10 ${errors.name ? 'border-red-500' : ''}`}
                 disabled={isLoading}
               />
             </div>
-            {errors.fullName && (
-              <p className="text-sm text-red-500">{errors.fullName}</p>
-            )}
-          </div>
-
-          {/* Username Field */}
-          <div className="space-y-2">
-            <div className="relative">
-              <User className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
-              <Input
-                type="text"
-                placeholder="Username"
-                value={formData.username}
-                onChange={(e) => handleInputChange('username', e.target.value)}
-                className={`pl-10 ${errors.username ? 'border-red-500' : ''}`}
-                disabled={isLoading}
-              />
-            </div>
-            {errors.username && (
-              <p className="text-sm text-red-500">{errors.username}</p>
+            {errors.name && (
+              <p className="text-sm text-red-500">{errors.name}</p>
             )}
           </div>
 
@@ -201,42 +177,6 @@ export default function RegisterPage() {
             </div>
             {errors.email && (
               <p className="text-sm text-red-500">{errors.email}</p>
-            )}
-          </div>
-
-          {/* Phone Field */}
-          <div className="space-y-2">
-            <div className="relative">
-              <Phone className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
-              <Input
-                type="tel"
-                placeholder="Phone Number"
-                value={formData.phone}
-                onChange={(e) => handleInputChange('phone', e.target.value)}
-                className={`pl-10 ${errors.phone ? 'border-red-500' : ''}`}
-                disabled={isLoading}
-              />
-            </div>
-            {errors.phone && (
-              <p className="text-sm text-red-500">{errors.phone}</p>
-            )}
-          </div>
-
-          {/* Birth Date Field */}
-          <div className="space-y-2">
-            <div className="relative">
-              <Calendar className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
-              <Input
-                type="date"
-                placeholder="Birth Date"
-                value={formData.birthDate}
-                onChange={(e) => handleInputChange('birthDate', e.target.value)}
-                className={`pl-10 ${errors.birthDate ? 'border-red-500' : ''}`}
-                disabled={isLoading}
-              />
-            </div>
-            {errors.birthDate && (
-              <p className="text-sm text-red-500">{errors.birthDate}</p>
             )}
           </div>
 
