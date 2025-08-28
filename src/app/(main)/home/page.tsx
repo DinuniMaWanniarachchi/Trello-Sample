@@ -87,7 +87,7 @@ export default function HomePage() {
         {/* Organize Anything Section - Always visible */}
         <div className="text-center mb-8">
           <div 
-            className="rounded-md p-8 mb-6 shadow-sm border border-gray-200 dark:border-gray-700"
+            className="rounded-md p-8 mb-6 shadow-sm border border-gray-200 dark:border-gray-700" 
             style={{ backgroundColor: isDarkMode ? 'rgb(30, 30, 30)' : 'white' }}
           >
             <div className="mb-6">
