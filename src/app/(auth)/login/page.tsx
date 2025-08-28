@@ -1,23 +1,28 @@
 // app/(auth)/login/page.tsx
 'use client';
 
-import React, { useState } from 'react';
-import { useRouter } from 'next/navigation';
+import React, { useState, useEffect } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card } from '@/components/ui/card';
 import { Lock, User, Eye, EyeOff } from 'lucide-react';
 
 interface LoginFormData {
-  email: string; // Changed from username to email to match API
+  email: string;
   password: string;
   remember: boolean;
 }
 
 export default function LoginPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  
+  // Get the return URL from query params, default to home page
+  const returnUrl = searchParams.get('returnUrl') || '/home';
+  
   const [formData, setFormData] = useState<LoginFormData>({
-    email: '', // Changed from username to email
+    email: '',
     password: '',
     remember: false,
   });
@@ -26,6 +31,19 @@ export default function LoginPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [loginError, setLoginError] = useState<string>('');
+
+  // Check if user is already logged in
+  useEffect(() => {
+    const token = document.cookie
+      .split('; ')
+      .find(row => row.startsWith('token='))
+      ?.split('=')[1];
+      
+    if (token) {
+      // User is already logged in, redirect to return URL or home
+      router.push(returnUrl);
+    }
+  }, [returnUrl, router]);
 
   const validateForm = (): boolean => {
     const newErrors: Partial<LoginFormData> = {};
@@ -67,22 +85,43 @@ export default function LoginPage() {
       const data = await response.json();
 
       if (data.success) {
-        // Store token in cookie or localStorage
+        // Store token in cookie with proper settings
         if (formData.remember) {
           // Store for 7 days if remember is checked
-          document.cookie = `token=${data.token}; path=/; max-age=${7 * 24 * 60 * 60}`;
+          document.cookie = `token=${data.token}; path=/; max-age=${7 * 24 * 60 * 60}; SameSite=Lax`;
         } else {
           // Session cookie
-          document.cookie = `token=${data.token}; path=/`;
+          document.cookie = `token=${data.token}; path=/; SameSite=Lax`;
         }
         
-        // Store user data in localStorage (optional)
+        // Log token for debugging
+        console.log('Token stored:', data.token.substring(0, 20) + '...');
+        
+        // Store user data in localStorage
         localStorage.setItem('user', JSON.stringify(data.user));
         
         console.log('Login successful:', data.user);
+        console.log('Redirecting to:', returnUrl);
         
-        // Redirect to boards page
-        router.push('/boards');
+        // Wait a moment to ensure cookie is set before navigation
+        await new Promise(resolve => setTimeout(resolve, 100));
+        
+        // Navigation logic: Always navigate to home page after successful login
+        // If user has a default board and no specific return URL, go to that board
+        // Otherwise, go to home page or the intended return URL
+        if (data.user.defaultBoardId && returnUrl === '/home') {
+          // User has default board and no specific return URL, go to default board
+          router.push(`/boards/${data.user.defaultBoardId}`);
+        } else if (returnUrl === '/home') {
+          // No specific return URL, go to home page
+          router.push('/home');
+        } else {
+          // Go to the intended return URL
+          router.push(returnUrl);
+        }
+
+        // Remove the automatic page refresh as it might interfere with middleware
+        
       } else {
         setLoginError(data.message || 'Login failed');
       }
@@ -113,6 +152,12 @@ export default function LoginPage() {
           <div className="text-center mb-6">
             <h1 className="text-2xl font-bold">Sign In</h1>
             <p className="text-gray-600 mt-2">Enter your credentials to continue</p>
+            {/* Show return URL for debugging (remove in production) */}
+            {returnUrl !== '/home' && (
+              <p className="text-xs text-blue-600 mt-1">
+                Redirecting to: {returnUrl}
+              </p>
+            )}
           </div>
 
           {/* Login Error */}
@@ -179,7 +224,9 @@ export default function LoginPage() {
               <span className="text-sm text-gray-600">Remember me</span>
             </label>
             <div className="text-center">
-              Forgot password?
+              <a href="#" className="text-sm text-blue-600 hover:text-blue-800 hover:underline">
+                Forgot password?
+              </a>
             </div>
           </div>
 

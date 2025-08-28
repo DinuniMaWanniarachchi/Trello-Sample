@@ -1,272 +1,218 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
-"use client";
+// app/(public)/page.tsx
+'use client';
 
-import React, { useState, useEffect } from 'react';
-import { Card, CardContent } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { 
-  Star,
-  Clock,
-  X
-} from 'lucide-react';
+import React, { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import MainLayout from '@/layouts/MainLayout';
-import { useProjects } from '@/contexts/ProjectContext'; // Import the projects context
+import { Button } from '@/components/ui/button';
+import { Card } from '@/components/ui/card';
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+import { CheckCircle, Users, Zap, Globe } from 'lucide-react';
 
-export default function HomePage() {
+export default function LandingPage() {
   const router = useRouter();
-  const [, setIsCreateModalOpen] = useState(false);
-  const [boardTitle, setBoardTitle] = useState('');
-  const [isDrawerOpen, setIsDrawerOpen] = useState(false);
-  const [isDarkMode, setIsDarkMode] = useState(false);
-  
-  // Use projects from context instead of local state
-  const { projects, addProject } = useProjects();
 
-  // Check for dark mode
+  // Check if user is already logged in
   useEffect(() => {
-    const checkDarkMode = () => {
-      setIsDarkMode(document.documentElement.classList.contains('dark'));
-    };
-    
-    checkDarkMode();
-    
-    // Watch for changes to the dark class
-    const observer = new MutationObserver(checkDarkMode);
-    observer.observe(document.documentElement, { 
-      attributes: true, 
-      attributeFilter: ['class'] 
-    });
-    
-    return () => observer.disconnect();
-  }, []);
-
-  const handleCreateBoard = () => {
-    if (boardTitle.trim()) {
-      const newBoard = addProject({
-        name: boardTitle.trim(),
-        description: '',
-        workspace: 'Kanban Workspace'
-      });
+    const token = document.cookie
+      .split('; ')
+      .find(row => row.startsWith('token='))
+      ?.split('=')[1];
       
-      setBoardTitle('');
-      setIsCreateModalOpen(false);
-      
-      router.push(`/boards/${newBoard.id}`);
+    if (token) {
+      // User is already logged in, redirect to home
+      router.push('/home');
     }
+  }, [router]);
+
+  const handleSignIn = () => {
+    router.push('/login');
   };
 
-  const navigateToBoard = (boardId: string) => {
-    router.push(`/boards/${boardId}`);
-  };
-
-  const showDrawer = () => {
-    setIsDrawerOpen(true);
-  };
-
-  const onCloseDrawer = () => {
-    setIsDrawerOpen(false);
+  const handleSignUp = () => {
+    router.push('/register');
   };
 
   return (
-    <MainLayout>
-      <div className="p-8">
-        <div className="max-w-4xl mx-auto">
-          {/* Your Items Section */}
-          <div className="mb-8">
-            <div className="flex items-center justify-between mb-4">
-              <h2 className="text-lg font-semibold flex items-center text-gray-900 dark:text-white">
-                <Clock className="h-5 w-5 mr-2" />
-                Your Items
-              </h2>
-            </div>
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50">
+      {/* Header */}
+      <header className="container mx-auto px-6 py-8">
+        <nav className="flex items-center justify-between">
+          <div className="flex items-center space-x-2">
+            <div className="w-8 h-8 bg-gradient-to-r from-blue-600 to-purple-600 rounded-lg"></div>
+            <span className="text-xl font-bold text-gray-900">KanbanFlow</span>
+          </div>
+          
+          <div className="flex items-center space-x-4">
+            <Button 
+              variant="ghost" 
+              onClick={handleSignIn}
+              className="text-gray-700 hover:text-gray-900"
+            >
+              Sign In
+            </Button>
+            <Button 
+              onClick={handleSignUp}
+              className="bg-blue-600 hover:bg-blue-700 text-white"
+            >
+              Get Started
+            </Button>
+          </div>
+        </nav>
+      </header>
+
+      {/* Hero Section */}
+      <main className="container mx-auto px-6">
+        <div className="text-center py-16 lg:py-24">
+          <h1 className="text-4xl lg:text-6xl font-bold text-gray-900 mb-6">
+            Organize Your Work
+            <span className="block text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-purple-600">
+              Boost Your Productivity
+            </span>
+          </h1>
+          
+          <p className="text-xl text-gray-600 mb-8 max-w-2xl mx-auto">
+            The visual project management tool that helps teams move work forward. 
+            Simple, flexible, and powerful.
+          </p>
+
+          <div className="flex flex-col sm:flex-row items-center justify-center space-y-4 sm:space-y-0 sm:space-x-4 mb-12">
+            <Button 
+              size="lg"
+              onClick={handleSignUp}
+              className="bg-blue-600 hover:bg-blue-700 text-white px-8 py-3 text-lg"
+            >
+              Start Your Free Board
+            </Button>
+            <Button 
+              size="lg"
+              variant="outline"
+              onClick={handleSignIn}
+              className="px-8 py-3 text-lg border-gray-300 text-gray-700 hover:bg-gray-50"
+            >
+              Sign In
+            </Button>
           </div>
 
-          {/* Organize Anything Section - Always visible */}
-          <div className="text-center mb-8">
-            <div 
-              className="rounded-md p-8 mb-6 shadow-sm border border-gray-200 dark:border-gray-700"
-              style={{ backgroundColor: isDarkMode ? 'rgb(30, 30, 30)' : 'white' }}
-            >
-              <div className="mb-6">
-                <div className="w-48 h-32 mx-auto rounded-md relative overflow-hidden bg-gradient-to-br from-purple-500 to-purple-700">
-                  <div className="absolute inset-4 space-y-2">
-                    <div className="rounded-md p-2 shadow-sm border bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-600">
-                      <div className="h-2 rounded-md mb-1 bg-gray-200 dark:bg-gray-600"></div>
-                      <div className="h-2 rounded-md w-2/3 bg-gray-200 dark:bg-gray-600"></div>
+          {/* Demo Board Preview */}
+          <div className="max-w-4xl mx-auto">
+            <Card className="p-8 shadow-2xl bg-white/70 backdrop-blur-sm border-0">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                {/* To Do Column */}
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between">
+                    <h3 className="font-semibold text-gray-700">To Do</h3>
+                    <span className="text-xs text-gray-500">3 tasks</span>
+                  </div>
+                  <div className="space-y-2">
+                    <div className="bg-white p-3 rounded-lg shadow-sm border border-gray-100">
+                      <h4 className="font-medium text-sm">Setup project structure</h4>
+                      <div className="flex items-center mt-2 space-x-2">
+                        <span className="text-xs bg-red-100 text-red-700 px-2 py-1 rounded">High Priority</span>
+                      </div>
                     </div>
-                    <div className="rounded-md p-2 shadow-sm bg-blue-100 border border-blue-200 flex items-center justify-center">
-                      <div className="w-2 h-2 rounded-md bg-blue-600 mr-1"></div>
-                      <div className="w-2 h-2 rounded-md bg-blue-600"></div>
+                    <div className="bg-white p-3 rounded-lg shadow-sm border border-gray-100">
+                      <h4 className="font-medium text-sm">Design wireframes</h4>
+                      <div className="flex items-center mt-2">
+                        <span className="text-xs bg-blue-100 text-blue-700 px-2 py-1 rounded">Design</span>
+                      </div>
                     </div>
-                    <div className="rounded-md p-2 shadow-sm bg-green-100 border border-green-200">
-                      <div className="w-6 h-6 rounded-md bg-green-500"></div>
+                  </div>
+                </div>
+
+                {/* Doing Column */}
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between">
+                    <h3 className="font-semibold text-gray-700">Doing</h3>
+                    <span className="text-xs text-gray-500">1 task</span>
+                  </div>
+                  <div className="bg-white p-3 rounded-lg shadow-sm border border-gray-100">
+                    <h4 className="font-medium text-sm">Implement authentication</h4>
+                    <div className="flex items-center mt-2">
+                      <span className="text-xs bg-yellow-100 text-yellow-700 px-2 py-1 rounded">In Progress</span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Done Column */}
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between">
+                    <h3 className="font-semibold text-gray-700">Done</h3>
+                    <span className="text-xs text-gray-500">2 tasks</span>
+                  </div>
+                  <div className="space-y-2">
+                    <div className="bg-white p-3 rounded-lg shadow-sm border border-gray-100">
+                      <h4 className="font-medium text-sm">Initial setup</h4>
+                      <div className="flex items-center mt-2">
+                        <span className="text-xs bg-green-100 text-green-700 px-2 py-1 rounded">Completed</span>
+                      </div>
                     </div>
                   </div>
                 </div>
               </div>
-              
-              <h3 className="text-2xl font-bold mb-2 text-gray-900 dark:text-white">
-                Organize anything
-              </h3>
-              <p className="mb-6 text-gray-600 dark:text-gray-300">
-                Put everything in one place and start moving things forward with your first Kanban board!
-              </p>
-              
-              <div className="space-y-4">
-                <div className="flex justify-center">
-                  <Input 
-                    value={boardTitle}
-                    onChange={(e) => setBoardTitle(e.target.value)}
-                    placeholder="What are you working on?"
-                    className="max-w-md"
-                    onKeyPress={(e) => {
-                      if (e.key === 'Enter') {
-                        handleCreateBoard();
-                      }
-                    }}
-                  />
-                </div>
-                
-                <div className="flex justify-center space-x-4">
-                  <Button 
-                    onClick={handleCreateBoard}
-                    disabled={!boardTitle.trim()}
-                    className="bg-blue-600 hover:bg-blue-700 text-white"
-                  >
-                    Create your board
-                  </Button>
-                  <Button 
-                    variant="ghost"
-                    className="underline text-gray-600 hover:text-gray-900 dark:text-gray-300 dark:hover:text-white"
-                  >
-                    Got it! Dismiss this.
-                  </Button>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* Recently Viewed Section */}
-          <div>
-            <div className="flex items-center justify-between mb-4">
-              <h2 className="text-lg font-semibold flex items-center text-gray-900 dark:text-white">
-                <Star className="h-5 w-5 mr-2" />
-                Recently viewed
-              </h2>
-            </div>
-
-            {projects.length > 0 ? (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                {projects.map((project) => (
-                  <Card 
-                    key={project.id} 
-                    className="cursor-pointer transition-all duration-200 hover:shadow-md border-gray-200 dark:border-gray-700 hover:bg-gray-50"
-                    style={{
-                      backgroundColor: isDarkMode ? 'rgb(30,30,30)' : 'white'
-                    }}
-                    onMouseEnter={(e) => {
-                      if (isDarkMode) {
-                        e.currentTarget.style.backgroundColor = 'rgb(40,40,40)';
-                      } else {
-                        e.currentTarget.style.backgroundColor = 'rgb(249, 250, 251)';
-                      }
-                    }}
-                    onMouseLeave={(e) => {
-                      if (isDarkMode) {
-                        e.currentTarget.style.backgroundColor = 'rgb(30,30,30)';
-                      } else {
-                        e.currentTarget.style.backgroundColor = 'white';
-                      }
-                    }}
-                    onClick={() => navigateToBoard(project.id)}
-                  >
-                    <CardContent className="p-4">
-                      <h3 className="font-medium mb-1 text-gray-900 dark:text-white">
-                        {project.name}
-                      </h3>
-                      <p className="text-sm text-gray-600 dark:text-gray-400">
-                        {project.workspace}
-                      </p>
-                      {project.description && (
-                        <p className="text-xs mt-2 truncate text-gray-600 dark:text-gray-400">
-                          {project.description}
-                        </p>
-                      )}
-                    </CardContent>
-                  </Card>
-                ))}
-              </div>
-            ) : (
-              <div className="text-center py-8 text-gray-500 dark:text-gray-400">
-                <p>No projects yet. Create your first project to get started!</p>
-              </div>
-            )}
+            </Card>
           </div>
         </div>
 
-        {/* Simple Create Modal (Legacy - can be removed if not needed) */}
-        {isDrawerOpen && (
-          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-            <div 
-              className="max-w-md w-full mx-4 rounded-lg p-6"
-              style={{ backgroundColor: isDarkMode ? 'rgb(30, 30, 30)' : 'white' }}
-            >
-              <div className="flex items-center justify-between mb-4">
-                <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
-                  Create New Board
-                </h2>
-                <button
-                  onClick={onCloseDrawer}
-                  className="p-2 rounded-md hover:bg-gray-100 dark:hover:bg-gray-700"
-                >
-                  <X className="h-4 w-4 text-gray-600 dark:text-gray-300" />
-                </button>
+        {/* Features Section */}
+        <div className="py-16">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            <div className="text-center">
+              <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center mx-auto mb-4">
+                <CheckCircle className="w-6 h-6 text-blue-600" />
               </div>
-              
-              <div className="space-y-4">
-                <div>
-                  <label className="block text-sm font-medium mb-2 text-gray-700 dark:text-gray-300">
-                    Board Name
-                  </label>
-                  <Input 
-                    placeholder="Enter board name"
-                    className="w-full"
-                  />
-                </div>
-                
-                <div>
-                  <label className="block text-sm font-medium mb-2 text-gray-700 dark:text-gray-300">
-                    Description
-                  </label>
-                  <textarea 
-                    placeholder="Enter board description"
-                    className="w-full p-3 rounded-md border bg-white dark:bg-gray-700 border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                    rows={3}
-                  />
-                </div>
-                
-                <div className="flex space-x-3 pt-4">
-                  <Button 
-                    onClick={onCloseDrawer}
-                    className="flex-1 bg-blue-600 hover:bg-blue-700 text-white"
-                  >
-                    Create Board
-                  </Button>
-                  <Button 
-                    variant="outline"
-                    onClick={onCloseDrawer}
-                    className="flex-1 border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700"
-                  >
-                    Cancel
-                  </Button>
-                </div>
+              <h3 className="text-lg font-semibold mb-2">Simple & Intuitive</h3>
+              <p className="text-gray-600">Easy to use drag-and-drop interface that anyone can master in minutes.</p>
+            </div>
+            
+            <div className="text-center">
+              <div className="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center mx-auto mb-4">
+                <Users className="w-6 h-6 text-purple-600" />
               </div>
+              <h3 className="text-lg font-semibold mb-2">Team Collaboration</h3>
+              <p className="text-gray-600">Work together seamlessly with real-time updates and team workspaces.</p>
+            </div>
+            
+            <div className="text-center">
+              <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center mx-auto mb-4">
+                <Zap className="w-6 h-6 text-green-600" />
+              </div>
+              <h3 className="text-lg font-semibold mb-2">Powerful Features</h3>
+              <p className="text-gray-600">Advanced features like due dates, labels, and customizable workflows.</p>
             </div>
           </div>
-        )}
-      </div>
-    </MainLayout>
+        </div>
+
+        {/* CTA Section */}
+        <div className="text-center py-16">
+          <h2 className="text-3xl font-bold text-gray-900 mb-4">Ready to Get Started?</h2>
+          <p className="text-lg text-gray-600 mb-8">Join thousands of teams already using KanbanFlow</p>
+          
+          <div className="flex flex-col sm:flex-row items-center justify-center space-y-4 sm:space-y-0 sm:space-x-4">
+            <Button 
+              size="lg"
+              onClick={handleSignUp}
+              className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white px-8 py-3 text-lg"
+            >
+              Create Free Account
+            </Button>
+            <Button 
+              size="lg"
+              variant="outline"
+              onClick={handleSignIn}
+              className="px-8 py-3 text-lg"
+            >
+              Sign In to Your Account
+            </Button>
+          </div>
+        </div>
+      </main>
+
+      {/* Footer */}
+      <footer className="container mx-auto px-6 py-8 border-t border-gray-200">
+        <div className="text-center text-gray-600">
+          <p>&copy; 2025 KanbanFlow. Built for productivity enthusiasts.</p>
+        </div>
+      </footer>
+    </div>
   );
 }

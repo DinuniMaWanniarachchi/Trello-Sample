@@ -1,8 +1,15 @@
 // src/lib/auth.ts
 import bcrypt from 'bcryptjs';
-import jwt from 'jsonwebtoken';
+import { SignJWT, jwtVerify } from 'jose';
+import { User } from '@/types/user';
 
-const JWT_SECRET = process.env.JWT_SECRET!;
+const getSecretKey = () => {
+  const secret = process.env.JWT_SECRET;
+  if (!secret) {
+    throw new Error('JWT_SECRET environment variable is not set');
+  }
+  return new TextEncoder().encode(secret);
+};
 
 export async function hashPassword(password: string): Promise<string> {
   const saltRounds = 12;
@@ -13,18 +20,20 @@ export async function verifyPassword(password: string, hashedPassword: string): 
   return bcrypt.compare(password, hashedPassword);
 }
 
-export function generateToken(userId: number, email: string): string {
-  return jwt.sign(
-    { userId, email },
-    JWT_SECRET,
-    { expiresIn: '7d' }
-  );
+export async function generateToken(userId: number, email: string): Promise<string> {
+  const secretKey = getSecretKey();
+  return new SignJWT({ userId, email })
+    .setProtectedHeader({ alg: 'HS256' })
+    .setIssuedAt()
+    .setExpirationTime('7d')
+    .sign(secretKey);
 }
 
-export function verifyToken(token: string): { userId: number; email: string } | null {
+export async function verifyToken(token: string): Promise<{ userId: number; email: string } | null> {
   try {
-    const decoded = jwt.verify(token, JWT_SECRET) as { userId: number; email: string };
-    return decoded;
+    const secretKey = getSecretKey();
+    const { payload } = await jwtVerify(token, secretKey);
+    return payload as { userId: number; email: string };
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   } catch (error) {
     return null;
