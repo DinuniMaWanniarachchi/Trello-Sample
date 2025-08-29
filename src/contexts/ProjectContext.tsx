@@ -1,100 +1,218 @@
-// contexts/ProjectContext.tsx
-"use client";
+'use client';
 
-import React, { createContext, useContext, useState, ReactNode } from 'react';
-
-export interface Project {
-  id: string;
-  name: string;
-  description: string;
-  workspace: string;
-  createdAt: Date;
-  updatedAt: Date;
-}
+import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
+import { Project, CreateProjectData, UpdateProjectData } from '@/types/project';
+import { useAuth } from './AuthContext';
 
 interface ProjectContextType {
   projects: Project[];
-  addProject: (project: Omit<Project, 'id' | 'createdAt' | 'updatedAt'>) => Project;
-  updateProject: (id: string, updates: Partial<Project>) => void;
-  deleteProject: (id: string) => void;
-  getProject: (id: string) => Project | undefined; // Add this line
-  loading: boolean;
-  setLoading: (loading: boolean) => void;
+  isLoading: boolean;
+  error: string | null;
+  fetchProjects: () => Promise<void>;
+  createProject: (data: CreateProjectData) => Promise<Project | null>;
+  updateProject: (id: string, data: UpdateProjectData) => Promise<Project | null>;
+  deleteProject: (id: string) => Promise<boolean>;
+  addProject: (data: CreateProjectData) => Project; // Legacy support for your current code
+  clearError: () => void;
 }
 
+const ProjectContext = createContext<ProjectContextType | null>(null);
 
-const ProjectContext = createContext<ProjectContextType | undefined>(undefined);
+export function ProjectProvider({ children }: { children: React.ReactNode }) {
+  const [projects, setProjects] = useState<Project[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const { user, isAuthenticated } = useAuth();
 
-interface ProjectProviderProps {
-  children: ReactNode;
-}
+  const getAuthHeaders = () => {
+    const token = document.cookie
+      .split('; ')
+      .find(row => row.startsWith('token='))
+      ?.split('=')[1];
+    
+    return {
+      'Content-Type': 'application/json',
+      ...(token && { 'Authorization': `Bearer ${token}` })
+    };
+  };
 
-export const ProjectProvider: React.FC<ProjectProviderProps> = ({ children }) => {
-  const [projects, setProjects] = useState<Project[]>([
-    // Initial project for testing
-    { 
-      id: '1', 
-      name: 'My project board', 
-      workspace: 'Kanban Workspace', 
-      description: '',
-      createdAt: new Date(),
-      updatedAt: new Date()
+  const fetchProjects = useCallback(async () => {
+    if (!isAuthenticated || !user) {
+      setProjects([]);
+      return;
     }
-  ]);
 
-  const addProject = (projectData: { name: string; description: string; workspace: string }): Project => {
-    const newProject: Project = {
-      id: Date.now().toString(),
-      name: projectData.name,
-      description: projectData.description,
-      workspace: projectData.workspace,
-      createdAt: new Date(),
-      updatedAt: new Date()
+    setIsLoading(true);
+    setError(null);
+
+    try {
+      const response = await fetch('/api/projects', {
+        method: 'GET',
+        headers: getAuthHeaders(),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to fetch projects');
+      }
+
+      const data = await response.json();
+      setProjects(data.projects || []);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to fetch projects');
+      setProjects([]);
+    } finally {
+      setIsLoading(false);
+    }
+  }, [isAuthenticated, user]);
+
+  const createProject = async (data: CreateProjectData): Promise<Project | null> => {
+    if (!isAuthenticated) {
+      setError('Must be authenticated to create projects');
+      return null;
+    }
+
+    setError(null);
+
+    try {
+      const response = await fetch('/api/projects', {
+        method: 'POST',
+        headers: getAuthHeaders(),
+        body: JSON.stringify(data),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to create project');
+      }
+
+      const newProject = await response.json();
+      setProjects(prev => [...prev, newProject]);
+      return newProject;
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to create project');
+      return null;
+    }
+  };
+
+  const updateProject = async (id: string, data: UpdateProjectData): Promise<Project | null> => {
+    if (!isAuthenticated) {
+      setError('Must be authenticated to update projects');
+      return null;
+    }
+
+    setError(null);
+
+    try {
+      const response = await fetch(`/api/projects?id=${id}`, {
+        method: 'PUT',
+        headers: getAuthHeaders(),
+        body: JSON.stringify(data),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to update project');
+      }
+
+      const updatedProject = await response.json();
+      setProjects(prev => 
+        prev.map(p => p.id === id ? updatedProject : p)
+      );
+      return updatedProject;
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to update project');
+      return null;
+    }
+  };
+
+  const deleteProject = async (id: string): Promise<boolean> => {
+    if (!isAuthenticated) {
+      setError('Must be authenticated to delete projects');
+      return false;
+    }
+
+    setError(null);
+
+    try {
+      const response = await fetch(`/api/projects?id=${id}`, {
+        method: 'DELETE',
+        headers: getAuthHeaders(),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to delete project');
+      }
+
+      setProjects(prev => prev.filter(p => p.id !== id));
+      return true;
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to delete project');
+      return false;
+    }
+  };
+
+  // Legacy support for your current addProject method
+  const addProject = (data: CreateProjectData): Project => {
+    // Create a temporary project for immediate UI feedback
+    const tempProject: Project = {
+      id: `temp_${Date.now()}`,
+      name: data.name,
+      description: data.description || '',
+      workspace: data.workspace || 'My Workspace',
+      userId: user?.id || 'unknown',
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+      isStarred: false,
     };
 
-    setProjects(prev => [...prev, newProject]);
-    return newProject;
-  };
+    // Add to state immediately
+    setProjects(prev => [...prev, tempProject]);
 
-  const updateProject = (id: string, projectData: Partial<Project>) => {
-    setProjects(prev => 
-      prev.map(project => 
-        project.id === id 
-          ? { ...project, ...projectData, updatedAt: new Date() }
-          : project
-      )
-    );
-  };
-
-  const deleteProject = (id: string) => {
-    setProjects(prev => prev.filter(project => project.id !== id));
-  };
-
-  const getProject = (id: string): Project | undefined => {
-    return projects.find(project => project.id === id);
-  };
-
-  const value: ProjectContextType = {
-      projects,
-      addProject,
-      updateProject,
-      deleteProject,
-      getProject,
-      loading: false,
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
-      setLoading: function (loading: boolean): void {
-          throw new Error('Function not implemented.');
+    // Create on server in background
+    createProject(data).then(serverProject => {
+      if (serverProject) {
+        // Replace temp project with server project
+        setProjects(prev => 
+          prev.map(p => p.id === tempProject.id ? serverProject : p)
+        );
+      } else {
+        // Remove temp project if server creation failed
+        setProjects(prev => prev.filter(p => p.id !== tempProject.id));
       }
+    });
+
+    return tempProject;
   };
+
+  const clearError = () => {
+    setError(null);
+  };
+
+  // Fetch projects when user authentication state changes
+  useEffect(() => {
+    if (isAuthenticated && user) {
+      fetchProjects();
+    } else {
+      setProjects([]);
+    }
+  }, [isAuthenticated, user, fetchProjects]);
 
   return (
-    <ProjectContext.Provider value={value}>
+    <ProjectContext.Provider value={{
+      projects,
+      isLoading,
+      error,
+      fetchProjects,
+      createProject,
+      updateProject,
+      deleteProject,
+      addProject,
+      clearError,
+    }}>
       {children}
     </ProjectContext.Provider>
   );
-};
+}
 
-export const useProjects = (): ProjectContextType => {
+export const useProjects = () => {
   const context = useContext(ProjectContext);
   if (!context) {
     throw new Error('useProjects must be used within a ProjectProvider');
