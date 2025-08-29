@@ -32,17 +32,48 @@ export default function LoginPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [loginError, setLoginError] = useState<string>('');
 
-  // Check if user is already logged in
+  // Check if user is already logged in with proper token validation
   useEffect(() => {
-    const token = document.cookie
-      .split('; ')
-      .find(row => row.startsWith('token='))
-      ?.split('=')[1];
-      
-    if (token) {
-      // User is already logged in, redirect to return URL or home
-      router.push(returnUrl);
-    }
+    const checkAuthStatus = async () => {
+      const token = document.cookie
+        .split('; ')
+        .find(row => row.startsWith('token='))
+        ?.split('=')[1];
+        
+      if (token) {
+        try {
+          // Validate token with your API
+          const response = await fetch('/api/auth/verify', {
+            method: 'GET',
+            headers: {
+              'Authorization': `Bearer ${token}`,
+              'Content-Type': 'application/json',
+            },
+          });
+          
+          if (response.ok) {
+            const data = await response.json();
+            if (data.valid) {
+              console.log('User already authenticated, redirecting...');
+              // User is already logged in with valid token
+              router.push(returnUrl);
+            } else {
+              // Token is invalid, clear it
+              document.cookie = 'token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT';
+            }
+          } else {
+            // API call failed, clear invalid token
+            document.cookie = 'token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT';
+          }
+        } catch (error) {
+          console.error('Auth check failed:', error);
+          // Clear potentially invalid token
+          document.cookie = 'token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT';
+        }
+      }
+    };
+    
+    checkAuthStatus();
   }, [returnUrl, router]);
 
   const validateForm = (): boolean => {
