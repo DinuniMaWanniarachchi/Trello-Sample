@@ -50,6 +50,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const login = (token: string, userData: User) => {
     setUser(userData);
     localStorage.setItem('user', JSON.stringify(userData));
+    document.cookie = `token=${token}; path=/;`;
   };
 
   const logout = () => {

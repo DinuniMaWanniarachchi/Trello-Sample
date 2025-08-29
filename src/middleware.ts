@@ -16,7 +16,7 @@ const isValidToken = async (token: string): Promise<boolean> => {
   try {
     const { payload } = await jwtVerify(token, getSecretKey());
     // Additional validation - check if token has required fields
-    return !!(payload && payload.id);
+    return !!(payload && payload.userId);
   } catch (error) {
     console.error('Token verification failed:', error);
     return false;

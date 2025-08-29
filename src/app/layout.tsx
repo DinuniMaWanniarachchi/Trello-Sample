@@ -7,7 +7,7 @@ import StoreProvider from "@/lib/StoreProvider";
 import { ThemeProvider } from "@/components/theme-provider";
 import { I18nProvider } from "@/components/providers/I18nProvider";
 import { SharedThemeProvider } from "@/contexts/ThemeContext";
-import { ProjectProvider } from "@/contexts/ProjectContext"; // Add this import
+
 import { AuthProvider } from "@/contexts/AuthContext";
 
 // Geist font
@@ -45,9 +45,7 @@ export default function RootLayout({
             >
               <SharedThemeProvider>
                 <AuthProvider>
-                  <ProjectProvider>
-                    {children}
-                  </ProjectProvider>
+                  {children}
                 </AuthProvider>
               </SharedThemeProvider>
             </ThemeProvider>

@@ -1,14 +1,15 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { jwtVerify } from 'jose';
-import { Project, CreateProjectData } from '@/types/project';
+import pool from '@/lib/db';
+import { CreateProjectData } from '@/types/project';
 
 const getSecretKey = () => {
-  const secret = process.env.JWT_SECRET || 'your-fallback-secret-key';
+  const secret = process.env.JWT_SECRET;
+  if (!secret) {
+    throw new Error('JWT_SECRET environment variable is not set');
+  }
   return new TextEncoder().encode(secret);
 };
-
-// In-memory storage for development (replace with database in production)
-const projects: Project[] = [];
 
 async function getUserFromToken(request: NextRequest) {
   try {
@@ -18,10 +19,12 @@ async function getUserFromToken(request: NextRequest) {
     const token = authHeader?.substring(7) || cookieToken;
     
     if (!token) {
+      console.log('No token found');
       return null;
     }
 
     const { payload } = await jwtVerify(token, getSecretKey());
+    console.log('Token payload:', payload); // Debug log
     return payload;
   } catch (error) {
     console.error('Token verification failed:', error);
@@ -33,44 +36,56 @@ async function getUserFromToken(request: NextRequest) {
 export async function GET(request: NextRequest) {
   const user = await getUserFromToken(request);
   
-  if (!user || !user.id) {
+  if (!user || !user.userId) {
+    console.log('Unauthorized GET request - no user or user.userId');
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
 
-  // Filter projects by user ID
-  const userProjects = projects.filter(project => project.userId === user.id);
+  try {
+    // Fixed: Use user_id (snake_case) to match database schema
+    const result = await pool.query('SELECT * FROM projects WHERE user_id = $1', [user.userId]);
+    const userProjects = result.rows;
   
-  return NextResponse.json({
-    projects: userProjects,
-    total: userProjects.length
-  });
+    return NextResponse.json({
+      projects: userProjects,
+      total: userProjects.length
+    });
+  } catch (error) {
+    console.error('Error fetching projects:', error);
+    return NextResponse.json({ error: 'Failed to fetch projects' }, { status: 500 });
+  }
 }
 
 // POST - Create new project
 export async function POST(request: NextRequest) {
   const user = await getUserFromToken(request);
   
-  if (!user || !user.id) {
+  if (!user || !user.userId) {
+    console.log('Unauthorized POST request - no user or user.userId');
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
 
   try {
     const body: CreateProjectData = await request.json();
     
-    const newProject: Project = {
-      id: `project_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
-      name: body.name,
-      description: body.description || '',
-      workspace: body.workspace || 'My Workspace',
-      userId: user.id as string,
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
-      isStarred: false,
-      background: body.background || '',
-      visibility: body.visibility || 'private'
-    };
-
-    projects.push(newProject);
+    // Generate UUID for project ID
+    const projectId = crypto.randomUUID();
+    
+    // Fixed: Use user_id (snake_case) and proper column names
+    const result = await pool.query(
+      `INSERT INTO projects (id, name, description, workspace, user_id, background, visibility, created_at, updated_at) 
+       VALUES ($1, $2, $3, $4, $5, $6, $7, NOW(), NOW()) RETURNING *`,
+      [
+        projectId,
+        body.name, 
+        body.description || '', 
+        body.workspace || 'My Workspace', 
+        user.userId, 
+        body.background || '', 
+        body.visibility || 'private'
+      ]
+    );
+    const newProject = result.rows[0];
 
     return NextResponse.json(newProject, { status: 201 });
   } catch (error) {
@@ -83,7 +98,8 @@ export async function POST(request: NextRequest) {
 export async function PUT(request: NextRequest) {
   const user = await getUserFromToken(request);
   
-  if (!user || !user.id) {
+  if (!user || !user.userId) {
+    console.log('Unauthorized PUT request - no user or user.userId');
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
 
@@ -97,21 +113,20 @@ export async function PUT(request: NextRequest) {
 
     const body = await request.json();
     
-    const projectIndex = projects.findIndex(
-      p => p.id === projectId && p.userId === user.id
+    // Fixed: Use user_id (snake_case)
+    const result = await pool.query(
+      `UPDATE projects 
+       SET name = $1, description = $2, workspace = $3, background = $4, visibility = $5, updated_at = NOW() 
+       WHERE id = $6 AND user_id = $7 RETURNING *`,
+      [body.name, body.description, body.workspace, body.background, body.visibility, projectId, user.userId]
     );
     
-    if (projectIndex === -1) {
-      return NextResponse.json({ error: 'Project not found' }, { status: 404 });
+    if (result.rows.length === 0) {
+      return NextResponse.json({ error: 'Project not found or access denied' }, { status: 404 });
     }
-
-    projects[projectIndex] = {
-      ...projects[projectIndex],
-      ...body,
-      updatedAt: new Date().toISOString()
-    };
-
-    return NextResponse.json(projects[projectIndex]);
+    
+    const updatedProject = result.rows[0];
+    return NextResponse.json(updatedProject);
   } catch (error) {
     console.error('Error updating project:', error);
     return NextResponse.json({ error: 'Failed to update project' }, { status: 500 });
@@ -122,7 +137,8 @@ export async function PUT(request: NextRequest) {
 export async function DELETE(request: NextRequest) {
   const user = await getUserFromToken(request);
   
-  if (!user || !user.id) {
+  if (!user || !user.userId) {
+    console.log('Unauthorized DELETE request - no user or user.userId');
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
 
@@ -134,15 +150,12 @@ export async function DELETE(request: NextRequest) {
       return NextResponse.json({ error: 'Project ID required' }, { status: 400 });
     }
 
-    const projectIndex = projects.findIndex(
-      p => p.id === projectId && p.userId === user.id
-    );
+    // Fixed: Use user_id (snake_case)
+    const result = await pool.query('DELETE FROM projects WHERE id = $1 AND user_id = $2', [projectId, user.userId]);
     
-    if (projectIndex === -1) {
-      return NextResponse.json({ error: 'Project not found' }, { status: 404 });
+    if (result.rowCount === 0) {
+      return NextResponse.json({ error: 'Project not found or access denied' }, { status: 404 });
     }
-
-    projects.splice(projectIndex, 1);
 
     return NextResponse.json({ message: 'Project deleted successfully' });
   } catch (error) {

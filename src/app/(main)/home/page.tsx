@@ -9,7 +9,9 @@ import {
   Clock,
   X,
   User,
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   LogOut,
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   Settings,
   Plus
 } from 'lucide-react';
@@ -84,6 +86,7 @@ export default function HomePage() {
     setIsDrawerOpen(false);
   };
 
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const handleLogout = () => {
     logout();
   };
@@ -110,7 +113,7 @@ export default function HomePage() {
       <div className="max-w-4xl mx-auto">
         {/* User Header */}
         <div className="flex items-center justify-between mb-6">
-          <div className="flex items-center space-x-3">
+          {/* <div className="flex items-center space-x-3">
             <div className="w-10 h-10 rounded-full bg-blue-600 flex items-center justify-center text-white font-semibold">
               {user.name ? user.name.charAt(0).toUpperCase() : user.email.charAt(0).toUpperCase()}
             </div>
@@ -120,25 +123,25 @@ export default function HomePage() {
               </h1>
               <p className="text-sm text-gray-600 dark:text-gray-400">{user.email}</p>
             </div>
-          </div>
+          </div> */}
           
           <div className="flex items-center space-x-2">
-            <Button
+            {/* <Button
               variant="outline"
               size="sm"
               className="flex items-center space-x-2"
             >
               <Settings className="h-4 w-4" />
               <span className="hidden md:inline">Settings</span>
-            </Button>
-            <Button
+            </Button> */}
+            {/* <Button
               variant="outline"
               onClick={handleLogout}
               className="flex items-center space-x-2"
             >
               <LogOut className="h-4 w-4" />
               <span className="hidden md:inline">Logout</span>
-            </Button>
+            </Button> */}
           </div>
         </div>
 
