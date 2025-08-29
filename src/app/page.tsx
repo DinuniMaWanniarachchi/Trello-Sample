@@ -3,7 +3,7 @@
 
 import React from 'react';
 import { useRouter } from 'next/navigation';
-import { Button } from '@/components/ui/button';
+import { Button } from 'antd';
 import { Card } from '@/components/ui/card';
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 import { CheckCircle, Users, Zap, Globe } from 'lucide-react';
@@ -31,15 +31,16 @@ export default function LandingPage() {
           
           <div className="flex items-center space-x-4">
             <Button 
-              variant="ghost" 
+              type="text"
               onClick={handleSignIn}
               className="text-gray-700 hover:text-gray-900"
             >
               Sign In
             </Button>
             <Button 
+              type="primary"
               onClick={handleSignUp}
-              className="bg-blue-600 hover:bg-blue-700 text-white"
+              className="bg-blue-600 hover:bg-blue-700"
             >
               Get Started
             </Button>
@@ -64,17 +65,17 @@ export default function LandingPage() {
 
           <div className="flex flex-col sm:flex-row items-center justify-center space-y-4 sm:space-y-0 sm:space-x-4 mb-12">
             <Button 
-              size="lg"
+              type="primary"
+              size="large"
               onClick={handleSignUp}
-              className="bg-blue-600 hover:bg-blue-700 text-white px-8 py-3 text-lg"
+              className="bg-blue-600 hover:bg-blue-700 px-8 py-3 text-lg h-auto"
             >
               Start Your Free Board
             </Button>
             <Button 
-              size="lg"
-              variant="outline"
+              size="large"
               onClick={handleSignIn}
-              className="px-8 py-3 text-lg border-gray-300 text-gray-700 hover:bg-gray-50"
+              className="px-8 py-3 text-lg h-auto border-gray-300 text-gray-700 hover:bg-gray-50"
             >
               Sign In
             </Button>
@@ -176,17 +177,17 @@ export default function LandingPage() {
           
           <div className="flex flex-col sm:flex-row items-center justify-center space-y-4 sm:space-y-0 sm:space-x-4">
             <Button 
-              size="lg"
+              type="primary"
+              size="large"
               onClick={handleSignUp}
-              className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white px-8 py-3 text-lg"
+              className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 px-8 py-3 text-lg h-auto"
             >
               Create Free Account
             </Button>
             <Button 
-              size="lg"
-              variant="outline"
+              size="large"
               onClick={handleSignIn}
-              className="px-8 py-3 text-lg"
+              className="px-8 py-3 text-lg h-auto"
             >
               Sign In to Your Account
             </Button>
