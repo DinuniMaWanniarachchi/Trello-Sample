@@ -1,7 +1,7 @@
 // app/(auth)/login/page.tsx
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -32,49 +32,8 @@ export default function LoginPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [loginError, setLoginError] = useState<string>('');
 
-  // Check if user is already logged in with proper token validation
-  useEffect(() => {
-    const checkAuthStatus = async () => {
-      const token = document.cookie
-        .split('; ')
-        .find(row => row.startsWith('token='))
-        ?.split('=')[1];
-        
-      if (token) {
-        try {
-          // Validate token with your API
-          const response = await fetch('/api/auth/verify', {
-            method: 'GET',
-            headers: {
-              'Authorization': `Bearer ${token}`,
-              'Content-Type': 'application/json',
-            },
-          });
-          
-          if (response.ok) {
-            const data = await response.json();
-            if (data.valid) {
-              console.log('User already authenticated, redirecting...');
-              // User is already logged in with valid token
-              router.push(returnUrl);
-            } else {
-              // Token is invalid, clear it
-              document.cookie = 'token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT';
-            }
-          } else {
-            // API call failed, clear invalid token
-            document.cookie = 'token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT';
-          }
-        } catch (error) {
-          console.error('Auth check failed:', error);
-          // Clear potentially invalid token
-          document.cookie = 'token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT';
-        }
-      }
-    };
-    
-    checkAuthStatus();
-  }, [returnUrl, router]);
+  // REMOVED: The useEffect that was automatically redirecting authenticated users
+  // The middleware now handles this logic properly
 
   const validateForm = (): boolean => {
     const newErrors: Partial<LoginFormData> = {};
@@ -150,8 +109,6 @@ export default function LoginPage() {
           // Go to the intended return URL
           router.push(returnUrl);
         }
-
-        // Remove the automatic page refresh as it might interfere with middleware
         
       } else {
         setLoginError(data.message || 'Login failed');

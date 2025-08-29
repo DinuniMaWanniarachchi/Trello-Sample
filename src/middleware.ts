@@ -11,9 +11,12 @@ const getSecretKey = () => {
 
 // Helper function to verify token
 const isValidToken = async (token: string): Promise<boolean> => {
+  if (!token) return false;
+  
   try {
-    await jwtVerify(token, getSecretKey());
-    return true;
+    const { payload } = await jwtVerify(token, getSecretKey());
+    // Additional validation - check if token has required fields
+    return !!(payload && payload.id);
   } catch (error) {
     console.error('Token verification failed:', error);
     return false;
@@ -38,22 +41,33 @@ export async function middleware(request: NextRequest) {
   }
   
   const token = request.cookies.get('token')?.value;
+  const isTokenValid = token ? await isValidToken(token) : false;
   
   // Handle protected paths
   if (isProtectedPath) {
-    if (!token || !(await isValidToken(token))) {
-      console.log(`Redirecting from protected path ${pathname} to landing page`);
-      const response = NextResponse.redirect(new URL('/', request.url));
-      response.cookies.set('token', '', { path: '/', expires: new Date(0) });
+    if (!isTokenValid) {
+      console.log(`Redirecting from protected path ${pathname} to login`);
+      // Clear invalid token
+      const response = NextResponse.redirect(new URL('/login', request.url));
+      if (token) {
+        response.cookies.set('token', '', { path: '/', expires: new Date(0) });
+      }
       return response;
     }
   }
   
   // Handle auth paths (login/register) - redirect if already authenticated
   if (isAuthPath) {
-    if (token && (await isValidToken(token))) {
+    if (isTokenValid) {
       console.log(`User already authenticated, redirecting from ${pathname} to /home`);
       return NextResponse.redirect(new URL('/home', request.url));
+    }
+    // If token exists but is invalid, clear it and allow access to auth pages
+    if (token && !isTokenValid) {
+      console.log(`Clearing invalid token on auth page ${pathname}`);
+      const response = NextResponse.next();
+      response.cookies.set('token', '', { path: '/', expires: new Date(0) });
+      return response;
     }
   }
   
