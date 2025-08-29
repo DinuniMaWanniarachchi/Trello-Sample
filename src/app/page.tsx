@@ -1,7 +1,7 @@
 // app/(public)/page.tsx
 'use client';
 
-import React, { useEffect } from 'react';
+import React from 'react';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
@@ -10,19 +10,6 @@ import { CheckCircle, Users, Zap, Globe } from 'lucide-react';
 
 export default function LandingPage() {
   const router = useRouter();
-
-  // Check if user is already logged in
-  useEffect(() => {
-    const token = document.cookie
-      .split('; ')
-      .find(row => row.startsWith('token='))
-      ?.split('=')[1];
-      
-    if (token) {
-      // User is already logged in, redirect to home
-      router.push('/home');
-    }
-  }, [router]);
 
   const handleSignIn = () => {
     router.push('/login');
