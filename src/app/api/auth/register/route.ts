@@ -47,7 +47,7 @@ export async function POST(request: NextRequest) {
     );
 
     const user = result.rows[0];
-    const token = generateToken(user.id, user.email);
+    const token = await generateToken(user.id, user.email); // Added await here
 
     const response: AuthResponse = {
       success: true,
