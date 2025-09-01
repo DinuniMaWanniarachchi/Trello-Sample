@@ -22,6 +22,7 @@ import {
   addCard, 
   addList, 
   updateCard, 
+  deleteCard,
   deleteList, 
   moveCard,
   reorderCards,
@@ -379,6 +380,35 @@ export default function BoardPage() {
     }
   };
 
+  // FIXED: Implement the handleDeleteCard function properly
+  const handleDeleteCard = (cardId: string) => {
+    if (!currentBoard) return;
+
+    try {
+      // Find which list contains the card
+      for (const list of currentBoard.lists) {
+        const cardExists = list.cards.some(card => card.id === cardId);
+        if (cardExists) {
+          // Dispatch delete action with the correct listId
+          dispatch(deleteCard({
+            cardId,
+            listId: list.id
+          }));
+          
+          // Close the drawer
+          setSelectedCard(null);
+          setIsCardDrawerOpen(false);
+          
+          console.log('Card deleted successfully');
+          break;
+        }
+      }
+    } catch (error) {
+      console.error('Error deleting card:', error);
+      alert('Failed to delete card. Please try again.');
+    }
+  };
+
   const handleAddList = (title: string, color: ColorType) => {
     const newList: List = {
       id: `${projectId}-list-${Date.now()}`, // Make list ID unique to project
@@ -513,9 +543,7 @@ export default function BoardPage() {
         isOpen={isCardDrawerOpen}
         onClose={handleCloseDrawer}
         onUpdate={handleUpdateCard} 
-        onDelete={function (): void {
-          throw new Error('Function not implemented.');
-        }} 
+        onDelete={handleDeleteCard}
       />
     </div>
   );

@@ -96,17 +96,20 @@ export const CardDetailsDrawer: React.FC<CardDetailsDrawerProps> = ({
     setNewBadgeColor('blue');
   };
 
-
   const handleDeleteCard = () => {
     onDelete(card.id);
     setShowDeleteDialog(false);
     onClose();
   };
 
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  function handleRemoveBadge(id: string): void {
-    throw new Error('Function not implemented.');
-  }
+  // FIXED: Implement the handleRemoveBadge function properly
+  const handleRemoveBadge = (badgeId: string) => {
+    const currentBadges = card.statusBadges || [];
+    const updatedBadges = currentBadges.filter(badge => badge.id !== badgeId);
+    onUpdate(card.id, {
+      statusBadges: updatedBadges
+    });
+  };
 
   return (
     <>
