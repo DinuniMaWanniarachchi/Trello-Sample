@@ -32,20 +32,164 @@ import { SortableList } from '@/components/board/SortableList';
 import { AddList } from '@/components/board/add-list';
 import { CardDetailsDrawer } from '@/components/board/CardDetailsDrawer';
 import { SortableCard } from '@/components/board/SortableCards';
-import { useProjects } from '@/contexts/ProjectContext'; // Add this import
+import { useProjects } from '@/contexts/ProjectContext';
+
+// Types for board storage
+interface StoredBoard {
+  id: string;
+  title: string;
+  lists: List[];
+  lastModified: string;
+}
 
 export default function BoardPage() {
   const dispatch = useAppDispatch();
   const params = useParams();
-  const projectId = params.id as string; // Get project ID from URL
+  const projectId = params.id as string;
   
   const { currentBoard, loading, error } = useAppSelector((state) => state.kanban);
-  const { projects, getProject } = useProjects(); // Get projects from context
+  const { projects, getProject } = useProjects();
   
   const [selectedCard, setSelectedCard] = useState<Card | null>(null);
   const [isCardDrawerOpen, setIsCardDrawerOpen] = useState(false);
   const [activeCard, setActiveCard] = useState<Card | null>(null);
   const [isInitialized, setIsInitialized] = useState(false);
+
+  // Storage key for this specific project
+  const getStorageKey = (projectId: string) => `kanban_board_${projectId}`;
+
+  // Save board state to memory (you could extend this to use a backend)
+  const saveBoardState = (board: Board) => {
+    const storedBoard: StoredBoard = {
+      ...board,
+      lastModified: new Date().toISOString()
+    };
+    
+    // Store in memory for this session
+    // In a real app, you'd save this to your backend or localStorage
+    if (typeof window !== 'undefined') {
+      try {
+        localStorage.setItem(getStorageKey(projectId), JSON.stringify(storedBoard));
+      } catch (error) {
+        console.warn('Could not save board state:', error);
+      }
+    }
+  };
+
+  // Load board state from memory
+  const loadBoardState = (projectId: string): Board | null => {
+    if (typeof window !== 'undefined') {
+      try {
+        const stored = localStorage.getItem(getStorageKey(projectId));
+        if (stored) {
+          const storedBoard: StoredBoard = JSON.parse(stored);
+          return {
+            id: storedBoard.id,
+            title: storedBoard.title,
+            lists: storedBoard.lists
+          };
+        }
+      } catch (error) {
+        console.warn('Could not load board state:', error);
+      }
+    }
+    return null;
+  };
+
+  // Create default board structure
+  const createDefaultBoard = (projectId: string, projectName: string): Board => {
+    return {
+      id: projectId,
+      title: projectName,
+      lists: [
+        {
+          id: `${projectId}-list-todo`,
+          title: 'To Do',
+          titleColor: 'gray',
+          cards: []
+        },
+        {
+          id: `${projectId}-list-doing`,
+          title: 'Doing',
+          titleColor: 'blue',
+          cards: []
+        },
+        {
+          id: `${projectId}-list-done`,
+          title: 'Done',
+          titleColor: 'green',
+          cards: []
+        }
+      ]
+    };
+  };
+
+  // Create sample board for demonstration (optional)
+  const createSampleBoard = (projectId: string, projectName: string): Board => {
+    return {
+      id: projectId,
+      title: projectName,
+      lists: [
+        {
+          id: `${projectId}-list-todo`,
+          title: 'To Do',
+          titleColor: 'gray',
+          cards: [
+            {
+              id: `${projectId}-card-1`,
+              title: 'Plan project structure',
+              description: 'Define the overall architecture and folder structure',
+              color: 'blue',
+              statusBadges: [
+                { id: 'badge-1', text: 'Planning', color: 'blue' }
+              ]
+            },
+            {
+              id: `${projectId}-card-2`,
+              title: 'Research requirements',
+              description: 'Gather all necessary requirements and constraints',
+              color: 'yellow',
+              statusBadges: [
+                { id: 'badge-2', text: 'Research', color: 'purple' }
+              ]
+            }
+          ]
+        },
+        {
+          id: `${projectId}-list-doing`,
+          title: 'Doing',
+          titleColor: 'blue',
+          cards: [
+            {
+              id: `${projectId}-card-3`,
+              title: 'Setup development environment',
+              description: 'Configure tools and dependencies',
+              color: 'green',
+              statusBadges: [
+                { id: 'badge-3', text: 'In Progress', color: 'orange' }
+              ]
+            }
+          ]
+        },
+        {
+          id: `${projectId}-list-done`,
+          title: 'Done',
+          titleColor: 'green',
+          cards: [
+            {
+              id: `${projectId}-card-4`,
+              title: 'Project initialization',
+              description: 'Created the project and initial setup',
+              color: 'white',
+              statusBadges: [
+                { id: 'badge-4', text: 'Completed', color: 'green' }
+              ]
+            }
+          ]
+        }
+      ]
+    };
+  };
 
   // Initialize board based on project ID
   useEffect(() => {
@@ -53,112 +197,39 @@ export default function BoardPage() {
       const project = getProject(projectId);
       
       if (project) {
-        // Check if this is the default project (first project or specific ID)
-        const isDefaultProject = project.name === 'My project board' || projects[0]?.id === projectId;
+        // Try to load existing board state first
+        let boardData = loadBoardState(projectId);
         
-        let boardData: Board;
-        
-        if (isDefaultProject) {
-          // Default project gets sample data
-          boardData = {
-            id: projectId,
-            title: project.name,
-            lists: [
-              {
-                id: 'list-1',
-                title: 'To Do',
-                titleColor: 'gray',
-                cards: [
-                  {
-                    id: 'card-1',
-                    title: 'Setup Redux Toolkit',
-                    description: 'Configure Redux store with TypeScript',
-                    color: 'blue',
-                    statusBadges: [
-                      { id: 'badge-1', text: 'High Priority', color: 'red' },
-                      { id: 'badge-2', text: 'Backend', color: 'purple' }
-                    ],
-                    dueDate: '2025-08-10',
-                  },
-                  {
-                    id: 'card-2',
-                    title: 'Design UI Components',
-                    description: 'Create reusable components',
-                    color: 'green',
-                    statusBadges: [
-                      { id: 'badge-3', text: 'Design', color: 'orange' }
-                    ],
-                  }
-                ]
-              },
-              {
-                id: 'list-2',
-                title: 'Doing',
-                titleColor: 'blue',
-                cards: [
-                  {
-                    id: 'card-3',
-                    title: 'Implement Drag & Drop',
-                    description: 'Add drag and drop functionality',
-                    color: 'yellow',
-                    statusBadges: [
-                      { id: 'badge-4', text: 'Frontend', color: 'blue' },
-                      { id: 'badge-5', text: 'In Review', color: 'yellow' }
-                    ],
-                  }
-                ]
-              },
-              {
-                id: 'list-3',
-                title: 'Done',
-                titleColor: 'green',
-                cards: [
-                  {
-                    id: 'card-4',
-                    title: 'Project Setup',
-                    description: 'Initialize Next.js project',
-                    color: 'white',
-                    statusBadges: [
-                      { id: 'badge-6', text: 'Completed', color: 'green' }
-                    ],
-                  }
-                ]
-              }
-            ]
-          };
-        } else {
-          // New projects get empty board with just the three sections
-          boardData = {
-            id: projectId,
-            title: project.name,
-            lists: [
-              {
-                id: `${projectId}-list-1`,
-                title: 'To Do',
-                titleColor: 'gray',
-                cards: []
-              },
-              {
-                id: `${projectId}-list-2`,
-                title: 'Doing',
-                titleColor: 'blue',
-                cards: []
-              },
-              {
-                id: `${projectId}-list-3`,
-                title: 'Done',
-                titleColor: 'green',
-                cards: []
-              }
-            ]
-          };
+        if (!boardData) {
+          // If no saved state, check if this is the first project (for demo purposes)
+          const isFirstProject = projects.findIndex(p => p.id === projectId) === 0;
+          
+          if (isFirstProject && projects.length === 1) {
+            // Create sample board for the first project
+            boardData = createSampleBoard(projectId, project.name);
+          } else {
+            // Create empty board for new projects
+            boardData = createDefaultBoard(projectId, project.name);
+          }
+          
+          // Save the initial state
+          saveBoardState(boardData);
         }
         
         dispatch(setCurrentBoard(boardData));
         setIsInitialized(true);
       }
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [dispatch, projectId, projects, getProject, isInitialized]);
+
+  // Save board state whenever it changes
+  useEffect(() => {
+    if (currentBoard && isInitialized) {
+      saveBoardState(currentBoard);
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [currentBoard, isInitialized, projectId]);
 
   // Configure sensors for better drag experience
   const sensors = useSensors(
@@ -287,7 +358,7 @@ export default function BoardPage() {
 
   const handleAddCard = (listId: string, title: string) => {
     const newCard: Card = {
-      id: `card-${Date.now()}`,
+      id: `${projectId}-card-${Date.now()}`, // Make card ID unique to project
       title,
       description: '',
       color: 'white',
@@ -310,7 +381,7 @@ export default function BoardPage() {
 
   const handleAddList = (title: string, color: ColorType) => {
     const newList: List = {
-      id: `list-${Date.now()}`,
+      id: `${projectId}-list-${Date.now()}`, // Make list ID unique to project
       title,
       titleColor: color,
       cards: []

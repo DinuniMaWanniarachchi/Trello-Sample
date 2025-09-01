@@ -8,6 +8,7 @@ interface ProjectContextType {
   projects: Project[];
   isLoading: boolean;
   error: string | null;
+  getProject: (id: string) => Project | undefined;
   fetchProjects: () => Promise<void>;
   createProject: (data: CreateProjectData) => Promise<Project | null>;
   updateProject: (id: string, data: UpdateProjectData) => Promise<Project | null>;
@@ -186,6 +187,10 @@ export function ProjectProvider({ children }: { children: React.ReactNode }) {
     setError(null);
   };
 
+  const getProject = (id: string): Project | undefined => {
+    return projects.find(p => p.id === id);
+  };
+
   // Fetch projects when user authentication state changes
   useEffect(() => {
     if (isAuthenticated && user) {
@@ -200,6 +205,7 @@ export function ProjectProvider({ children }: { children: React.ReactNode }) {
       projects,
       isLoading,
       error,
+      getProject,
       fetchProjects,
       createProject,
       updateProject,
