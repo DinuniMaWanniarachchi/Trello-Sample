@@ -1,7 +1,6 @@
 // src/lib/auth.ts
 import bcrypt from 'bcryptjs';
 import { SignJWT, jwtVerify } from 'jose';
-import { User } from '@/types/user';
 
 const getSecretKey = () => {
   const secret = process.env.JWT_SECRET;
