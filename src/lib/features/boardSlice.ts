@@ -82,6 +82,12 @@ const boardSlice = createSlice({
       }
     },
 
+    setLists: (state, action: PayloadAction<List[]>) => {
+      if (state.currentBoard) {
+        state.currentBoard.lists = action.payload;
+      }
+    },
+
     moveCard: (state, action: PayloadAction<{
       sourceListId: string;
       destinationListId: string;
@@ -173,6 +179,7 @@ export const {
   updateCard,
   deleteCard,
   deleteList,
+  setLists,
   moveCard,
   reorderCards,
   setDraggedCard,

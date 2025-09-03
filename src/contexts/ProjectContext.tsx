@@ -1,11 +1,32 @@
 'use client';
 
-import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
+import React, { createContext, useContext, useState, useEffect, useCallback, ReactNode } from 'react';
 import { Project, CreateProjectData, UpdateProjectData } from '@/types/project';
 import { useAuth } from './AuthContext';
 
+export interface Board {
+  id: string;
+  title: string;
+  description?: string;
+  project_id: string;
+  user_id: string;
+  created_at: string;
+  updated_at: string;
+  background_color: string;
+}
+
+export interface List {
+    id: string;
+    title: string;
+    board_id: string;
+    position: number;
+    title_color: string;
+}
+
 interface ProjectContextType {
   projects: Project[];
+  boards: Board[];
+  lists: List[];
   isLoading: boolean;
   error: string | null;
   getProject: (id: string) => Project | undefined;
@@ -14,13 +35,19 @@ interface ProjectContextType {
   updateProject: (id: string, data: UpdateProjectData) => Promise<Project | null>;
   deleteProject: (id: string) => Promise<boolean>;
   addProject: (data: CreateProjectData) => Project; // Legacy support for your current code
+  fetchBoards: (projectId: string) => Promise<void>;
+  createBoard: (boardData: Omit<Board, 'id' | 'user_id' | 'created_at' | 'updated_at'>) => Promise<Board | null>;
+  fetchLists: (boardId: string) => Promise<void>;
+  createList: (listData: Omit<List, 'id' | 'position'>) => Promise<List | null>;
   clearError: () => void;
 }
 
 const ProjectContext = createContext<ProjectContextType | null>(null);
 
-export function ProjectProvider({ children }: { children: React.ReactNode }) {
+export function ProjectProvider({ children }: { children: ReactNode }) {
   const [projects, setProjects] = useState<Project[]>([]);
+  const [boards, setBoards] = useState<Board[]>([]);
+  const [lists, setLists] = useState<List[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const { user, isAuthenticated } = useAuth();
@@ -183,6 +210,110 @@ export function ProjectProvider({ children }: { children: React.ReactNode }) {
     return tempProject;
   };
 
+  const fetchBoards = useCallback(async (projectId: string) => {
+    if (!isAuthenticated || !user) {
+      setBoards([]);
+      return;
+    }
+
+    setIsLoading(true);
+    try {
+      const response = await fetch(`/api/boards?project_id=${projectId}`, {
+        method: 'GET',
+        headers: getAuthHeaders(),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to fetch boards');
+      }
+
+      const data = await response.json();
+      setBoards(data.data || []);
+    } catch (error) {
+      console.error('Fetch boards error:', error);
+      setBoards([]);
+    } finally {
+      setIsLoading(false);
+    }
+  }, [isAuthenticated, user]);
+
+  const createBoard = async (boardData: Omit<Board, 'id' | 'user_id' | 'created_at' | 'updated_at'>): Promise<Board | null> => {
+    if (!isAuthenticated) {
+      return null;
+    }
+
+    try {
+      const response = await fetch('/api/boards', {
+        method: 'POST',
+        headers: getAuthHeaders(),
+        body: JSON.stringify(boardData),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to create board');
+      }
+
+      const newBoard = await response.json();
+      setBoards(prev => [newBoard.data, ...prev]);
+      return newBoard.data;
+    } catch (error) {
+      console.error('Create board error:', error);
+      return null;
+    }
+  };
+
+  const fetchLists = useCallback(async (boardId: string) => {
+    if (!isAuthenticated || !user) {
+        setLists([]);
+        return;
+    }
+
+    setIsLoading(true);
+    try {
+        const response = await fetch(`/api/boards/${boardId}/lists`, {
+            method: 'GET',
+            headers: getAuthHeaders(),
+        });
+
+        if (!response.ok) {
+            throw new Error('Failed to fetch lists');
+        }
+
+        const data = await response.json();
+        setLists(data.data || []);
+    } catch (error) {
+        console.error('Fetch lists error:', error);
+        setLists([]);
+    } finally {
+        setIsLoading(false);
+    }
+}, [isAuthenticated, user]);
+
+const createList = async (listData: Omit<List, 'id' | 'position'>): Promise<List | null> => {
+    if (!isAuthenticated) {
+        return null;
+    }
+
+    try {
+        const response = await fetch(`/api/boards/${listData.board_id}/lists`, {
+            method: 'POST',
+            headers: getAuthHeaders(),
+            body: JSON.stringify(listData),
+        });
+
+        if (!response.ok) {
+            throw new Error('Failed to create list');
+        }
+
+        const newList = await response.json();
+        setLists(prev => [...prev, newList.data]);
+        return newList.data;
+    } catch (error) {
+        console.error('Create list error:', error);
+        return null;
+    }
+};
+
   const clearError = () => {
     setError(null);
   };
@@ -203,6 +334,8 @@ export function ProjectProvider({ children }: { children: React.ReactNode }) {
   return (
     <ProjectContext.Provider value={{
       projects,
+      boards,
+      lists,
       isLoading,
       error,
       getProject,
@@ -211,6 +344,10 @@ export function ProjectProvider({ children }: { children: React.ReactNode }) {
       updateProject,
       deleteProject,
       addProject,
+      fetchBoards,
+      createBoard,
+      fetchLists,
+      createList,
       clearError,
     }}>
       {children}
