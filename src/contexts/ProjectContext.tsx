@@ -270,7 +270,7 @@ export function ProjectProvider({ children }: { children: ReactNode }) {
 
     setIsLoading(true);
     try {
-        const response = await fetch(`/api/boards/${boardId}/lists`, {
+        const response = await fetch(`/api/projects/${boardId}/lists`, {
             method: 'GET',
             headers: getAuthHeaders(),
         });
@@ -295,7 +295,7 @@ const createList = async (listData: Omit<List, 'id' | 'position'>): Promise<List
     }
 
     try {
-        const response = await fetch(`/api/boards/${listData.board_id}/lists`, {
+        const response = await fetch(`/api/projects/${listData.board_id}/lists`, {
             method: 'POST',
             headers: getAuthHeaders(),
             body: JSON.stringify(listData),

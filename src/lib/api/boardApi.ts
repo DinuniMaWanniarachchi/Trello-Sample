@@ -39,20 +39,20 @@ export const boardApi = {
     apiClient(`/api/boards?project_id=${projectId}`, { token }),
   
   getBoard: (boardId: string, token: string) =>
-    apiClient(`/api/boards/${boardId}`, { token }),
+    apiClient(`/api/projects/${boardId}`, { token }),
   
   createBoard: (data: BoardCreateData, token: string) =>
     apiClient('/api/boards', { method: 'POST', body: data, token }),
   
   updateBoard: (boardId: string, data: BoardUpdateData, token: string) =>
-    apiClient(`/api/boards/${boardId}`, { method: 'PUT', body: data, token }),
+    apiClient(`/api/projects/${boardId}`, { method: 'PUT', body: data, token }),
   
   deleteBoard: (boardId: string, token: string) =>
-    apiClient(`/api/boards/${boardId}`, { method: 'DELETE', token }),
+    apiClient(`/api/projects/${boardId}`, { method: 'DELETE', token }),
 
   // Lists
   createList: (boardId: string, data: ListCreateData, token: string) =>
-    apiClient(`/api/boards/${boardId}/lists`, { method: 'POST', body: data, token }),
+    apiClient(`/api/projects/${boardId}/lists`, { method: 'POST', body: data, token }),
   
   updateList: (listId: string, data: ListUpdateData, token: string) =>
     apiClient(`/api/lists/${listId}`, { method: 'PUT', body: data, token }),
@@ -72,10 +72,10 @@ export const boardApi = {
 
   // Status Badges
   getStatusBadges: (boardId: string, token: string) =>
-    apiClient(`/api/boards/${boardId}/status-badges`, { token }),
+    apiClient(`/api/projects/${boardId}/status-badges`, { token }),
   
   createStatusBadge: (boardId: string, data: StatusBadgeCreateData, token: string) =>
-    apiClient(`/api/boards/${boardId}/status-badges`, { method: 'POST', body: data, token }),
+    apiClient(`/api/projects/${boardId}/status-badges`, { method: 'POST', body: data, token }),
   
   updateStatusBadge: (badgeId: string, data: StatusBadgeUpdateData, token: string) =>
     apiClient(`/api/status-badges/${badgeId}`, { method: 'PUT', body: data, token }),

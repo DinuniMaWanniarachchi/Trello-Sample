@@ -69,13 +69,13 @@ export default function HomePage() {
       setIsCreateModalOpen(false);
       
       if (newProject) {
-        router.push(`/boards/${newProject.id}`);
+        router.push(`/projects/${newProject.id}`);
       }
     }
   };
 
   const navigateToBoard = (boardId: string) => {
-    router.push(`/boards/${boardId}`);
+    router.push(`/projects/${boardId}`);
   };
 
   const showDrawer = () => {

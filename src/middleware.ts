@@ -27,7 +27,7 @@ export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
   
   // Define route types
-  const protectedPaths = ['/home', '/boards'];
+  const protectedPaths = ['/home', '/projects'];
   const authPaths = ['/login', '/register'];
   const publicPaths = ['/', '/about', '/contact', '/terms', '/privacy'];
   

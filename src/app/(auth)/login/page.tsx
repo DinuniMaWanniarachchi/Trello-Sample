@@ -101,7 +101,7 @@ export default function LoginPage() {
         // Otherwise, go to home page or the intended return URL
         if (data.user.defaultBoardId && returnUrl === '/home') {
           // User has default board and no specific return URL, go to default board
-          router.push(`/boards/${data.user.defaultBoardId}`);
+          router.push(`/projects/${data.user.defaultBoardId}`);
         } else if (returnUrl === '/home') {
           // No specific return URL, go to home page
           router.push('/home');
