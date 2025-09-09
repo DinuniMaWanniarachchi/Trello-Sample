@@ -36,7 +36,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children, showSidebar }) => {
   const { isDarkMode, toggleTheme } = useSharedTheme();
   const { addProject } = useProjects();
   
-  const shouldShowSidebar = showSidebar !== undefined ? showSidebar : !pathname.startsWith('/boards');
+  const shouldShowSidebar = showSidebar !== undefined ? showSidebar : !pathname.startsWith('/projects');
   const [, setIsSearchFocused] = useState(false);
   const [, setShowNotifications] = useState(false);
   const [showUserMenu, setShowUserMenu] = useState(false);
@@ -88,7 +88,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children, showSidebar }) => {
       form.resetFields();
       
       // Optionally navigate to the new project
-      router.push(`/boards/${newProject.id}`);
+      router.push(`/projects/${newProject.id}`);
       
     } catch (error) {
       console.error('Error creating project:', error);
@@ -262,7 +262,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children, showSidebar }) => {
                         : 'text-gray-700 hover:bg-gray-100 hover:text-gray-900'
                     }`}
                   >
-                    <span>Boards</span>
+                    <span>Projects</span>
                   </a>
                   <a 
                     href="#" 
@@ -303,7 +303,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children, showSidebar }) => {
                             : 'text-gray-600 hover:text-gray-900'
                         }`}
                       >
-                        <span>Boards</span>
+                        <span>Projects</span>
                       </a>
                       <a 
                         href="#" 

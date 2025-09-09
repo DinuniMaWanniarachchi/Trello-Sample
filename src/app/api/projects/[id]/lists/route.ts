@@ -4,7 +4,7 @@ import { verifyToken } from '@/lib/auth';
 import { ListCreateData, ApiResponse } from '@/types/api';
 import { v4 as uuidv4 } from 'uuid';
 
-// GET function to fetch lists for a specific board
+// GET function to fetch lists for a specific project
 export async function GET(
   request: NextRequest,
   { params }: { params: { id: string } }
@@ -26,25 +26,25 @@ export async function GET(
       );
     }
 
-    const boardId = params.id;
+    const projectId = params.id;
 
-    // Verify board ownership
-    const boardCheck = await pool.query(
-      'SELECT id FROM boards WHERE id = $1 AND user_id = $2',
-      [boardId, decoded.userId]
+    // Verify project ownership
+    const projectCheck = await pool.query(
+      'SELECT id FROM projects WHERE id = $1 AND user_id = $2',
+      [projectId, decoded.userId]
     );
 
-    if (boardCheck.rows.length === 0) {
+    if (projectCheck.rows.length === 0) {
       return NextResponse.json(
-        { success: false, message: 'Board not found' },
+        { success: false, message: 'Project not found' },
         { status: 404 }
       );
     }
 
-    // Fetch lists for the board, ordered by position
+    // Fetch lists for the project, ordered by position
     const listsResult = await pool.query(
-      'SELECT * FROM lists WHERE board_id = $1 ORDER BY position ASC',
-      [boardId]
+      'SELECT * FROM lists WHERE project_id = $1 ORDER BY position ASC',
+      [projectId]
     );
 
     const response: ApiResponse = {
@@ -85,7 +85,7 @@ export async function POST(
       );
     }
 
-    const boardId = params.id;
+    const projectId = params.id;
     const body: ListCreateData = await request.json();
     const { title, title_color = 'gray', position } = body;
 
@@ -96,15 +96,15 @@ export async function POST(
       );
     }
 
-    // Verify board ownership
-    const boardCheck = await pool.query(
-      'SELECT id FROM boards WHERE id = $1 AND user_id = $2',
-      [boardId, decoded.userId]
+    // Verify project ownership
+    const projectCheck = await pool.query(
+      'SELECT id FROM projects WHERE id = $1 AND user_id = $2',
+      [projectId, decoded.userId]
     );
 
-    if (boardCheck.rows.length === 0) {
+    if (projectCheck.rows.length === 0) {
       return NextResponse.json(
-        { success: false, message: 'Board not found' },
+        { success: false, message: 'Project not found' },
         { status: 404 }
       );
     }
@@ -113,18 +113,18 @@ export async function POST(
     let finalPosition = position;
     if (finalPosition === undefined) {
       const maxPositionResult = await pool.query(
-        'SELECT COALESCE(MAX(position), -1) + 1 as next_position FROM lists WHERE board_id = $1',
-        [boardId]
+        'SELECT COALESCE(MAX(position), -1) + 1 as next_position FROM lists WHERE project_id = $1',
+        [projectId]
       );
       finalPosition = maxPositionResult.rows[0].next_position;
     }
 
     const listId = uuidv4();
     const result = await pool.query(
-      `INSERT INTO lists (id, title, board_id, title_color, position)
+      `INSERT INTO lists (id, title, project_id, title_color, position)
         VALUES ($1, $2, $3, $4, $5)
         RETURNING *`,
-      [listId, title, boardId, title_color, finalPosition]
+      [listId, title, projectId, title_color, finalPosition]
     );
 
     const response: ApiResponse = {
