@@ -20,13 +20,13 @@ import { useAppSelector, useAppDispatch } from '@/lib/hooks';
 import { 
   setCurrentBoard, 
   addCard, 
-  addList, 
   updateCard, 
   deleteCard,
   deleteList, 
   moveCard,
   reorderCards,
-  setDraggedCard 
+  setDraggedCard,
+  createTaskGroup
 } from '@/lib/features/boardSlice';
 import { SharedHeader } from '@/components/common/SharedHeader';
 import { SortableList } from '@/components/board/SortableList';
@@ -417,13 +417,10 @@ export default function ProjectPage() {
   };
 
   const handleAddList = (title: string, color: ColorType) => {
-    const newList: List = {
-      id: `${projectId}-list-${Date.now()}`,
-      title,
-      titleColor: color,
-      cards: []
-    };
-    dispatch(addList(newList));
+    dispatch(createTaskGroup({
+      projectId,
+      data: { name: title, color: color }
+    }));
   };
 
   const handleDeleteList = (listId: string) => {

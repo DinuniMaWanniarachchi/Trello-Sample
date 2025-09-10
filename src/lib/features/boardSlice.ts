@@ -1,9 +1,79 @@
-import { createSlice, PayloadAction } from '@reduxjs/toolkit';
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-import { Board, Card, List, StatusBadge, ColorType } from '@/types/kanban';
+// lib/features/boardSlice.ts
+import { createSlice, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit';
+import { taskGroupsApi, taskStatusesApi } from '@/lib/api/taskGroupsApi';
+import { TaskGroup, TaskStatus } from '@/types/taskGroup';
+import { Board, Card, ColorType, List, StatusBadge } from '@/types/kanban';
 
+// -------------------- Async thunks (API integration) --------------------
+export const fetchTaskGroups = createAsyncThunk(
+  'board/fetchTaskGroups',
+  async (projectId: string) => {
+    const response = await taskGroupsApi.getTaskGroups(projectId);
+    return response.data;
+  }
+);
+
+export const createTaskGroup = createAsyncThunk(
+  'board/createTaskGroup',
+  async ({ projectId, data }: { projectId: string; data: { name: string; color?: string } }) => {
+    const response = await taskGroupsApi.createTaskGroup(projectId, data);
+    return response.data;
+  }
+);
+
+export const updateTaskGroup = createAsyncThunk(
+  'board/updateTaskGroup',
+  async ({
+    projectId,
+    groupId,
+    data,
+  }: {
+    projectId: string;
+    groupId: string;
+    data: { name?: string; color?: string; position?: number };
+  }) => {
+    const response = await taskGroupsApi.updateTaskGroup(projectId, groupId, data);
+    return response.data;
+  }
+);
+
+export const deleteTaskGroup = createAsyncThunk(
+  'board/deleteTaskGroup',
+  async ({ projectId, groupId }: { projectId: string; groupId: string }) => {
+    await taskGroupsApi.deleteTaskGroup(projectId, groupId);
+    return groupId;
+  }
+);
+
+export const reorderTaskGroups = createAsyncThunk(
+  'board/reorderTaskGroups',
+  async ({ projectId, taskGroups }: { projectId: string; taskGroups: Array<{ id: string; position: number }> }) => {
+    const response = await taskGroupsApi.reorderTaskGroups(projectId, taskGroups);
+    return response.data;
+  }
+);
+
+export const fetchTaskStatuses = createAsyncThunk(
+  'board/fetchTaskStatuses',
+  async (projectId: string) => {
+    const response = await taskStatusesApi.getTaskStatuses(projectId);
+    return response.data;
+  }
+);
+
+export const createTaskStatus = createAsyncThunk(
+  'board/createTaskStatus',
+  async ({ projectId, data }: { projectId: string; data: { name: string } }) => {
+    const response = await taskStatusesApi.createTaskStatus(projectId, data);
+    return response.data;
+  }
+);
+
+// -------------------- State interface --------------------
 interface BoardState {
   currentBoard: Board | null;
+  taskGroups: TaskGroup[];
+  taskStatuses: TaskStatus[];
   loading: boolean;
   error: string | null;
   draggedCard: {
@@ -15,13 +85,16 @@ interface BoardState {
 
 const initialState: BoardState = {
   currentBoard: null,
+  taskGroups: [],
+  taskStatuses: [],
   loading: false,
   error: null,
   draggedCard: null,
 };
 
+// -------------------- Slice --------------------
 const boardSlice = createSlice({
-  name: 'kanban',
+  name: 'board',
   initialState,
   reducers: {
     setCurrentBoard: (state, action: PayloadAction<Board>) => {
@@ -29,162 +102,175 @@ const boardSlice = createSlice({
       state.loading = false;
       state.error = null;
     },
-    
     setLoading: (state, action: PayloadAction<boolean>) => {
       state.loading = action.payload;
     },
-    
     setError: (state, action: PayloadAction<string>) => {
       state.error = action.payload;
       state.loading = false;
     },
 
+    // ---- Local reducers for cards/lists ----
     addCard: (state, action: PayloadAction<{ listId: string; card: Card }>) => {
-      if (state.currentBoard) {
-        const list = state.currentBoard.lists.find(list => list.id === action.payload.listId);
-        if (list) {
-          list.cards.push(action.payload.card);
-        }
+      if (!state.currentBoard) return;
+      const list = state.currentBoard.lists.find((l) => l.id === action.payload.listId);
+      if (list) list.cards.push(action.payload.card);
+    },
+    updateCard: (
+      state,
+      action: PayloadAction<{ listId: string; cardId: string; updates: Partial<Card> }>
+    ) => {
+      if (!state.currentBoard) return;
+      const list = state.currentBoard.lists.find((l) => l.id === action.payload.listId);
+      if (list) {
+        const idx = list.cards.findIndex((c) => c.id === action.payload.cardId);
+        if (idx !== -1) list.cards[idx] = { ...list.cards[idx], ...action.payload.updates };
       }
     },
-
-    addList: (state, action: PayloadAction<List>) => {
-      if (state.currentBoard) {
-        state.currentBoard.lists.push(action.payload);
-      }
-    },
-
-    updateCard: (state, action: PayloadAction<{ listId: string; cardId: string; updates: Partial<Card> }>) => {
-      if (state.currentBoard) {
-        const list = state.currentBoard.lists.find(list => list.id === action.payload.listId);
-        if (list) {
-          const cardIndex = list.cards.findIndex(card => card.id === action.payload.cardId);
-          if (cardIndex !== -1) {
-            list.cards[cardIndex] = { ...list.cards[cardIndex], ...action.payload.updates };
-          }
-        }
-      }
-    },
-
-    // ADD THIS: deleteCard reducer
     deleteCard: (state, action: PayloadAction<{ listId: string; cardId: string }>) => {
-      if (state.currentBoard) {
-        const list = state.currentBoard.lists.find(list => list.id === action.payload.listId);
-        if (list) {
-          list.cards = list.cards.filter(card => card.id !== action.payload.cardId);
-        }
-      }
+      if (!state.currentBoard) return;
+      const list = state.currentBoard.lists.find((l) => l.id === action.payload.listId);
+      if (list) list.cards = list.cards.filter((c) => c.id !== action.payload.cardId);
     },
-
+    addList: (state, action: PayloadAction<List>) => {
+      if (state.currentBoard) state.currentBoard.lists.push(action.payload);
+    },
     deleteList: (state, action: PayloadAction<string>) => {
-      if (state.currentBoard) {
-        state.currentBoard.lists = state.currentBoard.lists.filter(list => list.id !== action.payload);
-      }
+      if (state.currentBoard)
+        state.currentBoard.lists = state.currentBoard.lists.filter((l) => l.id !== action.payload);
     },
-
     setLists: (state, action: PayloadAction<List[]>) => {
-      if (state.currentBoard) {
-        state.currentBoard.lists = action.payload;
+      if (state.currentBoard) state.currentBoard.lists = action.payload;
+    },
+    moveCard: (
+      state,
+      action: PayloadAction<{
+        sourceListId: string;
+        destinationListId: string;
+        sourceIndex: number;
+        destinationIndex: number;
+      }>
+    ) => {
+      if (!state.currentBoard) return;
+      const { sourceListId, destinationListId, sourceIndex, destinationIndex } = action.payload;
+      const sourceList = state.currentBoard.lists.find((l) => l.id === sourceListId);
+      const destList = state.currentBoard.lists.find((l) => l.id === destinationListId);
+      if (sourceList && destList) {
+        const [movedCard] = sourceList.cards.splice(sourceIndex, 1);
+        destList.cards.splice(destinationIndex, 0, movedCard);
       }
     },
-
-    moveCard: (state, action: PayloadAction<{
-      sourceListId: string;
-      destinationListId: string;
-      sourceIndex: number;
-      destinationIndex: number;
-    }>) => {
-      if (state.currentBoard) {
-        const { sourceListId, destinationListId, sourceIndex, destinationIndex } = action.payload;
-        
-        const sourceList = state.currentBoard.lists.find(list => list.id === sourceListId);
-        const destinationList = state.currentBoard.lists.find(list => list.id === destinationListId);
-        
-        if (sourceList && destinationList) {
-          const [movedCard] = sourceList.cards.splice(sourceIndex, 1);
-          destinationList.cards.splice(destinationIndex, 0, movedCard);
-        }
+    reorderCards: (
+      state,
+      action: PayloadAction<{ listId: string; sourceIndex: number; destinationIndex: number }>
+    ) => {
+      if (!state.currentBoard) return;
+      const { listId, sourceIndex, destinationIndex } = action.payload;
+      const list = state.currentBoard.lists.find((l) => l.id === listId);
+      if (list) {
+        const [movedCard] = list.cards.splice(sourceIndex, 1);
+        list.cards.splice(destinationIndex, 0, movedCard);
       }
     },
-
-    reorderCards: (state, action: PayloadAction<{
-      listId: string;
-      sourceIndex: number;
-      destinationIndex: number;
-    }>) => {
-      if (state.currentBoard) {
-        const { listId, sourceIndex, destinationIndex } = action.payload;
-        const list = state.currentBoard.lists.find(list => list.id === listId);
-        
-        if (list) {
-          const [movedCard] = list.cards.splice(sourceIndex, 1);
-          list.cards.splice(destinationIndex, 0, movedCard);
-        }
-      }
-    },
-
-    setDraggedCard: (state, action: PayloadAction<{
-      card: Card;
-      sourceListId: string;
-      sourceIndex: number;
-    } | null>) => {
+    setDraggedCard: (
+      state,
+      action: PayloadAction<{
+        card: Card;
+        sourceListId: string;
+        sourceIndex: number;
+      } | null>
+    ) => {
       state.draggedCard = action.payload;
     },
-
-    // ADD THIS: addStatusBadgeToCard reducer
-    addStatusBadgeToCard: (state, action: PayloadAction<{ 
-      listId: string; 
-      cardId: string; 
-      badge: StatusBadge 
-    }>) => {
-      if (state.currentBoard) {
-        const list = state.currentBoard.lists.find(list => list.id === action.payload.listId);
-        if (list) {
-          const card = list.cards.find(card => card.id === action.payload.cardId);
-          if (card) {
-            if (!card.statusBadges) {
-              card.statusBadges = [];
-            }
-            card.statusBadges.push(action.payload.badge);
-          }
-        }
+    addStatusBadgeToCard: (
+      state,
+      action: PayloadAction<{ listId: string; cardId: string; badge: StatusBadge }>
+    ) => {
+      if (!state.currentBoard) return;
+      const list = state.currentBoard.lists.find((l) => l.id === action.payload.listId);
+      const card = list?.cards.find((c) => c.id === action.payload.cardId);
+      if (card) {
+        if (!card.statusBadges) card.statusBadges = [];
+        card.statusBadges.push(action.payload.badge);
       }
     },
-
-    // ADD THIS: removeStatusBadgeFromCard reducer (you might need this too)
-    removeStatusBadgeFromCard: (state, action: PayloadAction<{ 
-      listId: string; 
-      cardId: string; 
-      badgeId: string; 
-    }>) => {
-      if (state.currentBoard) {
-        const list = state.currentBoard.lists.find(list => list.id === action.payload.listId);
-        if (list) {
-          const card = list.cards.find(card => card.id === action.payload.cardId);
-          if (card && card.statusBadges) {
-            card.statusBadges = card.statusBadges.filter(badge => badge.id !== action.payload.badgeId);
-          }
-        }
+    removeStatusBadgeFromCard: (
+      state,
+      action: PayloadAction<{ listId: string; cardId: string; badgeId: string }>
+    ) => {
+      if (!state.currentBoard) return;
+      const list = state.currentBoard.lists.find((l) => l.id === action.payload.listId);
+      const card = list?.cards.find((c) => c.id === action.payload.cardId);
+      if (card?.statusBadges) {
+        card.statusBadges = card.statusBadges.filter((b) => b.id !== action.payload.badgeId);
       }
     },
   },
+
+  // ---- Extra reducers for API calls ----
+  extraReducers: (builder) => {
+    builder
+      // Task Groups
+      .addCase(fetchTaskGroups.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(fetchTaskGroups.fulfilled, (state, action) => {
+        state.loading = false;
+        state.taskGroups = action.payload;
+      })
+      .addCase(fetchTaskGroups.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.error.message || 'Failed to fetch task groups';
+      })
+      .addCase(createTaskGroup.fulfilled, (state, action: PayloadAction<TaskGroup>) => {
+        state.taskGroups.push(action.payload);
+        if (state.currentBoard) {
+          const newList: List = {
+            id: action.payload.id,
+            title: action.payload.name,
+            titleColor: (action.payload.color as ColorType) || 'gray',
+            cards: []
+          };
+          state.currentBoard.lists.push(newList);
+        }
+      })
+      .addCase(updateTaskGroup.fulfilled, (state, action) => {
+        const idx = state.taskGroups.findIndex((tg) => tg.id === action.payload.id);
+        if (idx !== -1) state.taskGroups[idx] = action.payload;
+      })
+      .addCase(deleteTaskGroup.fulfilled, (state, action) => {
+        state.taskGroups = state.taskGroups.filter((tg) => tg.id !== action.payload);
+      })
+      .addCase(reorderTaskGroups.fulfilled, (state, action) => {
+        state.taskGroups = action.payload;
+      })
+      // Task Statuses
+      .addCase(fetchTaskStatuses.fulfilled, (state, action) => {
+        state.taskStatuses = action.payload;
+      })
+      .addCase(createTaskStatus.fulfilled, (state, action) => {
+        state.taskStatuses.push(action.payload);
+      });
+  },
 });
 
+// -------------------- Exports --------------------
 export const {
   setCurrentBoard,
   setLoading,
   setError,
   addCard,
-  addList,
   updateCard,
   deleteCard,
+  addList,
   deleteList,
   setLists,
   moveCard,
   reorderCards,
   setDraggedCard,
-  addStatusBadgeToCard, // ADD THIS
-  removeStatusBadgeFromCard, // ADD THIS
+  addStatusBadgeToCard,
+  removeStatusBadgeFromCard,
 } = boardSlice.actions;
 
 export default boardSlice.reducer;
