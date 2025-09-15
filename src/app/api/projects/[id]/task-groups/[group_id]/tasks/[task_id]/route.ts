@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import  db  from '@/lib/db';
+import  pool  from '@/lib/db';
 
 // GET /api/projects/[id]/task-groups/[group_id]/tasks/[taskId] - Get specific task
 export async function GET(
@@ -9,7 +9,7 @@ export async function GET(
   try {
     const { id: projectId, group_id: taskGroupId, taskId } = params;
 
-    const result = await db.query(`
+    const result = await pool.query(`
       SELECT 
         t.id,
         t.title,
@@ -65,7 +65,7 @@ export async function PUT(
       task_status_id 
     } = await request.json();
 
-    const result = await db.query(`
+    const result = await pool.query(`
       UPDATE tasks 
       SET 
         title = COALESCE($1, title),
@@ -110,7 +110,7 @@ export async function DELETE(
   try {
     const { id: projectId, group_id: taskGroupId, taskId } = params;
 
-    const result = await db.query(`
+    const result = await pool.query(`
       DELETE FROM tasks 
       WHERE id = $1 AND task_group_id = $2 AND project_id = $3
       RETURNING id, position
@@ -124,7 +124,7 @@ export async function DELETE(
     }
 
     // Update positions of remaining tasks
-    await db.query(`
+    await pool.query(`
       UPDATE tasks 
       SET position = position - 1, updated_at = now()
       WHERE task_group_id = $1 AND position > $2

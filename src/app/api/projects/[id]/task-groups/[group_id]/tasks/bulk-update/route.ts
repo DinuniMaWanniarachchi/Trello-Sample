@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import db from '@/lib/db';
+import pool from '@/lib/db';
 
 // PUT /api/projects/[id]/tasks/bulk-update - Bulk update tasks
 export async function PUT(
@@ -17,7 +17,7 @@ export async function PUT(
       );
     }
 
-    await db.query('BEGIN');
+    await pool.query('BEGIN');
 
     try {
       const updatedTasks = [];
@@ -39,7 +39,7 @@ export async function PUT(
           setClauses.push(`updated_at = now()`);
           values.push(taskId, projectId);
 
-          const result = await db.query(`
+          const result = await pool.query(`
             UPDATE tasks 
             SET ${setClauses.join(', ')}
             WHERE id = $${paramIndex} AND project_id = $${paramIndex + 1}
@@ -52,14 +52,14 @@ export async function PUT(
         }
       }
 
-      await db.query('COMMIT');
+      await pool.query('COMMIT');
 
       return NextResponse.json({
         success: true,
         data: updatedTasks
       });
     } catch (error) {
-      await db.query('ROLLBACK');
+      await pool.query('ROLLBACK');
       throw error;
     }
   } catch (error) {

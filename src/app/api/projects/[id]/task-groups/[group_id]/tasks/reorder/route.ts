@@ -1,6 +1,6 @@
 // src/app/api/projects/[id]/tasks/reorder/route.ts
 import { NextRequest, NextResponse } from 'next/server';
-import db from '@/lib/db';
+import pool from '@/lib/db';
 
 // PUT /api/projects/[id]/tasks/reorder - Reorder tasks (for drag and drop)
 export async function PUT(
@@ -19,13 +19,13 @@ export async function PUT(
     }
 
     // Start transaction
-    await db.query('BEGIN');
+    await pool.query('BEGIN');
 
     try {
       // If moving between different groups
       if (sourceGroupId !== destinationGroupId) {
         // Update positions in source group
-        await db.query(`
+        await pool.query(`
           UPDATE tasks 
           SET position = position - 1, updated_at = now()
           WHERE task_group_id = $1 AND position > (
@@ -34,21 +34,21 @@ export async function PUT(
         `, [sourceGroupId, taskId]);
 
         // Update positions in destination group
-        await db.query(`
+        await pool.query(`
           UPDATE tasks 
           SET position = position + 1, updated_at = now()
           WHERE task_group_id = $1 AND position >= $2
         `, [destinationGroupId, newPosition]);
 
         // Move the task
-        await db.query(`
+        await pool.query(`
           UPDATE tasks 
           SET task_group_id = $1, position = $2, updated_at = now()
           WHERE id = $3 AND project_id = $4
         `, [destinationGroupId, newPosition, taskId, projectId]);
       } else {
         // Moving within the same group
-        const currentPositionResult = await db.query(`
+        const currentPositionResult = await pool.query(`
           SELECT position FROM tasks WHERE id = $1
         `, [taskId]);
 
@@ -56,14 +56,14 @@ export async function PUT(
 
         if (currentPosition < newPosition) {
           // Moving down
-          await db.query(`
+          await pool.query(`
             UPDATE tasks 
             SET position = position - 1, updated_at = now()
             WHERE task_group_id = $1 AND position > $2 AND position <= $3
           `, [destinationGroupId, currentPosition, newPosition]);
         } else if (currentPosition > newPosition) {
           // Moving up
-          await db.query(`
+          await pool.query(`
             UPDATE tasks 
             SET position = position + 1, updated_at = now()
             WHERE task_group_id = $1 AND position >= $2 AND position < $3
@@ -71,21 +71,21 @@ export async function PUT(
         }
 
         // Update the task position
-        await db.query(`
+        await pool.query(`
           UPDATE tasks 
           SET position = $1, updated_at = now()
           WHERE id = $2
         `, [newPosition, taskId]);
       }
 
-      await db.query('COMMIT');
+      await pool.query('COMMIT');
 
       return NextResponse.json({
         success: true,
         message: 'Task reordered successfully'
       });
     } catch (error) {
-      await db.query('ROLLBACK');
+      await pool.query('ROLLBACK');
       throw error;
     }
   } catch (error) {

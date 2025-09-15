@@ -1,6 +1,6 @@
 // src/app/api/projects/[id]/task-statuses/[statusId]/route.ts
 import { NextRequest, NextResponse } from 'next/server';
-import db from '@/lib/db';
+import pool from '@/lib/db';
 
 // GET /api/projects/[id]/task-statuses/[statusId] - Get specific task status
 export async function GET(
@@ -10,7 +10,7 @@ export async function GET(
   try {
     const { id: projectId, statusId } = params;
 
-    const result = await db.query(`
+    const result = await pool.query(`
       SELECT 
         status_id,
         project_id,
@@ -57,7 +57,7 @@ export async function PUT(
       );
     }
 
-    const result = await db.query(`
+    const result = await pool.query(`
       UPDATE task_statuses 
       SET name = $1, updated_at = now()
       WHERE status_id = $2 AND project_id = $3
@@ -93,7 +93,7 @@ export async function DELETE(
     const { id: projectId, statusId } = params;
 
     // Check if any tasks are using this status
-    const tasksCheck = await db.query(`
+    const tasksCheck = await pool.query(`
       SELECT COUNT(*) as task_count 
       FROM tasks 
       WHERE task_status_id = $1
@@ -106,7 +106,7 @@ export async function DELETE(
       );
     }
 
-    const result = await db.query(`
+    const result = await pool.query(`
       DELETE FROM task_statuses 
       WHERE status_id = $1 AND project_id = $2
       RETURNING status_id

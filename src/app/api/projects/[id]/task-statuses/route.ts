@@ -1,6 +1,6 @@
 // src/app/api/projects/[id]/task-statuses/route.ts
 import { NextRequest, NextResponse } from 'next/server';
-import db from '@/lib/db';
+import pool from '@/lib/db';
 
 // GET /api/projects/[id]/task-statuses - Get all task statuses for a project
 export async function GET(
@@ -10,7 +10,7 @@ export async function GET(
   try {
     const projectId = params.id;
 
-    const taskStatuses = await db.query(`
+    const taskStatuses = await pool.query(`
       SELECT 
         status_id,
         project_id,
@@ -51,7 +51,7 @@ export async function POST(
       );
     }
 
-    const result = await db.query(`
+    const result = await pool.query(`
       INSERT INTO task_statuses (project_id, name)
       VALUES ($1, $2)
       RETURNING status_id, project_id, name, created_at, updated_at

@@ -1,6 +1,6 @@
 // src/app/api/projects/[id]/task-groups/[group_id]/tasks/route.ts
 import { NextRequest, NextResponse } from 'next/server';
-import  db  from '@/lib/db';
+import  pool  from '@/lib/db';
 
 // GET /api/projects/[id]/task-groups/[group_id]/tasks - Get all tasks in a task group
 export async function GET(
@@ -10,7 +10,7 @@ export async function GET(
   try {
     const { id: projectId, group_id: taskGroupId } = params;
 
-    const tasks = await db.query(`
+    const tasks = await pool.query(`
       SELECT 
         t.id,
         t.title,
@@ -23,10 +23,8 @@ export async function GET(
         t.project_id,
         t.task_status_id,
         t.created_at,
-        t.updated_at,
-        ts.name as status_name
+        t.updated_at
       FROM tasks t
-      LEFT JOIN task_statuses ts ON t.task_status_id = ts.status_id
       WHERE t.task_group_id = $1 AND t.project_id = $2
       ORDER BY t.position ASC
     `, [taskGroupId, projectId]);
@@ -68,7 +66,7 @@ export async function POST(
     }
 
     // Get the next position
-    const positionResult = await db.query(`
+    const positionResult = await pool.query(`
       SELECT COALESCE(MAX(position), 0) + 1 as next_position
       FROM tasks 
       WHERE task_group_id = $1
@@ -79,7 +77,7 @@ export async function POST(
     // Generate UUID for task id
     const taskId = crypto.randomUUID();
 
-    const result = await db.query(`
+    const result = await pool.query(`
       INSERT INTO tasks (
         id, title, description, position, priority, 
         due_date, assignee_id, task_group_id, project_id, task_status_id
