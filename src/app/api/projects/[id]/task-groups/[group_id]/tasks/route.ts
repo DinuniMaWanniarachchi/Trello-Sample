@@ -1,6 +1,6 @@
 // src/app/api/projects/[id]/task-groups/[group_id]/tasks/route.ts
 import { NextRequest, NextResponse } from 'next/server';
-import  pool  from '@/lib/db';
+import pool from '@/lib/db';
 
 // GET /api/projects/[id]/task-groups/[group_id]/tasks - Get all tasks in a task group
 export async function GET(
@@ -18,7 +18,6 @@ export async function GET(
         t.position,
         t.priority,
         t.due_date,
-        t.assignee_id,
         t.task_group_id,
         t.project_id,
         t.task_status_id,
@@ -50,11 +49,10 @@ export async function POST(
   try {
     const { id: projectId, group_id: taskGroupId } = params;
     const { 
-      title, 
-      description, 
-      priority = 'MEDIUM', 
-      due_date, 
-      assignee_id, 
+      title,
+      description,
+      priority = 'MEDIUM',
+      due_date,
       task_status_id 
     } = await request.json();
 
@@ -80,13 +78,13 @@ export async function POST(
     const result = await pool.query(`
       INSERT INTO tasks (
         id, title, description, position, priority, 
-        due_date, assignee_id, task_group_id, project_id, task_status_id
+        due_date, task_group_id, project_id, task_status_id
       )
-      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
+      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
       RETURNING *
     `, [
       taskId, title, description, position, priority,
-      due_date, assignee_id, taskGroupId, projectId, task_status_id
+      due_date, taskGroupId, projectId, task_status_id
     ]);
 
     return NextResponse.json({

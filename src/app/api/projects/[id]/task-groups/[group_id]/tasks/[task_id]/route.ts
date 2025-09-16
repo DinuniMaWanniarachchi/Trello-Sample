@@ -1,5 +1,6 @@
+// src/app/api/projects/[id]/task-groups/[group_id]/tasks/[taskId]/route.ts
 import { NextRequest, NextResponse } from 'next/server';
-import  pool  from '@/lib/db';
+import pool from '@/lib/db';
 
 // GET /api/projects/[id]/task-groups/[group_id]/tasks/[taskId] - Get specific task
 export async function GET(
@@ -17,7 +18,6 @@ export async function GET(
         t.position,
         t.priority,
         t.due_date,
-        t.assignee_id,
         t.task_group_id,
         t.project_id,
         t.task_status_id,
@@ -61,7 +61,6 @@ export async function PUT(
       description, 
       priority, 
       due_date, 
-      assignee_id, 
       task_status_id 
     } = await request.json();
 
@@ -72,13 +71,12 @@ export async function PUT(
         description = COALESCE($2, description),
         priority = COALESCE($3, priority),
         due_date = COALESCE($4, due_date),
-        assignee_id = COALESCE($5, assignee_id),
-        task_status_id = COALESCE($6, task_status_id),
+        task_status_id = COALESCE($5, task_status_id),
         updated_at = now()
-      WHERE id = $7 AND task_group_id = $8 AND project_id = $9
+      WHERE id = $6 AND task_group_id = $7 AND project_id = $8
       RETURNING *
     `, [
-      title, description, priority, due_date, assignee_id, 
+      title, description, priority, due_date, 
       task_status_id, taskId, taskGroupId, projectId
     ]);
 
