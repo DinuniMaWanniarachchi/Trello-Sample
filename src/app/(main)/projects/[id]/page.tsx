@@ -19,17 +19,16 @@ import { Card, Board, List, ColorType } from '@/types/kanban';
 import { useAppSelector, useAppDispatch } from '@/lib/hooks';
 import { 
   setCurrentBoard, 
-  addCard, 
-  updateCard, 
-  deleteCard,
   deleteList, 
   moveCard,
   reorderCards,
   setDraggedCard,
   createTaskGroup,
-  createTask
-} from '@/lib/features/boardSlice';
-import { SharedHeader } from '@/components/common/SharedHeader';
+  createTask,
+  updateTask,
+  deleteTask,
+  moveTask
+} from '@/lib/features/boardSlice';import { UpdateTaskData } from '@/lib/api/tasksApi';import { SharedHeader } from '@/components/common/SharedHeader';
 import { SortableList } from '@/components/board/SortableList';
 import { AddList } from '@/components/board/add-list';
 import { CardDetailsDrawer } from '@/components/board/CardDetailsDrawer';
@@ -269,53 +268,8 @@ export default function ProjectPage() {
   };
 
   const handleDragOver = (event: DragOverEvent) => {
-    const { active, over } = event;
-    if (!over || !currentBoard) return;
-
-    const activeId = active.id as string;
-    const overId = over.id as string;
-    if (activeId === overId) return;
-
-    let activeContainer = '';
-    let overContainer = '';
-
-    for (const list of currentBoard.lists) {
-      if (list.cards.some(card => card.id === activeId)) {
-        activeContainer = list.id;
-        break;
-      }
-    }
-
-    for (const list of currentBoard.lists) {
-      if (list.cards.some(card => card.id === overId)) {
-        overContainer = list.id;
-        break;
-      }
-    }
-
-    if (!overContainer) {
-      const overList = currentBoard.lists.find(list => list.id === overId);
-      if (overList) overContainer = overId;
-    }
-
-    if (!activeContainer || !overContainer) return;
-
-    if (activeContainer !== overContainer) {
-      const activeList = currentBoard.lists.find(list => list.id === activeContainer);
-      const overList = currentBoard.lists.find(list => list.id === overContainer);
-      if (!activeList || !overList) return;
-
-      const activeIndex = activeList.cards.findIndex(card => card.id === activeId);
-      const overIndex = overList.cards.findIndex(card => card.id === overId);
-      const newIndex = overIndex >= 0 ? overIndex : overList.cards.length;
-
-      dispatch(moveCard({
-        sourceListId: activeContainer,
-        destinationListId: overContainer,
-        sourceIndex: activeIndex,
-        destinationIndex: newIndex
-      }));
-    }
+    // This is intentionally left blank. 
+    // State updates are now handled in onDragEnd to ensure consistency and allow for API calls.
   };
 
   const handleDragEnd = (event: DragEndEvent) => {
@@ -323,50 +277,39 @@ export default function ProjectPage() {
     setActiveCard(null);
     dispatch(setDraggedCard(null));
 
-    if (!over || active.id === over.id || !currentBoard) return;
+    if (!over || !currentBoard) return;
 
     const activeId = active.id as string;
     const overId = over.id as string;
 
-    let activeContainer = '';
-    let overContainer = '';
+    if (activeId === overId) return;
 
-    for (const list of currentBoard.lists) {
-      if (list.cards.some(card => card.id === activeId)) {
-        activeContainer = list.id;
-        break;
+    const activeList = currentBoard.lists.find(list => list.cards.some(c => c.id === activeId));
+    const overList = currentBoard.lists.find(list => list.id === overId || list.cards.some(c => c.id === overId));
+
+    if (!activeList || !overList) return;
+
+    const activeIndex = activeList.cards.findIndex(c => c.id === activeId);
+    const overCardIndex = overList.cards.findIndex(c => c.id === overId);
+    const newIndex = overCardIndex >= 0 ? overCardIndex : overList.cards.length;
+
+    // Dispatch optimistic update to UI
+    if (activeList.id === overList.id) {
+      if (activeIndex !== newIndex) {
+        dispatch(reorderCards({ listId: activeList.id, sourceIndex: activeIndex, destinationIndex: newIndex }));
       }
+    } else {
+      dispatch(moveCard({ sourceListId: activeList.id, destinationListId: overList.id, sourceIndex: activeIndex, destinationIndex: newIndex }));
     }
 
-    for (const list of currentBoard.lists) {
-      if (list.cards.some(card => card.id === overId)) {
-        overContainer = list.id;
-        break;
-      }
-    }
-
-    if (!overContainer) {
-      const overList = currentBoard.lists.find(list => list.id === overId);
-      if (overList) overContainer = overId;
-    }
-
-    if (!activeContainer || !overContainer) return;
-
-    if (activeContainer === overContainer) {
-      const list = currentBoard.lists.find(list => list.id === activeContainer);
-      if (!list) return;
-
-      const oldIndex = list.cards.findIndex(card => card.id === activeId);
-      const newIndex = list.cards.findIndex(card => card.id === overId);
-
-      if (oldIndex !== newIndex) {
-        dispatch(reorderCards({
-          listId: activeContainer,
-          sourceIndex: oldIndex,
-          destinationIndex: newIndex
-        }));
-      }
-    }
+    // Dispatch API call to persist change
+    dispatch(moveTask({
+      projectId,
+      taskId: activeId,
+      sourceGroupId: activeList.id,
+      destinationGroupId: overList.id,
+      newPosition: newIndex
+    }));
   };
 
   const handleAddCard = (listId: string, title: string, description?: string) => {
@@ -382,36 +325,35 @@ export default function ProjectPage() {
 
   const handleUpdateCard = (cardId: string, updates: Partial<Card>) => {
     if (!currentBoard) return;
-    for (const list of currentBoard.lists) {
-      if (list.cards.some(card => card.id === cardId)) {
-        dispatch(updateCard({ listId: list.id, cardId, updates }));
-        break;
-      }
+    const list = currentBoard.lists.find(l => l.cards.some(c => c.id === cardId));
+    if (list) {
+      const backendUpdates: UpdateTaskData = {
+          title: updates.title,
+          description: updates.description,
+          due_date: updates.dueDate,
+      };
+
+      dispatch(updateTask({
+        projectId,
+        groupId: list.id,
+        taskId: cardId,
+        data: backendUpdates
+      }));
     }
   };
 
   const handleDeleteCard = (cardId: string) => {
     if (!currentBoard) return;
 
-    try {
-      for (const list of currentBoard.lists) {
-        const cardExists = list.cards.some(card => card.id === cardId);
-        if (cardExists) {
-          dispatch(deleteCard({
-            cardId,
-            listId: list.id
-          }));
-          
-          setSelectedCard(null);
-          setIsCardDrawerOpen(false);
-          
-          console.log('Card deleted successfully');
-          break;
-        }
-      }
-    } catch (error) {
-      console.error('Error deleting card:', error);
-      alert('Failed to delete card. Please try again.');
+    const list = currentBoard.lists.find(l => l.cards.some(c => c.id === cardId));
+    if (list) {
+      dispatch(deleteTask({
+        projectId,
+        groupId: list.id,
+        taskId: cardId
+      }));
+      setSelectedCard(null);
+      setIsCardDrawerOpen(false);
     }
   };
 

@@ -81,10 +81,19 @@ export async function PUT(
     ]);
 
     if (result.rows.length === 0) {
-      return NextResponse.json(
-        { success: false, error: 'Task not found' },
-        { status: 404 }
-      );
+      const taskCheck = await pool.query('SELECT id, task_group_id, project_id FROM tasks WHERE id = $1', [taskId]);
+      
+      if (taskCheck.rows.length === 0) {
+        return NextResponse.json(
+          { success: false, error: 'Task not found in database' },
+          { status: 404 }
+        );
+      } else {
+        return NextResponse.json(
+          { success: false, error: 'Task found but project/group mismatch' },
+          { status: 404 }
+        );
+      }
     }
 
     return NextResponse.json({

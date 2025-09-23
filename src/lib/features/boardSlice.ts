@@ -46,6 +46,32 @@ export const deleteTask = createAsyncThunk(
   }
 );
 
+export const moveTask = createAsyncThunk(
+  'board/moveTask',
+  async (
+    {
+      projectId,
+      taskId,
+      sourceGroupId,
+      destinationGroupId,
+      newPosition
+    }: {
+      projectId: string;
+      taskId: string;
+      sourceGroupId: string;
+      destinationGroupId: string;
+      newPosition: number;
+    },
+    { rejectWithValue }
+  ) => {
+    try {
+      await tasksApi.moveTask(projectId, { taskId, sourceGroupId, destinationGroupId, newPosition });
+    } catch (error: any) {
+      return rejectWithValue(error.message);
+    }
+  }
+);
+
 export const updateTaskGroup = createAsyncThunk(
   'board/updateTaskGroup',
   async ({
@@ -322,6 +348,9 @@ const boardSlice = createSlice({
       .addCase(deleteTask.rejected, (state, action) => {
         state.loading = false;
         state.error = action.error.message || 'Failed to delete task';
+      })
+      .addCase(moveTask.rejected, (state, action) => {
+        state.error = action.payload as string || 'Failed to move task. Please refresh the page.';
       })
       .addCase(updateTaskGroup.fulfilled, (state, action) => {
         const idx = state.taskGroups.findIndex((tg) => tg.id === action.payload.id);

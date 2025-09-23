@@ -77,7 +77,7 @@ export const tasksApi = {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(data),
     });
-    if (!response.ok) throw new Error('Failed to update task');
+    if (!response.ok) throw new Error(`Failed to update task: ${response.statusText}`);
     return response.json();
   },
 
@@ -86,7 +86,7 @@ export const tasksApi = {
     const response = await fetch(`${API_BASE}/projects/${projectId}/task-groups/${groupId}/tasks/${taskId}`, {
       method: 'DELETE',
     });
-    if (!response.ok) throw new Error('Failed to delete task');
+    if (!response.ok) throw new Error(`Failed to delete task: ${response.statusText}`);
     return response.json();
   },
 
@@ -98,6 +98,19 @@ export const tasksApi = {
       body: JSON.stringify({ taskOrders }),
     });
     if (!response.ok) throw new Error('Failed to reorder tasks');
+    return response.json();
+  },
+
+  moveTask: async (projectId: string, body: { taskId: string, sourceGroupId: string, destinationGroupId: string, newPosition: number }) => {
+    const response = await fetch(`${API_BASE}/projects/${projectId}/task-groups/${body.sourceGroupId}/tasks/reorder`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body),
+    });
+    if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error || 'Failed to move task');
+    }
     return response.json();
   },
 
