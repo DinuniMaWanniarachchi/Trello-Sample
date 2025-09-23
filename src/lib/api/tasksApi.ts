@@ -22,7 +22,7 @@ export interface CreateTaskData {
   id?: string;
   title: string;
   description?: string;
-  position: number;
+  position?: number;
   priority?: 'LOW' | 'MEDIUM' | 'HIGH';
   due_date?: string;
   task_status_id?: string;

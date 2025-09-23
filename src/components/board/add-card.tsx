@@ -5,16 +5,13 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Plus, X } from 'lucide-react';
-import { useAppDispatch } from '@/lib/hooks';
-import { addCard } from '@/lib/features/boardSlice';
-import { Card, ColorType } from '@/types/kanban';
 
 interface AddCardProps {
   listId: string;
+  onAddCard: (listId: string, title: string, description?: string) => void;
 }
 
-export const AddCard: React.FC<AddCardProps> = ({ listId }) => {
-  const dispatch = useAppDispatch();
+export const AddCard: React.FC<AddCardProps> = ({ listId, onAddCard }) => {
   const [isAdding, setIsAdding] = useState(false);
   const [cardTitle, setCardTitle] = useState('');
   const [cardDescription, setCardDescription] = useState('');
@@ -22,17 +19,8 @@ export const AddCard: React.FC<AddCardProps> = ({ listId }) => {
   const handleAddCard = () => {
     if (!cardTitle.trim()) return;
     
-    const newCard: Card = {
-      id: `card-${Date.now()}`,
-      title: cardTitle.trim(),
-      description: cardDescription.trim() || undefined,
-      color: 'white' as ColorType,
-      statusBadges: [],
-      attachments: 0,
-      comments: 0
-    };
-    
-    dispatch(addCard({ listId, card: newCard }));
+    onAddCard(listId, cardTitle.trim(), cardDescription.trim() || undefined);
+
     setCardTitle('');
     setCardDescription('');
     setIsAdding(false);

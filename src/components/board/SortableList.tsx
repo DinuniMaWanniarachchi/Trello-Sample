@@ -12,7 +12,7 @@ import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuIte
 interface SortableListProps {
   list: List;
   onCardClick: (card: Card) => void;
-  onAddCard: (listId: string, title: string) => void;
+  onAddCard: (listId: string, title: string, description?: string) => void;
   onDeleteList: (listId: string) => void;
 }
 

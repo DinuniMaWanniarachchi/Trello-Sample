@@ -1,6 +1,7 @@
 // lib/features/boardSlice.ts
 import { createSlice, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit';
 import { taskGroupsApi, taskStatusesApi } from '@/lib/api/taskGroupsApi';
+import { tasksApi, CreateTaskData, UpdateTaskData, Task } from '@/lib/api/tasksApi';
 import { TaskGroup, TaskStatus } from '@/types/taskGroup';
 import { Board, Card, ColorType, List, StatusBadge } from '@/types/kanban';
 
@@ -15,9 +16,33 @@ export const fetchTaskGroups = createAsyncThunk(
 
 export const createTaskGroup = createAsyncThunk(
   'board/createTaskGroup',
-  async ({ projectId, data }: { projectId: string; data: { name: string; color?: string } }) => {
+  async ({ projectId, data }: { projectId: string; data: { name:string; color?: string } }) => {
     const response = await taskGroupsApi.createTaskGroup(projectId, data);
     return response.data;
+  }
+);
+
+export const createTask = createAsyncThunk(
+    'board/createTask',
+    async ({ projectId, groupId, data }: { projectId: string; groupId: string; data: CreateTaskData }) => {
+        const response = await tasksApi.createTask(projectId, groupId, data);
+        return { ...response.data, listId: groupId };
+    }
+);
+
+export const updateTask = createAsyncThunk(
+  'board/updateTask',
+  async ({ projectId, groupId, taskId, data }: { projectId: string; groupId: string; taskId: string; data: UpdateTaskData }) => {
+    const response = await tasksApi.updateTask(projectId, groupId, taskId, data);
+    return { ...response.data, listId: groupId };
+  }
+);
+
+export const deleteTask = createAsyncThunk(
+  'board/deleteTask',
+  async ({ projectId, groupId, taskId }: { projectId: string; groupId: string; taskId: string }) => {
+    await tasksApi.deleteTask(projectId, groupId, taskId);
+    return { taskId, listId: groupId };
   }
 );
 
@@ -234,6 +259,69 @@ const boardSlice = createSlice({
           };
           state.currentBoard.lists.push(newList);
         }
+      })
+      .addCase(createTask.fulfilled, (state, action: PayloadAction<Task & { listId: string }>) => {
+        if (!state.currentBoard) return;
+        const list = state.currentBoard.lists.find((l) => l.id === action.payload.listId);
+        if (list) {
+          const newCard: Card = {
+            id: action.payload.id,
+            title: action.payload.title,
+            description: action.payload.description,
+            dueDate: action.payload.due_date,
+          };
+          if (!list.cards.find(c => c.id === newCard.id)) {
+            list.cards.push(newCard);
+          }
+        }
+        state.loading = false;
+      })
+      .addCase(createTask.pending, (state) => {
+        state.loading = true;
+      })
+      .addCase(createTask.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.error.message || 'Failed to create task';
+      })
+      .addCase(updateTask.fulfilled, (state, action: PayloadAction<Task & { listId: string }>) => {
+        if (!state.currentBoard) return;
+        const list = state.currentBoard.lists.find((l) => l.id === action.payload.listId);
+        if (list) {
+          const cardIndex = list.cards.findIndex((c) => c.id === action.payload.id);
+          if (cardIndex !== -1) {
+            const updatedCard: Card = {
+              ...list.cards[cardIndex],
+              id: action.payload.id,
+              title: action.payload.title,
+              description: action.payload.description,
+              dueDate: action.payload.due_date,
+            };
+            list.cards[cardIndex] = updatedCard;
+          }
+        }
+        state.loading = false;
+      })
+      .addCase(updateTask.pending, (state) => {
+        state.loading = true;
+      })
+      .addCase(updateTask.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.error.message || 'Failed to update task';
+      })
+      .addCase(deleteTask.fulfilled, (state, action: PayloadAction<{ taskId: string; listId: string }>) => {
+        if (!state.currentBoard) return;
+        const list = state.currentBoard.lists.find((l) => l.id === action.payload.listId);
+        if (list) {
+          list.cards = list.cards.filter((c) => c.id !== action.payload.taskId);
+        }
+        state.loading = false;
+      })
+      .addCase(deleteTask.pending, (state) => {
+        state.loading = true;
+      })
+      .addCase(deleteTask.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.error.message || 'Failed to delete task';
       })
       .addCase(updateTaskGroup.fulfilled, (state, action) => {
         const idx = state.taskGroups.findIndex((tg) => tg.id === action.payload.id);

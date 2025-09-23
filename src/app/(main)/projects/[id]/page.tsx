@@ -26,7 +26,8 @@ import {
   moveCard,
   reorderCards,
   setDraggedCard,
-  createTaskGroup
+  createTaskGroup,
+  createTask
 } from '@/lib/features/boardSlice';
 import { SharedHeader } from '@/components/common/SharedHeader';
 import { SortableList } from '@/components/board/SortableList';
@@ -368,17 +369,15 @@ export default function ProjectPage() {
     }
   };
 
-  const handleAddCard = (listId: string, title: string) => {
-    const newCard: Card = {
-      id: `${projectId}-card-${Date.now()}`,
-      title,
-      description: '',
-      color: 'white',
-      statusBadges: [],
-      attachments: 0,
-      comments: 0
-    };
-    dispatch(addCard({ listId, card: newCard }));
+  const handleAddCard = (listId: string, title: string, description?: string) => {
+    dispatch(createTask({
+      projectId,
+      groupId: listId,
+      data: {
+        title,
+        description,
+      }
+    }));
   };
 
   const handleUpdateCard = (cardId: string, updates: Partial<Card>) => {
