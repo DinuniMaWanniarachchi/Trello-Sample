@@ -258,10 +258,7 @@ export const CardDetailsDrawer: React.FC<CardDetailsDrawerProps> = ({
                 <Input
                   type="date"
                   value={editedDueDate}
-                  onChange={(e) => {
-                    setEditedDueDate(e.target.value);
-                    onUpdate(card.id, { dueDate: e.target.value || undefined });
-                  }}
+                  onChange={(e) => setEditedDueDate(e.target.value)}
                   className="w-full bg-accent border-border text-foreground"
                 />
                 {editedDueDate && (
@@ -272,10 +269,7 @@ export const CardDetailsDrawer: React.FC<CardDetailsDrawerProps> = ({
                     <Button
                       variant="ghost"
                       size="sm"
-                      onClick={() => {
-                        setEditedDueDate('');
-                        onUpdate(card.id, { dueDate: undefined });
-                      }}
+                      onClick={() => setEditedDueDate('')}
                       className="text-red-500 hover:text-red-700 hover:bg-accent"
                     >
                       Remove
@@ -293,10 +287,7 @@ export const CardDetailsDrawer: React.FC<CardDetailsDrawerProps> = ({
               </div>
               <Textarea
                 value={editedDescription}
-                onChange={(e) => {
-                  setEditedDescription(e.target.value);
-                  onUpdate(card.id, { description: e.target.value });
-                }}
+                onChange={(e) => setEditedDescription(e.target.value)}
                 placeholder="Add a more detailed description..."
                 rows={4}
                 className="w-full resize-none bg-accent border-border text-foreground placeholder-muted-foreground"

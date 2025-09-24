@@ -5,10 +5,11 @@ import pool from '@/lib/db';
 // GET /api/projects/[id]/task-groups/[group_id]/tasks - Get all tasks in a task group
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string; group_id: string } }
+  context: { params: { id: string; group_id: string } }
 ) {
   try {
-    const { id: projectId, group_id: taskGroupId } = params;
+    await request.text(); // Ensure request is processed
+    const { id: projectId, group_id: taskGroupId } = context.params;
 
     const tasks = await pool.query(`
       SELECT 
@@ -44,17 +45,18 @@ export async function GET(
 // POST /api/projects/[id]/task-groups/[group_id]/tasks - Create new task
 export async function POST(
   request: NextRequest,
-  { params }: { params: { id: string; group_id: string } }
+  context: { params: { id: string; group_id: string } }
 ) {
   try {
-    const { id: projectId, group_id: taskGroupId } = params;
+    const body = await request.json();
+    const { id: projectId, group_id: taskGroupId } = context.params;
     const { 
       title,
       description,
       priority = 'MEDIUM',
       due_date,
       task_status_id 
-    } = await request.json();
+    } = body;
 
     if (!title) {
       return NextResponse.json(

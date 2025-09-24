@@ -52,17 +52,18 @@ export async function GET(
 // PUT /api/projects/[id]/task-groups/[group_id]/tasks/[taskId] - Update task
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { id: string; group_id: string; taskId: string } }
+  context: { params: { id: string; group_id: string; taskId: string } }
 ) {
   try {
-    const { id: projectId, group_id: taskGroupId, taskId } = params;
+    const body = await request.json();
+    const { id: projectId, group_id: taskGroupId, taskId } = context.params;
     const { 
       title, 
       description, 
       priority, 
       due_date, 
       task_status_id 
-    } = await request.json();
+    } = body;
 
     const result = await pool.query(`
       UPDATE tasks 
@@ -112,10 +113,12 @@ export async function PUT(
 // DELETE /api/projects/[id]/task-groups/[group_id]/tasks/[taskId] - Delete task
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string; group_id: string; taskId: string } }
+  context: { params: { id: string; group_id: string; taskId: string } }
 ) {
   try {
-    const { id: projectId, group_id: taskGroupId, taskId } = params;
+    // By awaiting the request, we ensure params are populated
+    await request.text(); 
+    const { id: projectId, group_id: taskGroupId, taskId } = context.params;
 
     const result = await pool.query(`
       DELETE FROM tasks 
