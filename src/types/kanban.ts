@@ -17,6 +17,7 @@ export interface Card {
   assignee?: string;
   attachments?: number;
   comments?: number;
+  task_status_id?: string;
 }
 
 export interface List {

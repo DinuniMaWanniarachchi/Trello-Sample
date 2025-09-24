@@ -195,16 +195,27 @@ export function ProjectProvider({ children }: { children: ReactNode }) {
     setProjects(prev => [...prev, tempProject]);
 
     // Create on server in background
-    createProject(data).then(serverProject => {
-      if (serverProject) {
-        // Replace temp project with server project
-        setProjects(prev => 
-          prev.map(p => p.id === tempProject.id ? serverProject : p)
-        );
-      } else {
-        // Remove temp project if server creation failed
-        setProjects(prev => prev.filter(p => p.id !== tempProject.id));
+    fetch('/api/projects', {
+      method: 'POST',
+      headers: getAuthHeaders(),
+      body: JSON.stringify(data),
+    })
+    .then(response => {
+      if (!response.ok) {
+        throw new Error('Failed to create project');
       }
+      return response.json();
+    })
+    .then(serverProject => {
+      // Replace temp project with server project
+      setProjects(prev => 
+        prev.map(p => p.id === tempProject.id ? serverProject : p)
+      );
+    })
+    .catch(err => {
+      setError(err instanceof Error ? err.message : 'Failed to create project');
+      // Remove temp project if server creation failed
+      setProjects(prev => prev.filter(p => p.id !== tempProject.id));
     });
 
     return tempProject;

@@ -29,9 +29,12 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
-import { X, Edit3, Type, Tag, Clock, MoreHorizontal, Trash2 } from 'lucide-react';
+import { X, Edit3, Type, Tag, Clock, MoreHorizontal, Trash2, ChevronDown } from 'lucide-react';
 import { Card, StatusBadge, ColorType, badgeColors } from '@/types/kanban';
 import { formatDueDate, getDueDateColor } from '@/utils/dateUtils';
+
+// Task status type
+type TaskStatus = 'todo' | 'doing' | 'done';
 
 interface CardDetailsDrawerProps {
   card: Card | null;
@@ -51,6 +54,7 @@ export const CardDetailsDrawer: React.FC<CardDetailsDrawerProps> = ({
   const [editedTitle, setEditedTitle] = useState('');
   const [editedDescription, setEditedDescription] = useState('');
   const [editedDueDate, setEditedDueDate] = useState('');
+  const [editedStatus, setEditedStatus] = useState<TaskStatus>('todo');
   const [newBadgeText, setNewBadgeText] = useState('');
   const [newBadgeColor, setNewBadgeColor] = useState<ColorType>('blue');
   const [isEditingTitle, setIsEditingTitle] = useState(false);
@@ -62,6 +66,7 @@ export const CardDetailsDrawer: React.FC<CardDetailsDrawerProps> = ({
       setEditedTitle(card.title || '');
       setEditedDescription(card.description || '');
       setEditedDueDate(card.dueDate || '');
+      setEditedStatus((card as any).status || 'todo'); // Add status to card type if not exists
       setIsEditingTitle(false);
     }
   }, [card, isOpen]);
@@ -73,9 +78,17 @@ export const CardDetailsDrawer: React.FC<CardDetailsDrawerProps> = ({
       title: editedTitle,
       description: editedDescription,
       dueDate: editedDueDate || undefined,
-    });
+      status: editedStatus, // Include status in update
+    } as any);
     setIsEditingTitle(false);
     onClose();
+  };
+
+  const handleStatusChange = (status: TaskStatus) => {
+    setEditedStatus(status);
+    onUpdate(card.id, {
+      status: status
+    } as any);
   };
 
   const handleAddBadge = () => {
@@ -102,13 +115,26 @@ export const CardDetailsDrawer: React.FC<CardDetailsDrawerProps> = ({
     onClose();
   };
 
-  // FIXED: Implement the handleRemoveBadge function properly
   const handleRemoveBadge = (badgeId: string) => {
     const currentBadges = card.statusBadges || [];
     const updatedBadges = currentBadges.filter(badge => badge.id !== badgeId);
     onUpdate(card.id, {
       statusBadges: updatedBadges
     });
+  };
+
+  // Status display helper
+  const getStatusDisplay = (status: TaskStatus) => {
+    switch (status) {
+      case 'todo':
+        return 'To Do';
+      case 'doing':
+        return 'Doing';
+      case 'done':
+        return 'Done';
+      default:
+        return 'To Do';
+    }
   };
 
   return (
@@ -186,6 +212,35 @@ export const CardDetailsDrawer: React.FC<CardDetailsDrawerProps> = ({
                   {editedTitle || 'Click to add title...'}
                 </div>
               )}
+            </div>
+
+            {/* Status Dropdown */}
+            <div className="space-y-3">
+              <div className="flex items-center space-x-4">
+                <label className="text-sm font-medium text-muted-foreground">Status</label>
+              </div>
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button 
+                    variant="outline" 
+                    className="w-full justify-between bg-accent border-border text-foreground hover:bg-accent/80"
+                  >
+                    {getStatusDisplay(editedStatus)}
+                    <ChevronDown className="h-4 w-4" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent className="w-full">
+                  <DropdownMenuItem onClick={() => handleStatusChange('todo')}>
+                    To Do
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => handleStatusChange('doing')}>
+                    Doing
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => handleStatusChange('done')}>
+                    Done
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
             </div>
 
             {/* Status Badges */}

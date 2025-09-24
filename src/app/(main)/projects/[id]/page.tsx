@@ -27,7 +27,8 @@ import {
   createTask,
   updateTask,
   deleteTask,
-  moveTask
+  moveTask,
+  fetchTaskStatuses
 } from '@/lib/features/boardSlice';import { UpdateTaskData } from '@/lib/api/tasksApi';import { SharedHeader } from '@/components/common/SharedHeader';
 import { SortableList } from '@/components/board/SortableList';
 import { AddList } from '@/components/board/add-list';
@@ -65,6 +66,12 @@ export default function ProjectPage() {
       router.push('/login');
     }
   }, [isAuthenticated, authLoading, router]);
+
+  useEffect(() => {
+    if (projectId) {
+      dispatch(fetchTaskStatuses(projectId));
+    }
+  }, [dispatch, projectId]);
 
   // Storage key for this specific project
   const getStorageKey = (projectId: string) => `kanban_board_${projectId}`;
@@ -331,6 +338,7 @@ export default function ProjectPage() {
           title: updates.title,
           description: updates.description,
           due_date: updates.dueDate,
+          task_status_id: updates.task_status_id,
       };
 
       dispatch(updateTask({
