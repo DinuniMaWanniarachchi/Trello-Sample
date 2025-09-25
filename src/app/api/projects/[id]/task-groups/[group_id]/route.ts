@@ -1,14 +1,14 @@
 // app/api/projects/[id]/task-groups/[groupId]/route.ts
 import { NextRequest, NextResponse } from 'next/server';
-import  pool  from '@/lib/db';
+import pool from '@/lib/db';
 
 // GET /api/projects/[id]/task-groups/[groupId] - Get specific task group
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string; groupId: string } }
+  { params }: { params: Promise<{ id: string; groupId: string }> }
 ) {
   try {
-    const { id: projectId, groupId } = params;
+    const { id: projectId, groupId } = await params; // Added await
 
     const query = `
       SELECT 
@@ -55,16 +55,17 @@ export async function GET(
 // PUT /api/projects/[id]/task-groups/[groupId] - Update task group
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { id: string; groupId: string } }
+  { params }: { params: Promise<{ id: string; groupId: string }> }
 ) {
   try {
-    const { id: projectId, groupId } = params;
+    const { id: projectId, groupId } = await params; // Added await
     const body = await request.json();
     const { name, color, position } = body;
 
+    console.log('Updating task group:', { projectId, groupId, body }); // Debug log
+
     // Build dynamic update query
     const updates: string[] = [];
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const values: any[] = [];
     let paramCount = 1;
 
@@ -106,6 +107,9 @@ export async function PUT(
       RETURNING *
     `;
 
+    console.log('SQL Query:', query); // Debug log
+    console.log('SQL Values:', values); // Debug log
+
     const result = await pool.query(query, values);
 
     if (result.rows.length === 0) {
@@ -117,6 +121,8 @@ export async function PUT(
         { status: 404 }
       );
     }
+
+    console.log('Update successful:', result.rows[0]); // Debug log
 
     return NextResponse.json({
       success: true,
@@ -138,10 +144,10 @@ export async function PUT(
 // DELETE /api/projects/[id]/task-groups/[groupId] - Delete task group
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string; groupId: string } }
+  { params }: { params: Promise<{ id: string; groupId: string }> }
 ) {
   try {
-    const { id: projectId, groupId } = params;
+    const { id: projectId, groupId } = await params; // Added await
 
     // Check if task group exists
     const checkQuery = `

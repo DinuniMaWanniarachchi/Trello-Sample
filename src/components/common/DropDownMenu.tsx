@@ -24,7 +24,7 @@ interface DropdownMenuItemProps {
   children: React.ReactNode;
 }
 
-export const DropdownMenu: React.FC<DropdownMenuProps> = ({ children }) => {
+export const DropdownMenu: React.FC<DropdownMenuProps> = ({ children, ...props }) => {
   const [isOpen, setIsOpen] = useState(false);
   
   return (
@@ -35,6 +35,7 @@ export const DropdownMenu: React.FC<DropdownMenuProps> = ({ children }) => {
           return React.cloneElement(child as React.ReactElement<any>, {
             isOpen,
             setIsOpen,
+            ...props
           });
         }
         return child;
@@ -46,7 +47,8 @@ export const DropdownMenu: React.FC<DropdownMenuProps> = ({ children }) => {
 export const DropdownMenuTrigger: React.FC<DropdownMenuTriggerProps & { isOpen?: boolean; setIsOpen?: (open: boolean) => void }> = ({ 
   children, 
   isOpen, 
-  setIsOpen 
+  setIsOpen,
+  ...props
 }) => {
   const handleClick = () => {
     setIsOpen?.(!isOpen);
@@ -56,6 +58,7 @@ export const DropdownMenuTrigger: React.FC<DropdownMenuTriggerProps & { isOpen?:
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     return React.cloneElement(children as React.ReactElement<any>, {
       onClick: handleClick,
+      ...props
     });
   }
   return <>{children}</>;
@@ -66,7 +69,8 @@ export const DropdownMenuContent: React.FC<DropdownMenuContentProps & { isOpen?:
   className = '', 
   children, 
   isOpen,
-  setIsOpen 
+  setIsOpen,
+  ...props
 }) => {
   const ref = useRef<HTMLDivElement>(null);
 
@@ -94,6 +98,7 @@ export const DropdownMenuContent: React.FC<DropdownMenuContentProps & { isOpen?:
     <div
       ref={ref}
       className={`absolute top-full mt-1 z-50 ${alignmentClass} ${className}`}
+      {...props}
     >
       {React.Children.map(children, (child) => {
         if (React.isValidElement(child)) {
@@ -112,7 +117,8 @@ export const DropdownMenuItem: React.FC<DropdownMenuItemProps & { setIsOpen?: (o
   onClick, 
   className = '', 
   children, 
-  setIsOpen 
+  setIsOpen,
+  ...props
 }) => {
   const handleClick = () => {
     onClick?.();
@@ -123,6 +129,7 @@ export const DropdownMenuItem: React.FC<DropdownMenuItemProps & { setIsOpen?: (o
     <div
       onClick={handleClick}
       className={`cursor-pointer ${className}`}
+      {...props}
     >
       {children}
     </div>
