@@ -9,7 +9,7 @@ export async function GET(
 ) {
   try {
     await request.text(); // Ensure request is processed
-    const { id: projectId, group_id: taskGroupId } = context.params;
+    const { id: projectId, group_id: taskGroupId } = await context.params;
 
     const tasks = await pool.query(`
       SELECT 
@@ -48,7 +48,7 @@ export async function POST(
 ) {
   try {
     const body = await request.json();
-    const { id: projectId, group_id: taskGroupId } = context.params;
+    const { id: projectId, group_id: taskGroupId } = await context.params;
     const { 
       title,
       description,

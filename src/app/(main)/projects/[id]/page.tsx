@@ -29,7 +29,9 @@ import {
   deleteTask,
   moveTask,
   fetchTaskStatuses
-} from '@/lib/features/boardSlice';import { UpdateTaskData } from '@/lib/api/tasksApi';import { SharedHeader } from '@/components/common/SharedHeader';
+} from '@/lib/features/boardSlice';
+import { UpdateTaskData } from '@/lib/api/tasksApi';
+import { SharedHeader } from '@/components/common/SharedHeader';
 import { SortableList } from '@/components/board/SortableList';
 import { AddList } from '@/components/board/add-list';
 import { CardDetailsDrawer } from '@/components/board/CardDetailsDrawer';
@@ -376,6 +378,60 @@ export default function ProjectPage() {
     dispatch(deleteList(listId));
   };
 
+  const handleRenameList = (listId: string) => {
+    if (!currentBoard) return;
+    
+    const list = currentBoard.lists.find(l => l.id === listId);
+    if (!list) return;
+    
+    const newTitle = prompt('Enter new list name:', list.title);
+    if (newTitle && newTitle.trim() && newTitle !== list.title) {
+      // Update the list title locally
+      const updatedLists = currentBoard.lists.map(l => 
+        l.id === listId 
+          ? { ...l, title: newTitle.trim() }
+          : l
+      );
+      
+      dispatch(setCurrentBoard({
+        ...currentBoard,
+        lists: updatedLists
+      }));
+      
+      // If you have an API endpoint for renaming task groups, call it here
+      // dispatch(updateTaskGroup({ projectId, groupId: listId, data: { name: newTitle.trim() } }));
+    }
+  };
+
+  const handleChangeCategoryColor = (listId: string, category: string, color: ColorType) => {
+    if (!currentBoard) return;
+    
+    // Update the list title and color
+    const updatedLists = currentBoard.lists.map(list => 
+      list.id === listId 
+        ? { 
+            ...list, 
+            titleColor: color       // Update the color
+          }
+        : list
+    );
+    
+    // Dispatch the update to Redux store
+    dispatch(setCurrentBoard({
+      ...currentBoard,
+      lists: updatedLists
+    }));
+    
+    // Optional: If you have an API endpoint to update task groups, call it here
+    // dispatch(updateTaskGroup({ 
+    //   projectId, 
+    //   groupId: listId, 
+    //   data: { name: category, color: color } 
+    // }));
+    
+    console.log(`Changed list ${listId} to category: ${category}, color: ${color}`);
+  };
+
   const handleCardClick = (card: Card) => {
     setSelectedCard(card);
     setIsCardDrawerOpen(true);
@@ -459,11 +515,10 @@ export default function ProjectPage() {
                       list={list}
                       onCardClick={handleCardClick}
                       onAddCard={handleAddCard}
-                      onDeleteList={handleDeleteList} onRenameList={function (listId: string): void {
-                        throw new Error('Function not implemented.');
-                      } } onChangeCategoryColor={function (listId: string, category: string, color: ColorType): void {
-                        throw new Error('Function not implemented.');
-                      } }                    />
+                      onDeleteList={handleDeleteList}
+                      onRenameList={handleRenameList}
+                      onChangeCategoryColor={handleChangeCategoryColor}
+                    />
                   </div>
                 ))}
                 <div className="flex-shrink-0">
@@ -479,11 +534,10 @@ export default function ProjectPage() {
                     list={list}
                     onCardClick={handleCardClick}
                     onAddCard={handleAddCard}
-                    onDeleteList={handleDeleteList} onRenameList={function (listId: string): void {
-                      throw new Error('Function not implemented.');
-                    } } onChangeCategoryColor={function (listId: string, category: string, color: ColorType): void {
-                      throw new Error('Function not implemented.');
-                    } }                  />
+                    onDeleteList={handleDeleteList}
+                    onRenameList={handleRenameList}
+                    onChangeCategoryColor={handleChangeCategoryColor}
+                  />
                 ))}
                 <AddList onAddList={handleAddList} />
               </div>

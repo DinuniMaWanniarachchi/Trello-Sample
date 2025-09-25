@@ -8,7 +8,7 @@ export async function GET(
   { params }: { params: { id: string; group_id: string; taskId: string } }
 ) {
   try {
-    const { id: projectId, group_id: taskGroupId, taskId } = params;
+    const { id: projectId, group_id: taskGroupId, taskId } = await params;
 
     const result = await pool.query(`
       SELECT 
@@ -54,7 +54,7 @@ export async function PUT(
   try {
     const text = await request.text();
     const body = text ? JSON.parse(text) : {};
-    const { id: projectId, group_id: taskGroupId, taskId } = params;
+    const { id: projectId, group_id: taskGroupId, taskId } = await params;
     const { 
       title, 
       description, 
@@ -112,7 +112,7 @@ export async function DELETE(
   { params }: { params: { id: string; group_id: string; taskId: string } }
 ) {
   try {
-    const { id: projectId, group_id: taskGroupId, taskId } = params;
+    const { id: projectId, group_id: taskGroupId, taskId } = await params;
 
     const result = await pool.query(`
       DELETE FROM tasks 
