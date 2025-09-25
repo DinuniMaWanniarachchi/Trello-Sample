@@ -459,8 +459,11 @@ export default function ProjectPage() {
                       list={list}
                       onCardClick={handleCardClick}
                       onAddCard={handleAddCard}
-                      onDeleteList={handleDeleteList}
-                    />
+                      onDeleteList={handleDeleteList} onRenameList={function (listId: string): void {
+                        throw new Error('Function not implemented.');
+                      } } onChangeCategoryColor={function (listId: string, category: string, color: ColorType): void {
+                        throw new Error('Function not implemented.');
+                      } }                    />
                   </div>
                 ))}
                 <div className="flex-shrink-0">
@@ -476,8 +479,11 @@ export default function ProjectPage() {
                     list={list}
                     onCardClick={handleCardClick}
                     onAddCard={handleAddCard}
-                    onDeleteList={handleDeleteList}
-                  />
+                    onDeleteList={handleDeleteList} onRenameList={function (listId: string): void {
+                      throw new Error('Function not implemented.');
+                    } } onChangeCategoryColor={function (listId: string, category: string, color: ColorType): void {
+                      throw new Error('Function not implemented.');
+                    } }                  />
                 ))}
                 <AddList onAddList={handleAddList} />
               </div>

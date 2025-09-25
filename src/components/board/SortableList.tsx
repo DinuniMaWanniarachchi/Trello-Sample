@@ -3,8 +3,8 @@
 import { useDroppable } from '@dnd-kit/core';
 import { SortableContext, verticalListSortingStrategy } from '@dnd-kit/sortable';
 import { Button } from '@/components/ui/button';
-import { Plus, MoreHorizontal, Trash2 } from 'lucide-react';
-import { List, Card, listHeaderColors } from '@/types/kanban';
+import { Plus, MoreHorizontal, Trash2, Edit } from 'lucide-react';
+import { List, Card, listHeaderColors, ColorType } from '@/types/kanban';
 import { SortableCard } from './SortableCards';
 import { AddCard } from './add-card';
 import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem } from '@/components/common/DropDownMenu';
@@ -14,13 +14,47 @@ interface SortableListProps {
   onCardClick: (card: Card) => void;
   onAddCard: (listId: string, title: string, description?: string) => void;
   onDeleteList: (listId: string) => void;
+  onRenameList: (listId: string) => void;
+  onChangeCategoryColor: (listId: string, category: string, color: ColorType) => void;
 }
+
+// Define category options with their colors matching your ColorType
+const categoryOptions = [
+  { 
+    name: 'To do', 
+    value: 'todo',
+    color: 'gray' as ColorType,
+    bgClass: 'bg-gray-500',
+    textClass: 'text-gray-700'
+  },
+  { 
+    name: 'Doing', 
+    value: 'doing',
+    color: 'blue' as ColorType,
+    bgClass: 'bg-blue-500', 
+    textClass: 'text-blue-700'
+  },
+  { 
+    name: 'Done', 
+    value: 'done',
+    color: 'green' as ColorType,
+    bgClass: 'bg-green-500',
+    textClass: 'text-green-700'
+  }
+];
+
+// Simple separator component
+const MenuSeparator = () => (
+  <div className="my-1 h-px bg-border opacity-50" />
+);
 
 export const SortableList: React.FC<SortableListProps> = ({
   list,
   onCardClick,
   onAddCard,
-  onDeleteList
+  onDeleteList,
+  onRenameList,
+  onChangeCategoryColor
 }) => {
   const { setNodeRef, isOver } = useDroppable({
     id: list.id,
@@ -54,19 +88,51 @@ export const SortableList: React.FC<SortableListProps> = ({
                   <MoreHorizontal className="h-4 w-4" />
                 </Button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="bg-popover text-popover-foreground border border-border shadow-xl rounded-md w-30 p-1">
+              <DropdownMenuContent 
+                align="end" 
+                className="bg-gray-900 text-gray-100 border border-gray-700 shadow-xl rounded-md w-48 p-2"
+              >
+                {/* Rename Option */}
+                <DropdownMenuItem
+                  onClick={() => onRenameList(list.id)}
+                  className="group flex items-center gap-3 px-3 py-2 rounded-md text-sm text-gray-100 hover:bg-gray-800 focus:outline-none transition-all cursor-pointer"
+                >
+                  <Edit className="h-4 w-4 text-gray-400" />
+                  <span className="font-medium">Rename</span>
+                </DropdownMenuItem>
+
+                <MenuSeparator />
+
+                {/* Change Category Header */}
+                <div className="px-3 py-2 text-xs font-medium text-gray-400 uppercase tracking-wide">
+                  Change Category
+                </div>
+
+                {/* Category Options */}
+                {categoryOptions.map((category) => (
+                  <DropdownMenuItem
+                    key={category.value}
+                    onClick={() => onChangeCategoryColor(list.id, category.name, category.color)}
+                    className="group flex items-center gap-3 px-3 py-2 rounded-md text-sm text-gray-100 hover:bg-gray-800 focus:outline-none transition-all cursor-pointer"
+                  >
+                    <div className={`w-3 h-3 rounded-full ${category.bgClass} flex-shrink-0`} />
+                    <span className="font-medium">{category.name}</span>
+                  </DropdownMenuItem>
+                ))}
+
+                <MenuSeparator />
+
+                {/* Delete Option */}
                 <DropdownMenuItem
                   onClick={() => {
                     if (confirm("⚠️ Are you sure you want to delete this list? This action cannot be undone.")) {
                       onDeleteList(list.id);
                     }
                   }}
-                  className="group flex items-center gap-2 px-1 py-1 rounded-md text-sm text-red-500 hover:bg-red-600 hover:text-white focus:outline-none focus:ring-2 focus:ring-red-500 transition-all"
+                  className="group flex items-center gap-3 px-3 py-2 rounded-md text-sm text-red-400 hover:bg-red-900/20 focus:outline-none transition-all cursor-pointer"
                 >
-                  <div className="flex items-center justify-center bg-red-500/20 group-hover:bg-white/20 p-1.5 rounded-md transition">
-                    <Trash2 className="h-4 w-4" />
-                  </div>
-                  <span className="whitespace-nowrap font-medium">Delete</span>
+                  <Trash2 className="h-4 w-4 text-red-400" />
+                  <span className="font-medium">Delete</span>
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>

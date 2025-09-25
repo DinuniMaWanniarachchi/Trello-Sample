@@ -21,7 +21,6 @@ export async function GET(
         t.due_date,
         t.task_group_id,
         t.project_id,
-        t.task_status_id,
         t.created_at,
         t.updated_at
       FROM tasks t
@@ -54,8 +53,7 @@ export async function POST(
       title,
       description,
       priority = 'MEDIUM',
-      due_date,
-      task_status_id 
+      due_date
     } = body;
 
     if (!title) {
@@ -80,13 +78,13 @@ export async function POST(
     const result = await pool.query(`
       INSERT INTO tasks (
         id, title, description, position, priority, 
-        due_date, task_group_id, project_id, task_status_id
+        due_date, task_group_id, project_id
       )
-      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
+      VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
       RETURNING *
     `, [
       taskId, title, description, position, priority,
-      due_date, taskGroupId, projectId, task_status_id
+      due_date, taskGroupId, projectId
     ]);
 
     return NextResponse.json({

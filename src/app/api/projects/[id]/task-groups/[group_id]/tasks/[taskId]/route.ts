@@ -20,12 +20,9 @@ export async function GET(
         t.due_date,
         t.task_group_id,
         t.project_id,
-        t.task_status_id,
         t.created_at,
-        t.updated_at,
-        ts.name as status_name
+        t.updated_at
       FROM tasks t
-      LEFT JOIN task_statuses ts ON t.task_status_id = ts.status_id
       WHERE t.id = $1 AND t.task_group_id = $2 AND t.project_id = $3
     `, [taskId, taskGroupId, projectId]);
 
@@ -52,17 +49,17 @@ export async function GET(
 // PUT /api/projects/[id]/task-groups/[group_id]/tasks/[taskId] - Update task
 export async function PUT(
   request: NextRequest,
-  context: { params: { id: string; group_id: string; taskId: string } }
+  { params }: { params: { id: string; group_id: string; taskId: string } }
 ) {
   try {
-    const body = await request.json();
-    const { id: projectId, group_id: taskGroupId, taskId } = context.params;
+    const text = await request.text();
+    const body = text ? JSON.parse(text) : {};
+    const { id: projectId, group_id: taskGroupId, taskId } = params;
     const { 
       title, 
       description, 
       priority, 
-      due_date, 
-      task_status_id 
+      due_date
     } = body;
 
     const result = await pool.query(`
@@ -72,13 +69,12 @@ export async function PUT(
         description = COALESCE($2, description),
         priority = COALESCE($3, priority),
         due_date = COALESCE($4, due_date),
-        task_status_id = COALESCE($5, task_status_id),
         updated_at = now()
-      WHERE id = $6 AND task_group_id = $7 AND project_id = $8
+      WHERE id = $5 AND task_group_id = $6 AND project_id = $7
       RETURNING *
     `, [
       title, description, priority, due_date, 
-      task_status_id, taskId, taskGroupId, projectId
+      taskId, taskGroupId, projectId
     ]);
 
     if (result.rows.length === 0) {
@@ -113,12 +109,10 @@ export async function PUT(
 // DELETE /api/projects/[id]/task-groups/[group_id]/tasks/[taskId] - Delete task
 export async function DELETE(
   request: NextRequest,
-  context: { params: { id: string; group_id: string; taskId: string } }
+  { params }: { params: { id: string; group_id: string; taskId: string } }
 ) {
   try {
-    // By awaiting the request, we ensure params are populated
-    await request.text(); 
-    const { id: projectId, group_id: taskGroupId, taskId } = context.params;
+    const { id: projectId, group_id: taskGroupId, taskId } = params;
 
     const result = await pool.query(`
       DELETE FROM tasks 

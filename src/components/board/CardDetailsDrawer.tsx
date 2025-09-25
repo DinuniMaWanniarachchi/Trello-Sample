@@ -214,7 +214,7 @@ export const CardDetailsDrawer: React.FC<CardDetailsDrawerProps> = ({
               )}
             </div>
 
-            {/* Status Dropdown */}
+            {/* Status Dropdown
             <div className="space-y-3">
               <div className="flex items-center space-x-4">
                 <label className="text-sm font-medium text-muted-foreground">Status</label>
@@ -241,7 +241,7 @@ export const CardDetailsDrawer: React.FC<CardDetailsDrawerProps> = ({
                   </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
-            </div>
+            </div> */}
 
             {/* Status Badges */}
             <div className="space-y-3">
