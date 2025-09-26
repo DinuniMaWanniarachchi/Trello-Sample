@@ -24,7 +24,7 @@ interface DropdownMenuItemProps {
   children: React.ReactNode;
 }
 
-export const DropdownMenu: React.FC<DropdownMenuProps> = ({ children, ...props }) => {
+export const DropdownMenu: React.FC<DropdownMenuProps> = ({ children }) => {
   const [isOpen, setIsOpen] = useState(false);
   
   return (
@@ -35,7 +35,6 @@ export const DropdownMenu: React.FC<DropdownMenuProps> = ({ children, ...props }
           return React.cloneElement(child as React.ReactElement<any>, {
             isOpen,
             setIsOpen,
-            ...props
           });
         }
         return child;
@@ -48,7 +47,8 @@ export const DropdownMenuTrigger: React.FC<DropdownMenuTriggerProps & { isOpen?:
   children, 
   isOpen, 
   setIsOpen,
-  ...props
+  asChild, // Extract React-specific props
+  ...domProps // Only DOM-safe props
 }) => {
   const handleClick = () => {
     setIsOpen?.(!isOpen);
@@ -58,7 +58,7 @@ export const DropdownMenuTrigger: React.FC<DropdownMenuTriggerProps & { isOpen?:
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     return React.cloneElement(children as React.ReactElement<any>, {
       onClick: handleClick,
-      ...props
+      ...domProps // Only pass DOM-safe props
     });
   }
   return <>{children}</>;
@@ -70,7 +70,7 @@ export const DropdownMenuContent: React.FC<DropdownMenuContentProps & { isOpen?:
   children, 
   isOpen,
   setIsOpen,
-  ...props
+  // Don't spread props here - extract only what we need
 }) => {
   const ref = useRef<HTMLDivElement>(null);
 
@@ -98,7 +98,7 @@ export const DropdownMenuContent: React.FC<DropdownMenuContentProps & { isOpen?:
     <div
       ref={ref}
       className={`absolute top-full mt-1 z-50 ${alignmentClass} ${className}`}
-      {...props}
+      // Removed {...props} - this was causing the error
     >
       {React.Children.map(children, (child) => {
         if (React.isValidElement(child)) {
@@ -118,7 +118,7 @@ export const DropdownMenuItem: React.FC<DropdownMenuItemProps & { setIsOpen?: (o
   className = '', 
   children, 
   setIsOpen,
-  ...props
+  // Don't spread props here - extract only what we need
 }) => {
   const handleClick = () => {
     onClick?.();
@@ -129,7 +129,7 @@ export const DropdownMenuItem: React.FC<DropdownMenuItemProps & { setIsOpen?: (o
     <div
       onClick={handleClick}
       className={`cursor-pointer ${className}`}
-      {...props}
+      // Removed {...props} - this was causing the error
     >
       {children}
     </div>
