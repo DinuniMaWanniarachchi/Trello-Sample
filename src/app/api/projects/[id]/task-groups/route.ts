@@ -4,11 +4,10 @@ import  pool  from '@/lib/db';
 
 // GET /api/projects/[id]/task-groups - Get all task groups for a project
 export async function GET(
-  request: NextRequest,
-  { params }: { params: { id: string } }
+  request: NextRequest
 ) {
   try {
-    const projectId = params.id;
+    const projectId = request.nextUrl.pathname.split('/')[3];
 
     const query = `
       SELECT 
@@ -45,11 +44,10 @@ export async function GET(
 
 // POST /api/projects/[id]/task-groups - Create a new task group
 export async function POST(
-  request: NextRequest,
-  { params }: { params: { id: string } }
+  request: NextRequest
 ) {
   try {
-    const projectId = params.id;
+    const projectId = request.nextUrl.pathname.split('/')[3];
     const body = await request.json();
     const { name, color = '#e2e8f0' } = body;
 

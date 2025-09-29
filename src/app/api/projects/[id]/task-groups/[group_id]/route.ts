@@ -5,10 +5,10 @@ import pool from '@/lib/db';
 // GET /api/projects/[id]/task-groups/[groupId] - Get specific task group
 export async function GET(
   request: NextRequest,
-  { params }: { params: Promise<{ id: string; groupId: string }> }
+  { params }: { params: Promise<{ id: string; group_id: string }> }
 ) {
   try {
-    const { id: projectId, groupId } = await params; // Added await
+    const { id: projectId, group_id: groupId } = await params; // Added await
 
     const query = `
       SELECT 
@@ -55,10 +55,10 @@ export async function GET(
 // PUT /api/projects/[id]/task-groups/[groupId] - Update task group
 export async function PUT(
   request: NextRequest,
-  { params }: { params: Promise<{ id: string; groupId: string }> }
+  { params }: { params: Promise<{ id: string; group_id: string }> }
 ) {
   try {
-    const { id: projectId, groupId } = await params; // Added await
+    const { id: projectId, group_id: groupId } = await params; // Added await
     const body = await request.json();
     const { name, color, position } = body;
 
@@ -144,10 +144,10 @@ export async function PUT(
 // DELETE /api/projects/[id]/task-groups/[groupId] - Delete task group
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: Promise<{ id: string; groupId: string }> }
+  { params }: { params: Promise<{ id: string; group_id: string }> }
 ) {
   try {
-    const { id: projectId, groupId } = await params; // Added await
+    const { id: projectId, group_id: groupId } = await params; // Added await
 
     // Check if task group exists
     const checkQuery = `
@@ -172,7 +172,18 @@ export async function DELETE(
       WHERE id = $1 AND project_id = $2
     `;
 
-    await pool.query(deleteQuery, [groupId, projectId]);
+    const result = await pool.query(deleteQuery, [groupId, projectId]);
+
+    // Check if any row was actually deleted
+    if (result.rowCount === 0) {
+      return NextResponse.json(
+        { 
+          success: false, 
+          error: 'Task group not found or already deleted' 
+        },
+        { status: 404 }
+      );
+    }
 
     return NextResponse.json({
       success: true,

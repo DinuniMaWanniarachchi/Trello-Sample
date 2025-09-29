@@ -353,8 +353,35 @@ const boardSlice = createSlice({
         state.error = action.payload as string || 'Failed to move task. Please refresh the page.';
       })
       .addCase(updateTaskGroup.fulfilled, (state, action) => {
-        const idx = state.taskGroups.findIndex((tg) => tg.id === action.payload.id);
-        if (idx !== -1) state.taskGroups[idx] = action.payload;
+        const updatedGroup = action.payload;
+        
+        // Update taskGroups array
+        const taskGroupIndex = state.taskGroups.findIndex((tg) => tg.id === updatedGroup.id);
+        if (taskGroupIndex !== -1) {
+          state.taskGroups[taskGroupIndex] = updatedGroup;
+        }
+
+        // Update currentBoard if it exists
+        if (state.currentBoard && state.currentBoard.lists) {
+          const listIndex = state.currentBoard.lists.findIndex(list => list.id === updatedGroup.id);
+          
+          if (listIndex !== -1) {
+            // Create a new lists array with the updated list
+            const newLists = [...state.currentBoard.lists];
+            const updatedList = {
+              ...newLists[listIndex],
+              title: updatedGroup.name,
+              titleColor: updatedGroup.color as ColorType || newLists[listIndex].titleColor,
+            };
+            newLists[listIndex] = updatedList;
+
+            // Return a new state for currentBoard to ensure re-render
+            state.currentBoard = {
+              ...state.currentBoard,
+              lists: newLists,
+            };
+          }
+        }
       })
       .addCase(deleteTaskGroup.fulfilled, (state, action) => {
         state.taskGroups = state.taskGroups.filter((tg) => tg.id !== action.payload);

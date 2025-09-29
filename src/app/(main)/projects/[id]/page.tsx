@@ -28,7 +28,8 @@ import {
   updateTask,
   deleteTask,
   moveTask,
-  fetchTaskStatuses
+  fetchTaskStatuses,
+  updateTaskGroup
 } from '@/lib/features/boardSlice';
 import { UpdateTaskData } from '@/lib/api/tasksApi';
 import { SharedHeader } from '@/components/common/SharedHeader';
@@ -386,50 +387,31 @@ export default function ProjectPage() {
     
     const newTitle = prompt('Enter new list name:', list.title);
     if (newTitle && newTitle.trim() && newTitle !== list.title) {
-      // Update the list title locally
+      // Optimistically update the UI
       const updatedLists = currentBoard.lists.map(l => 
         l.id === listId 
           ? { ...l, title: newTitle.trim() }
           : l
       );
-      
       dispatch(setCurrentBoard({
         ...currentBoard,
         lists: updatedLists
       }));
-      
-      // If you have an API endpoint for renaming task groups, call it here
-      // dispatch(updateTaskGroup({ projectId, groupId: listId, data: { name: newTitle.trim() } }));
+
+      // Dispatch the update action to the backend.
+      dispatch(updateTaskGroup({ projectId, groupId: listId, data: { name: newTitle.trim() } }));
     }
   };
 
   const handleChangeCategoryColor = (listId: string, category: string, color: ColorType) => {
     if (!currentBoard) return;
     
-    // Update the list title and color
-    const updatedLists = currentBoard.lists.map(list => 
-      list.id === listId 
-        ? { 
-            ...list, 
-            titleColor: color       // Update the color
-          }
-        : list
-    );
-    
-    // Dispatch the update to Redux store
-    dispatch(setCurrentBoard({
-      ...currentBoard,
-      lists: updatedLists
+    // Dispatch the update to the backend. The reducer will handle the state update.
+    dispatch(updateTaskGroup({ 
+      projectId, 
+      groupId: listId, 
+      data: { name: category, color: color } 
     }));
-    
-    // Optional: If you have an API endpoint to update task groups, call it here
-    // dispatch(updateTaskGroup({ 
-    //   projectId, 
-    //   groupId: listId, 
-    //   data: { name: category, color: color } 
-    // }));
-    
-    console.log(`Changed list ${listId} to category: ${category}, color: ${color}`);
   };
 
   const handleCardClick = (card: Card) => {
