@@ -406,11 +406,22 @@ export default function ProjectPage() {
   const handleChangeCategoryColor = (listId: string, category: string, color: ColorType) => {
     if (!currentBoard) return;
     
-    // Dispatch the update to the backend. The reducer will handle the state update.
+    // Optimistically update the UI
+    const updatedLists = currentBoard.lists.map(list => 
+      list.id === listId 
+        ? { ...list, titleColor: color }
+        : list
+    );
+    dispatch(setCurrentBoard({
+      ...currentBoard,
+      lists: updatedLists
+    }));
+    
+    // Dispatch the update to the backend.
     dispatch(updateTaskGroup({ 
       projectId, 
       groupId: listId, 
-      data: { name: category, color: color } 
+      data: { color: color } 
     }));
   };
 
