@@ -580,9 +580,8 @@ export default function ProjectPage() {
         card={selectedCard}
         isOpen={isCardDrawerOpen}
         onClose={handleCloseDrawer}
-        onUpdate={handleUpdateCard} 
-        onDelete={handleDeleteCard}
-      />
+        onUpdate={handleUpdateCard}
+        onDelete={handleDeleteCard} projectId={''}      />
     </div>
   );
 }

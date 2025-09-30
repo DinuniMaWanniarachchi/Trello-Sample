@@ -59,7 +59,8 @@ export async function PUT(
       title, 
       description, 
       priority, 
-      due_date
+      due_date,
+      task_status_id
     } = body;
 
     const result = await pool.query(`
@@ -69,11 +70,12 @@ export async function PUT(
         description = COALESCE($2, description),
         priority = COALESCE($3, priority),
         due_date = COALESCE($4, due_date),
+        task_status_id = COALESCE($5, task_status_id),
         updated_at = now()
-      WHERE id = $5 AND task_group_id = $6 AND project_id = $7
+      WHERE id = $6 AND task_group_id = $7 AND project_id = $8
       RETURNING *
     `, [
-      title, description, priority, due_date, 
+      title, description, priority, due_date, task_status_id,
       taskId, taskGroupId, projectId
     ]);
 

@@ -1,4 +1,3 @@
-/* eslint-disable react/no-unescaped-entities */
 // components/board/CardDetailsDrawer.tsx
 "use client";
 
@@ -31,12 +30,11 @@ import {
 } from '@/components/ui/alert-dialog';
 import { X, Edit3, Type, Tag, Clock, MoreHorizontal, Trash2, ChevronDown, Flag } from 'lucide-react';
 import { Card, StatusBadge, ColorType, badgeColors } from '@/types/kanban';
+import { TaskLabelType, PREDEFINED_LABELS } from '@/types/taskLabels';
+import { TaskLabelSelector } from './TaskLabelSelector';
 import { formatDueDate, getDueDateColor } from '@/utils/dateUtils';
 
-// Task status type
 type TaskStatus = 'todo' | 'doing' | 'done';
-
-// Priority type
 type PriorityType = 'low' | 'medium' | 'high' | 'none';
 
 interface CardDetailsDrawerProps {
@@ -45,9 +43,9 @@ interface CardDetailsDrawerProps {
   onClose: () => void;
   onUpdate: (cardId: string, updates: Partial<Card>) => void;
   onDelete: (cardId: string) => void;
+  projectId: string; // Add projectId for API calls
 }
 
-// Priority colors and labels
 const priorityConfig = {
   none: { label: 'No Priority', color: 'text-gray-400', bgColor: 'bg-gray-400', icon: '○' },
   low: { label: 'Low', color: 'text-blue-500', bgColor: 'bg-blue-500', icon: '●' },
@@ -60,19 +58,20 @@ export const CardDetailsDrawer: React.FC<CardDetailsDrawerProps> = ({
   isOpen, 
   onClose, 
   onUpdate,
-  onDelete 
+  onDelete,
+  projectId
 }) => {
   const [editedTitle, setEditedTitle] = useState('');
   const [editedDescription, setEditedDescription] = useState('');
   const [editedDueDate, setEditedDueDate] = useState('');
   const [editedStatus, setEditedStatus] = useState<TaskStatus>('todo');
   const [editedPriority, setEditedPriority] = useState<PriorityType>('none');
+  const [selectedLabels, setSelectedLabels] = useState<TaskLabelType[]>([]);
   const [newBadgeText, setNewBadgeText] = useState('');
   const [newBadgeColor, setNewBadgeColor] = useState<ColorType>('blue');
   const [isEditingTitle, setIsEditingTitle] = useState(false);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
 
-  // Update local state when card changes
   useEffect(() => {
     if (card && isOpen) {
       setEditedTitle(card.title || '');
@@ -81,8 +80,60 @@ export const CardDetailsDrawer: React.FC<CardDetailsDrawerProps> = ({
       setEditedStatus((card as any).status || 'todo');
       setEditedPriority((card as any).priority || 'none');
       setIsEditingTitle(false);
+      
+      // Load task labels
+      fetchTaskLabels();
     }
   }, [card, isOpen]);
+
+  const fetchTaskLabels = async () => {
+    if (!card || !card.task_group_id) return;
+    
+    try {
+      const response = await fetch(`/api/projects/${projectId}/task-groups/${card.task_group_id}/tasks/${card.id}/labels`);
+      const result = await response.json();
+      
+      if (result.success) {
+        setSelectedLabels(result.data.map((l: any) => l.type));
+      }
+    } catch (error) {
+      console.error('Error fetching labels:', error);
+    }
+  };
+
+  const handleLabelToggle = async (labelType: TaskLabelType) => {
+    if (!card || !card.task_group_id) return;
+
+    const isSelected = selectedLabels.includes(labelType);
+    
+    try {
+      if (isSelected) {
+        // Remove label
+        const response = await fetch(`/api/projects/${projectId}/task-groups/${card.task_group_id}/tasks/${card.id}/labels`, {
+          method: 'DELETE',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ labelType })
+        });
+
+        if (response.ok) {
+          setSelectedLabels(prev => prev.filter(l => l !== labelType));
+        }
+      } else {
+        // Add label
+        const response = await fetch(`/api/projects/${projectId}/task-groups/${card.task_group_id}/tasks/${card.id}/labels`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ labelType })
+        });
+
+        if (response.ok) {
+          setSelectedLabels(prev => [...prev, labelType]);
+        }
+      }
+    } catch (error) {
+      console.error('Error toggling label:', error);
+    }
+  };
 
   if (!card) return null;
 
@@ -100,16 +151,12 @@ export const CardDetailsDrawer: React.FC<CardDetailsDrawerProps> = ({
 
   const handleStatusChange = (status: TaskStatus) => {
     setEditedStatus(status);
-    onUpdate(card.id, {
-      status: status
-    } as any);
+    onUpdate(card.id, { status: status } as any);
   };
 
   const handlePriorityChange = (priority: PriorityType) => {
     setEditedPriority(priority);
-    onUpdate(card.id, {
-      priority: priority
-    } as any);
+    onUpdate(card.id, { priority: priority } as any);
   };
 
   const handleAddBadge = () => {
@@ -144,17 +191,12 @@ export const CardDetailsDrawer: React.FC<CardDetailsDrawerProps> = ({
     });
   };
 
-  // Status display helper
   const getStatusDisplay = (status: TaskStatus) => {
     switch (status) {
-      case 'todo':
-        return 'To Do';
-      case 'doing':
-        return 'Doing';
-      case 'done':
-        return 'Done';
-      default:
-        return 'To Do';
+      case 'todo': return 'To Do';
+      case 'doing': return 'Doing';
+      case 'done': return 'Done';
+      default: return 'To Do';
     }
   };
 
@@ -195,7 +237,6 @@ export const CardDetailsDrawer: React.FC<CardDetailsDrawerProps> = ({
             </SheetDescription>
           </SheetHeader>
 
-          {/* Content - Scrollable */}
           <div className="flex-3 overflow-y-auto pt-8 pb-4 px-4 space-y-6">
             {/* Title Section */}
             <div className="space-y-3">
@@ -233,6 +274,47 @@ export const CardDetailsDrawer: React.FC<CardDetailsDrawerProps> = ({
                   {editedTitle || 'Click to add title...'}
                 </div>
               )}
+            </div>
+
+            {/* Task Labels Section */}
+            <div className="space-y-3">
+              <div className="flex items-center space-x-4">
+                <Tag className="h-4 w-4 text-muted-foreground" />
+                <label className="text-sm font-medium text-muted-foreground">Labels</label>
+              </div>
+              
+              {/* Display Selected Labels */}
+              {selectedLabels.length > 0 && (
+                <div className="flex flex-wrap gap-2">
+                  {selectedLabels.map((labelType) => {
+                    const labelDef = PREDEFINED_LABELS.find((l: { type: any; }) => l.type === labelType);
+                    return (
+                      <div key={labelType} className="flex items-center">
+                        <span 
+                          className="inline-flex items-center px-3 py-1 rounded-md text-sm font-medium text-white"
+                          style={{ backgroundColor: labelDef?.color }}
+                        >
+                          {labelDef?.name}
+                        </span>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="ml-1 h-6 w-6 p-0 text-white hover:text-red-500"
+                          onClick={() => handleLabelToggle(labelType)}
+                        >
+                          <X className="h-3 w-3" />
+                        </Button>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+
+              {/* Label Selector */}
+              <TaskLabelSelector
+                selectedLabels={selectedLabels}
+                onLabelToggle={handleLabelToggle}
+              />
             </div>
 
             {/* Priority Dropdown */}
@@ -295,66 +377,6 @@ export const CardDetailsDrawer: React.FC<CardDetailsDrawerProps> = ({
                   </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
-            </div>
-
-            {/* Status Badges */}
-            <div className="space-y-3">
-              <div className="flex items-center space-x-4">
-                <Tag className="h-4 w-4 text-muted-foreground" />
-                <label className="text-sm font-medium text-muted-foreground">Labels</label>
-              </div>
-              
-              {/* Existing Badges */}
-              {card.statusBadges && card.statusBadges.length > 0 && (
-                <div className="flex flex-wrap gap-2">
-                  {card.statusBadges.map((badge) => (
-                    <div key={badge.id} className="flex items-center">
-                      <span className={`inline-block px-3 py-1 rounded-md text-sm font-medium ${badgeColors[badge.color]}`}>
-                        {badge.text}
-                      </span>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        className="ml-1 h-6 w-6 p-0 text-muted-foreground hover:text-red-500"
-                        onClick={() => handleRemoveBadge(badge.id)}
-                      >
-                        <X className="h-3 w-3" />
-                      </Button>
-                    </div>
-                  ))}
-                </div>
-              )}
-
-              {/* Add New Badge */}
-              <div className="space-y-2">
-                <Input
-                  placeholder="Add label..."
-                  value={newBadgeText}
-                  onChange={(e) => setNewBadgeText(e.target.value)}
-                  className="w-full bg-accent border-border text-foreground placeholder-muted-foreground"
-                  onKeyPress={(e) => {
-                    if (e.key === 'Enter') {
-                      handleAddBadge();
-                    }
-                  }}
-                />
-                <div className="flex items-center space-x-2">
-                  <select
-                    value={newBadgeColor}
-                    onChange={(e) => setNewBadgeColor(e.target.value as ColorType)}
-                    className="flex-1 px-3 py-2 border border-border rounded-md text-sm bg-accent text-foreground"
-                  >
-                    {Object.keys(badgeColors).map((color) => (
-                      <option key={color} value={color}>
-                        {color.charAt(0).toUpperCase() + color.slice(1)}
-                      </option>
-                    ))}
-                  </select>
-                  <Button size="sm" onClick={handleAddBadge} disabled={!newBadgeText.trim()} className="bg-blue-600 hover:bg-blue-700 text-white">
-                    Add
-                  </Button>
-                </div>
-              </div>
             </div>
 
             {/* Due Date */}
@@ -438,4 +460,4 @@ export const CardDetailsDrawer: React.FC<CardDetailsDrawerProps> = ({
       </AlertDialog>
     </>
   );
-}
+};

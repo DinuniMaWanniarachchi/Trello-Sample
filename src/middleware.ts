@@ -25,6 +25,10 @@ const isValidToken = async (token: string): Promise<boolean> => {
 
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
+
+  if (pathname.startsWith('/api')) {
+    return NextResponse.next();
+  }
   
   // Define route types
   const protectedPaths = ['/home', '/projects'];
@@ -73,17 +77,3 @@ export async function middleware(request: NextRequest) {
   
   return NextResponse.next();
 }
-
-export const config = {
-  matcher: [
-    /*
-     * Match all request paths except for the ones starting with:
-     * - api (API routes)
-     * - _next/static (static files)
-     * - _next/image (image optimization files)
-     * - favicon.ico (favicon file)
-     * - public files (images, etc.)
-     */
-    '/((?!api|_next/static|_next/image|.*\.ico$|public).*)',
-  ],
-};
