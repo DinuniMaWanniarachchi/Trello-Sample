@@ -32,7 +32,7 @@ export interface UpdateTaskData {
   title?: string;
   description?: string;
   position?: number;
-  priority?: 'LOW' | 'MEDIUM' | 'HIGH';
+  priority?: 'LOW' | 'MEDIUM' | 'HIGH' | null;
   due_date?: string;
   task_status_id?: string;
 }

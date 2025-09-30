@@ -3,7 +3,7 @@ import { createSlice, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit';
 import { taskGroupsApi, taskStatusesApi } from '@/lib/api/taskGroupsApi';
 import { tasksApi, CreateTaskData, UpdateTaskData, Task } from '@/lib/api/tasksApi';
 import { TaskGroup, TaskStatus } from '@/types/taskGroup';
-import { Board, Card, ColorType, List, StatusBadge } from '@/types/kanban';
+import { Board, Card, ColorType, List, PriorityType, StatusBadge } from '@/types/kanban';
 
 // -------------------- Async thunks (API integration) --------------------
 export const fetchTaskGroups = createAsyncThunk(
@@ -315,14 +315,8 @@ const boardSlice = createSlice({
         if (list) {
           const cardIndex = list.cards.findIndex((c) => c.id === action.payload.id);
           if (cardIndex !== -1) {
-            const updatedCard: Card = {
-              ...list.cards[cardIndex],
-              id: action.payload.id,
-              title: action.payload.title,
-              description: action.payload.description,
-              dueDate: action.payload.due_date,
-            };
-            list.cards[cardIndex] = updatedCard;
+            const { priority } = action.payload;
+            list.cards[cardIndex].priority = priority ? priority.toLowerCase() as PriorityType : 'none';
           }
         }
         state.loading = false;

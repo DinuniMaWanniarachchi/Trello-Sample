@@ -29,7 +29,8 @@ import {
   deleteTask,
   moveTask,
   fetchTaskStatuses,
-  updateTaskGroup
+  updateTaskGroup,
+  updateCard
 } from '@/lib/features/boardSlice';
 import { UpdateTaskData } from '@/lib/api/tasksApi';
 import { SharedHeader } from '@/components/common/SharedHeader';
@@ -75,6 +76,18 @@ export default function ProjectPage() {
       dispatch(fetchTaskStatuses(projectId));
     }
   }, [dispatch, projectId]);
+
+  useEffect(() => {
+    if (currentBoard && selectedCard) {
+      const list = currentBoard.lists.find(l => l.cards.some(c => c.id === selectedCard.id));
+      if (list) {
+        const newCard = list.cards.find(c => c.id === selectedCard.id);
+        if (newCard && JSON.stringify(newCard) !== JSON.stringify(selectedCard)) {
+          setSelectedCard(newCard);
+        }
+      }
+    }
+  }, [currentBoard, selectedCard]);
 
   // Storage key for this specific project
   const getStorageKey = (projectId: string) => `kanban_board_${projectId}`;
@@ -337,12 +350,23 @@ export default function ProjectPage() {
     if (!currentBoard) return;
     const list = currentBoard.lists.find(l => l.cards.some(c => c.id === cardId));
     if (list) {
+      // Optimistic update
+      dispatch(updateCard({ listId: list.id, cardId, updates }));
+
       const backendUpdates: UpdateTaskData = {
           title: updates.title,
           description: updates.description,
           due_date: updates.dueDate,
           task_status_id: updates.task_status_id,
       };
+
+      if (updates.hasOwnProperty('priority')) {
+        if (updates.priority === 'none') {
+          backendUpdates.priority = null;
+        } else if (updates.priority) {
+          backendUpdates.priority = updates.priority.toUpperCase() as 'LOW' | 'MEDIUM' | 'HIGH';
+        }
+      }
 
       dispatch(updateTask({
         projectId,

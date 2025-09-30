@@ -1,5 +1,6 @@
 // src/types/kanban.ts
 export type ColorType = 'orange' | 'blue' | 'green' | 'red' | 'purple' | 'yellow' | 'gray' | 'white';
+export type PriorityType = 'low' | 'medium' | 'high' | 'none';
 
 export interface StatusBadge {
   id: string;
@@ -18,6 +19,7 @@ export interface Card {
   attachments?: number;
   comments?: number;
   task_status_id?: string;
+  priority?: PriorityType;
 }
 
 export interface List {

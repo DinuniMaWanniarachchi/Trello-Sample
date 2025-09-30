@@ -29,12 +29,15 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
-import { X, Edit3, Type, Tag, Clock, MoreHorizontal, Trash2, ChevronDown } from 'lucide-react';
+import { X, Edit3, Type, Tag, Clock, MoreHorizontal, Trash2, ChevronDown, Flag } from 'lucide-react';
 import { Card, StatusBadge, ColorType, badgeColors } from '@/types/kanban';
 import { formatDueDate, getDueDateColor } from '@/utils/dateUtils';
 
 // Task status type
 type TaskStatus = 'todo' | 'doing' | 'done';
+
+// Priority type
+type PriorityType = 'low' | 'medium' | 'high' | 'none';
 
 interface CardDetailsDrawerProps {
   card: Card | null;
@@ -43,6 +46,14 @@ interface CardDetailsDrawerProps {
   onUpdate: (cardId: string, updates: Partial<Card>) => void;
   onDelete: (cardId: string) => void;
 }
+
+// Priority colors and labels
+const priorityConfig = {
+  none: { label: 'No Priority', color: 'text-gray-400', bgColor: 'bg-gray-400', icon: '○' },
+  low: { label: 'Low', color: 'text-blue-500', bgColor: 'bg-blue-500', icon: '●' },
+  medium: { label: 'Medium', color: 'text-yellow-500', bgColor: 'bg-yellow-500', icon: '●' },
+  high: { label: 'High', color: 'text-red-500', bgColor: 'bg-red-500', icon: '●' },
+};
 
 export const CardDetailsDrawer: React.FC<CardDetailsDrawerProps> = ({ 
   card, 
@@ -55,6 +66,7 @@ export const CardDetailsDrawer: React.FC<CardDetailsDrawerProps> = ({
   const [editedDescription, setEditedDescription] = useState('');
   const [editedDueDate, setEditedDueDate] = useState('');
   const [editedStatus, setEditedStatus] = useState<TaskStatus>('todo');
+  const [editedPriority, setEditedPriority] = useState<PriorityType>('none');
   const [newBadgeText, setNewBadgeText] = useState('');
   const [newBadgeColor, setNewBadgeColor] = useState<ColorType>('blue');
   const [isEditingTitle, setIsEditingTitle] = useState(false);
@@ -66,7 +78,8 @@ export const CardDetailsDrawer: React.FC<CardDetailsDrawerProps> = ({
       setEditedTitle(card.title || '');
       setEditedDescription(card.description || '');
       setEditedDueDate(card.dueDate || '');
-      setEditedStatus((card as any).status || 'todo'); // Add status to card type if not exists
+      setEditedStatus((card as any).status || 'todo');
+      setEditedPriority((card as any).priority || 'none');
       setIsEditingTitle(false);
     }
   }, [card, isOpen]);
@@ -78,7 +91,8 @@ export const CardDetailsDrawer: React.FC<CardDetailsDrawerProps> = ({
       title: editedTitle,
       description: editedDescription,
       dueDate: editedDueDate || undefined,
-      status: editedStatus, // Include status in update
+      status: editedStatus,
+      priority: editedPriority,
     } as any);
     setIsEditingTitle(false);
     onClose();
@@ -88,6 +102,13 @@ export const CardDetailsDrawer: React.FC<CardDetailsDrawerProps> = ({
     setEditedStatus(status);
     onUpdate(card.id, {
       status: status
+    } as any);
+  };
+
+  const handlePriorityChange = (priority: PriorityType) => {
+    setEditedPriority(priority);
+    onUpdate(card.id, {
+      priority: priority
     } as any);
   };
 
@@ -214,10 +235,11 @@ export const CardDetailsDrawer: React.FC<CardDetailsDrawerProps> = ({
               )}
             </div>
 
-            {/* Status Dropdown
+            {/* Priority Dropdown */}
             <div className="space-y-3">
               <div className="flex items-center space-x-4">
-                <label className="text-sm font-medium text-muted-foreground">Status</label>
+                <Flag className="h-4 w-4 text-muted-foreground" />
+                <label className="text-sm font-medium text-muted-foreground">Priority</label>
               </div>
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
@@ -225,23 +247,55 @@ export const CardDetailsDrawer: React.FC<CardDetailsDrawerProps> = ({
                     variant="outline" 
                     className="w-full justify-between bg-accent border-border text-foreground hover:bg-accent/80"
                   >
-                    {getStatusDisplay(editedStatus)}
+                    <div className="flex items-center gap-2">
+                      <span className={priorityConfig[editedPriority].color}>
+                        {priorityConfig[editedPriority].icon}
+                      </span>
+                      <span>{priorityConfig[editedPriority].label}</span>
+                    </div>
                     <ChevronDown className="h-4 w-4" />
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent className="w-full">
-                  <DropdownMenuItem onClick={() => handleStatusChange('todo')}>
-                    To Do
+                  <DropdownMenuItem 
+                    onClick={() => handlePriorityChange('none')}
+                    className="cursor-pointer"
+                  >
+                    <span className={`mr-2 ${priorityConfig.none.color}`}>
+                      {priorityConfig.none.icon}
+                    </span>
+                    {priorityConfig.none.label}
                   </DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => handleStatusChange('doing')}>
-                    Doing
+                  <DropdownMenuItem 
+                    onClick={() => handlePriorityChange('low')}
+                    className="cursor-pointer"
+                  >
+                    <span className={`mr-2 ${priorityConfig.low.color}`}>
+                      {priorityConfig.low.icon}
+                    </span>
+                    {priorityConfig.low.label}
                   </DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => handleStatusChange('done')}>
-                    Done
+                  <DropdownMenuItem 
+                    onClick={() => handlePriorityChange('medium')}
+                    className="cursor-pointer"
+                  >
+                    <span className={`mr-2 ${priorityConfig.medium.color}`}>
+                      {priorityConfig.medium.icon}
+                    </span>
+                    {priorityConfig.medium.label}
+                  </DropdownMenuItem>
+                  <DropdownMenuItem 
+                    onClick={() => handlePriorityChange('high')}
+                    className="cursor-pointer"
+                  >
+                    <span className={`mr-2 ${priorityConfig.high.color}`}>
+                      {priorityConfig.high.icon}
+                    </span>
+                    {priorityConfig.high.label}
                   </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
-            </div> */}
+            </div>
 
             {/* Status Badges */}
             <div className="space-y-3">
@@ -384,4 +438,4 @@ export const CardDetailsDrawer: React.FC<CardDetailsDrawerProps> = ({
       </AlertDialog>
     </>
   );
-};
+}
