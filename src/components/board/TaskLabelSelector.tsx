@@ -32,9 +32,7 @@ export const TaskLabelSelector: React.FC<TaskLabelSelectorProps> = ({
     return selectedLabels.includes(labelType);
   };
 
-  const handleLabelClick = (labelType: TaskLabelType, e: React.MouseEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
+  const handleLabelClick = (labelType: TaskLabelType) => {
     onLabelToggle(labelType);
   };
 
@@ -67,7 +65,7 @@ export const TaskLabelSelector: React.FC<TaskLabelSelectorProps> = ({
             <DropdownMenuItem
               key={label.id}
               className="cursor-pointer flex items-center justify-between px-3 py-2"
-              onClick={(e) => handleLabelClick(label.type, e)}
+              onClick={() => handleLabelClick(label.type)}
             >
               <div className="flex items-center gap-2 flex-1">
                 <div

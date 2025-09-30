@@ -1,4 +1,5 @@
 // src/types/kanban.ts
+import { TaskLabelType } from './taskLabels';
 export type ColorType = 'orange' | 'blue' | 'green' | 'red' | 'purple' | 'yellow' | 'gray' | 'white';
 export type PriorityType = 'low' | 'medium' | 'high' | 'none';
 
@@ -20,6 +21,8 @@ export interface Card {
   comments?: number;
   task_status_id?: string;
   priority?: PriorityType;
+  task_group_id?: string;
+  labels?: TaskLabelType[];
 }
 
 export interface List {

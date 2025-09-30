@@ -105,33 +105,34 @@ export const CardDetailsDrawer: React.FC<CardDetailsDrawerProps> = ({
     if (!card || !card.task_group_id) return;
 
     const isSelected = selectedLabels.includes(labelType);
-    
+    const newLabels = isSelected
+      ? selectedLabels.filter(l => l !== labelType)
+      : [...selectedLabels, labelType];
+
+    setSelectedLabels(newLabels);
+    onUpdate(card.id, { labels: newLabels });
+
     try {
       if (isSelected) {
         // Remove label
-        const response = await fetch(`/api/projects/${projectId}/task-groups/${card.task_group_id}/tasks/${card.id}/labels`, {
+        await fetch(`/api/projects/${projectId}/task-groups/${card.task_group_id}/tasks/${card.id}/labels`, {
           method: 'DELETE',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ labelType })
         });
-
-        if (response.ok) {
-          setSelectedLabels(prev => prev.filter(l => l !== labelType));
-        }
       } else {
         // Add label
-        const response = await fetch(`/api/projects/${projectId}/task-groups/${card.task_group_id}/tasks/${card.id}/labels`, {
+        await fetch(`/api/projects/${projectId}/task-groups/${card.task_group_id}/tasks/${card.id}/labels`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ labelType })
         });
-
-        if (response.ok) {
-          setSelectedLabels(prev => [...prev, labelType]);
-        }
       }
     } catch (error) {
       console.error('Error toggling label:', error);
+      // Optionally revert state change on error
+      setSelectedLabels(selectedLabels);
+      onUpdate(card.id, { labels: selectedLabels });
     }
   };
 
