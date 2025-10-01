@@ -357,7 +357,6 @@ export default function ProjectPage() {
           description: updates.description,
           due_date: updates.dueDate,
           task_status_id: updates.task_status_id,
-          labels: updates.labels,
       };
 
       if (updates.hasOwnProperty('priority')) {

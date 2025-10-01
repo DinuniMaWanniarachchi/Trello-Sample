@@ -123,10 +123,11 @@ export const CardDetailsDrawer: React.FC<CardDetailsDrawerProps> = ({
     if (!card || !card.task_group_id) return;
 
     const isSelected = selectedLabels.includes(labelType);
+    console.log('handleLabelToggle called. labelType:', labelType, 'isSelected:', isSelected);
     
     try {
       if (isSelected) {
-        // Remove label using Redux action
+        console.log('Dispatching removeTaskLabel for:', { projectId, groupId: card.task_group_id, taskId: card.id, labelType });
         await dispatch(removeTaskLabel({
           projectId,
           groupId: card.task_group_id,
@@ -134,12 +135,11 @@ export const CardDetailsDrawer: React.FC<CardDetailsDrawerProps> = ({
           labelType
         })).unwrap();
         
-        // Update local state
         const newLabels = selectedLabels.filter((l) => l !== labelType);
         setSelectedLabels(newLabels);
-        console.log('Label removed:', labelType);
+        console.log('Label removed successfully. New selectedLabels:', newLabels);
       } else {
-        // Add label using Redux action
+        console.log('Dispatching addTaskLabel for:', { projectId, groupId: card.task_group_id, taskId: card.id, labelType });
         await dispatch(addTaskLabel({
           projectId,
           groupId: card.task_group_id,
@@ -147,14 +147,12 @@ export const CardDetailsDrawer: React.FC<CardDetailsDrawerProps> = ({
           labelType
         })).unwrap();
         
-        // Update local state
         const newLabels = [...selectedLabels, labelType];
         setSelectedLabels(newLabels);
-        console.log('Label added:', labelType);
+        console.log('Label added successfully. New selectedLabels:', newLabels);
       }
     } catch (error) {
-      console.error('Error toggling label:', error);
-      // Reload labels on error to sync state
+      console.error('Error toggling label:', error instanceof Error ? error.message : error);
       loadLabels();
     }
   };

@@ -7,10 +7,10 @@ import { isValidLabelType } from '@/utils/labelUtils';
 // GET - Fetch all labels for a task
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string; group_id: string; taskId: string } }
+  { params }: { params: Promise<{ id: string; group_id: string; taskId: string }> }
 ) {
   try {
-    const { id: projectId, group_id: taskGroupId, taskId } = params;
+    const { id: projectId, group_id: taskGroupId, taskId } = await params;
 
     // Verify task exists in this project/group
     const taskCheck = await pool.query(
@@ -56,10 +56,10 @@ export async function GET(
 // POST - Add a label to a task
 export async function POST(
   request: NextRequest,
-  { params }: { params: { id: string; group_id: string; taskId: string } }
+  { params }: { params: Promise<{ id: string; group_id: string; taskId: string }> }
 ) {
   try {
-    const { id: projectId, group_id: taskGroupId, taskId } = params;
+    const { id: projectId, group_id: taskGroupId, taskId } = await params;
     const text = await request.text();
     const body = text ? JSON.parse(text) : {};
     const { labelType } = body;
@@ -129,10 +129,10 @@ export async function POST(
 // DELETE - Remove a label from a task
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string; group_id: string; taskId: string } }
+  { params }: { params: Promise<{ id: string; group_id: string; taskId: string }> }
 ) {
   try {
-    const { id: projectId, group_id: taskGroupId, taskId } = params;
+    const { id: projectId, group_id: taskGroupId, taskId } = await params;
     const text = await request.text();
     const body = text ? JSON.parse(text) : {};
     const { labelType } = body;

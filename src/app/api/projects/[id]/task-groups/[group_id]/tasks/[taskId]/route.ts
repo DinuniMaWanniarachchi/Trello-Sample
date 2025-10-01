@@ -5,7 +5,7 @@ import pool from '@/lib/db';
 // GET /api/projects/[id]/task-groups/[group_id]/tasks/[taskId] - Get specific task
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string; group_id: string; taskId: string } }
+  { params }: { params: Promise<{ id: string; group_id: string; taskId: string }> }
 ) {
   try {
     const { id: projectId, group_id: taskGroupId, taskId } = await params;
@@ -83,14 +83,6 @@ export async function PUT(
 
       if (result.rows.length === 0) {
         throw new Error('Task not found');
-      }
-
-      if (labels) {
-        await pool.query('DELETE FROM task_labels WHERE task_id = $1', [taskId]);
-        for (const labelType of labels) {
-          const labelId = `label-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
-          await pool.query('INSERT INTO task_labels (id, task_id, label_type) VALUES ($1, $2, $3)', [labelId, taskId, labelType]);
-        }
       }
 
       await pool.query('COMMIT');

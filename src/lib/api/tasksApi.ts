@@ -16,6 +16,7 @@ export interface Task {
   task_status_id?: string;
   created_at?: string;
   updated_at?: string;
+  labels?: TaskLabelType[];
 }
 
 export interface CreateTaskData {
@@ -141,6 +142,7 @@ export const tasksApi = {
 
   // Add a label to a task
   addTaskLabel: async (projectId: string, groupId: string, taskId: string, labelType: TaskLabelType) => {
+    console.log('tasksApi.addTaskLabel called with:', { projectId, groupId, taskId, labelType });
     const response = await fetch(
       `${API_BASE}/projects/${projectId}/task-groups/${groupId}/tasks/${taskId}/labels`,
       {
@@ -149,15 +151,17 @@ export const tasksApi = {
         body: JSON.stringify({ labelType }),
       }
     );
+    const result = await response.json();
+    console.log('tasksApi.addTaskLabel response:', { ok: response.ok, status: response.status, result });
     if (!response.ok) {
-      const error = await response.json();
-      throw new Error(error.error || 'Failed to add label');
+      throw new Error(result.error || 'Failed to add label');
     }
-    return response.json();
+    return result;
   },
 
   // Remove a label from a task
   removeTaskLabel: async (projectId: string, groupId: string, taskId: string, labelType: TaskLabelType) => {
+    console.log('tasksApi.removeTaskLabel called with:', { projectId, groupId, taskId, labelType });
     const response = await fetch(
       `${API_BASE}/projects/${projectId}/task-groups/${groupId}/tasks/${taskId}/labels`,
       {
@@ -166,10 +170,11 @@ export const tasksApi = {
         body: JSON.stringify({ labelType }),
       }
     );
+    const result = await response.json();
+    console.log('tasksApi.removeTaskLabel response:', { ok: response.ok, status: response.status, result });
     if (!response.ok) {
-      const error = await response.json();
-      throw new Error(error.error || 'Failed to remove label');
+      throw new Error(result.error || 'Failed to remove label');
     }
-    return response.json();
+    return result;
   },
 };

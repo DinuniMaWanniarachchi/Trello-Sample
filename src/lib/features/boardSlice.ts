@@ -378,6 +378,10 @@ const boardSlice = createSlice({
             existingCard.description = updatedTask.description;
             existingCard.dueDate = updatedTask.due_date;
             existingCard.priority = updatedTask.priority ? (updatedTask.priority.toLowerCase() as PriorityType) : 'none';
+            // Update labels if present in the payload
+            if (updatedTask.labels) {
+              existingCard.labels = updatedTask.labels;
+            }
           }
         }
         state.loading = false;
