@@ -5,9 +5,8 @@ import { useParams, useRouter } from 'next/navigation';
 import { 
   DndContext, 
   DragEndEvent,
-  DragOverEvent,
   DragStartEvent,
-  DragOverlay,
+  DragOverlay,     
   closestCorners,
   KeyboardSensor,
   PointerSensor,
@@ -290,7 +289,7 @@ export default function ProjectPage() {
     }
   };
 
-  const handleDragOver = (event: DragOverEvent) => {
+  const handleDragOver = () => {
     // This is intentionally left blank. 
     // State updates are now handled in onDragEnd to ensure consistency and allow for API calls.
   };
@@ -358,6 +357,7 @@ export default function ProjectPage() {
           description: updates.description,
           due_date: updates.dueDate,
           task_status_id: updates.task_status_id,
+          labels: updates.labels,
       };
 
       if (updates.hasOwnProperty('priority')) {
@@ -581,7 +581,7 @@ export default function ProjectPage() {
         isOpen={isCardDrawerOpen}
         onClose={handleCloseDrawer}
         onUpdate={handleUpdateCard}
-        onDelete={handleDeleteCard} projectId={''}      />
+        onDelete={handleDeleteCard} projectId={projectId}      />
     </div>
   );
 }

@@ -10,7 +10,7 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { TaskLabel, PREDEFINED_LABELS, TaskLabelType } from '@/types/taskLabels';
+import { PREDEFINED_LABELS, TaskLabelType } from '@/types/taskLabels';
 
 interface TaskLabelSelectorProps {
   selectedLabels: TaskLabelType[];
@@ -50,7 +50,7 @@ export const TaskLabelSelector: React.FC<TaskLabelSelectorProps> = ({
           </span>
         </Button>
       </DropdownMenuTrigger>
-      <DropdownMenuContent className="w-[300px]" align="start">
+      <DropdownMenuContent className="w-[300px]" align="start" onSelect={(e) => e.stopPropagation()}>
         <div className="p-2">
           <Input
             placeholder="Search or create..."
@@ -65,7 +65,7 @@ export const TaskLabelSelector: React.FC<TaskLabelSelectorProps> = ({
             <DropdownMenuItem
               key={label.id}
               className="cursor-pointer flex items-center justify-between px-3 py-2"
-              onClick={() => handleLabelClick(label.type)}
+              onSelect={() => handleLabelClick(label.type)}
             >
               <div className="flex items-center gap-2 flex-1">
                 <div

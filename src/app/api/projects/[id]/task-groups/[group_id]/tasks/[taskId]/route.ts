@@ -49,54 +49,60 @@ export async function GET(
 // PUT /api/projects/[id]/task-groups/[group_id]/tasks/[taskId] - Update task
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { id: string; group_id: string; taskId: string } }
+  { params }: { params: Promise<{ id: string; group_id: string; taskId: string }> }
 ) {
   try {
+    const { id: projectId, group_id: taskGroupId, taskId } = await params;
     const text = await request.text();
     const body = text ? JSON.parse(text) : {};
-    const { id: projectId, group_id: taskGroupId, taskId } = await params;
     const { 
       title, 
       description, 
       priority, 
-      due_date
+      due_date,
+      labels
     } = body;
 
-    const result = await pool.query(`
-      UPDATE tasks 
-      SET 
-        title = COALESCE($1, title),
-        description = COALESCE($2, description),
-        priority = COALESCE($3, priority),
-        due_date = COALESCE($4, due_date),
-        updated_at = now()
-      WHERE id = $5 AND task_group_id = $6 AND project_id = $7
-      RETURNING *
-    `, [
-      title, description, priority, due_date, 
-      taskId, taskGroupId, projectId
-    ]);
+    await pool.query('BEGIN');
 
-    if (result.rows.length === 0) {
-      const taskCheck = await pool.query('SELECT id, task_group_id, project_id FROM tasks WHERE id = $1', [taskId]);
-      
-      if (taskCheck.rows.length === 0) {
-        return NextResponse.json(
-          { success: false, error: 'Task not found in database' },
-          { status: 404 }
-        );
-      } else {
-        return NextResponse.json(
-          { success: false, error: 'Task found but project/group mismatch' },
-          { status: 404 }
-        );
+    try {
+      const result = await pool.query(`
+        UPDATE tasks 
+        SET 
+          title = COALESCE($1, title),
+          description = COALESCE($2, description),
+          priority = COALESCE($3, priority),
+          due_date = COALESCE($4, due_date),
+          updated_at = now()
+        WHERE id = $5 AND task_group_id = $6 AND project_id = $7
+        RETURNING *
+      `, [
+        title, description, priority, due_date, 
+        taskId, taskGroupId, projectId
+      ]);
+
+      if (result.rows.length === 0) {
+        throw new Error('Task not found');
       }
-    }
 
-    return NextResponse.json({
-      success: true,
-      data: result.rows[0]
-    });
+      if (labels) {
+        await pool.query('DELETE FROM task_labels WHERE task_id = $1', [taskId]);
+        for (const labelType of labels) {
+          const labelId = `label-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+          await pool.query('INSERT INTO task_labels (id, task_id, label_type) VALUES ($1, $2, $3)', [labelId, taskId, labelType]);
+        }
+      }
+
+      await pool.query('COMMIT');
+
+      return NextResponse.json({
+        success: true,
+        data: result.rows[0]
+      });
+    } catch (error) {
+      await pool.query('ROLLBACK');
+      throw error;
+    }
   } catch (error) {
     console.error('Error updating task:', error);
     return NextResponse.json(
@@ -109,7 +115,7 @@ export async function PUT(
 // DELETE /api/projects/[id]/task-groups/[group_id]/tasks/[taskId] - Delete task
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string; group_id: string; taskId: string } }
+  { params }: { params: Promise<{ id: string; group_id: string; taskId: string }> }
 ) {
   try {
     const { id: projectId, group_id: taskGroupId, taskId } = await params;

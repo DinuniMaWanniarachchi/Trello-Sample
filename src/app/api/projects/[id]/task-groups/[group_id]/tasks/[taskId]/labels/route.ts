@@ -10,7 +10,7 @@ export async function GET(
   { params }: { params: { id: string; group_id: string; taskId: string } }
 ) {
   try {
-    const { id: projectId, group_id: taskGroupId, taskId } = await params;
+    const { id: projectId, group_id: taskGroupId, taskId } = params;
 
     // Verify task exists in this project/group
     const taskCheck = await pool.query(
@@ -59,10 +59,12 @@ export async function POST(
   { params }: { params: { id: string; group_id: string; taskId: string } }
 ) {
   try {
-    const { id: projectId, group_id: taskGroupId, taskId } = await params;
+    const { id: projectId, group_id: taskGroupId, taskId } = params;
     const text = await request.text();
     const body = text ? JSON.parse(text) : {};
     const { labelType } = body;
+
+    console.log('Adding label:', { projectId, taskGroupId, taskId, labelType });
 
     // Validate label type
     if (!labelType || !isValidLabelType(labelType)) {
@@ -108,6 +110,8 @@ export async function POST(
       [labelId, taskId, labelType]
     );
 
+    console.log('Label added successfully:', result.rows[0]);
+
     return NextResponse.json({
       success: true,
       data: result.rows[0]
@@ -128,10 +132,12 @@ export async function DELETE(
   { params }: { params: { id: string; group_id: string; taskId: string } }
 ) {
   try {
-    const { id: projectId, group_id: taskGroupId, taskId } = await params;
+    const { id: projectId, group_id: taskGroupId, taskId } = params;
     const text = await request.text();
     const body = text ? JSON.parse(text) : {};
     const { labelType } = body;
+
+    console.log('Removing label:', { projectId, taskGroupId, taskId, labelType });
 
     // Validate label type
     if (!labelType || !isValidLabelType(labelType)) {
@@ -169,6 +175,8 @@ export async function DELETE(
         { status: 404 }
       );
     }
+
+    console.log('Label removed successfully');
 
     return NextResponse.json({
       success: true,

@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/exhaustive-deps */
 // components/board/CardDetailsDrawer.tsx
 "use client";
 
@@ -29,7 +30,9 @@ import {
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
 import { X, Edit3, Type, Tag, Clock, MoreHorizontal, Trash2, ChevronDown, Flag } from 'lucide-react';
-import { Card, StatusBadge, ColorType, badgeColors } from '@/types/kanban';
+import { Card, ColorType } from '@/types/kanban';
+import { useAppDispatch } from '@/lib/hooks';
+import { addTaskLabel, removeTaskLabel, fetchTaskLabels } from '@/lib/features/boardSlice';
 import { TaskLabelType, PREDEFINED_LABELS } from '@/types/taskLabels';
 import { TaskLabelSelector } from './TaskLabelSelector';
 import { formatDueDate, getDueDateColor } from '@/utils/dateUtils';
@@ -43,7 +46,7 @@ interface CardDetailsDrawerProps {
   onClose: () => void;
   onUpdate: (cardId: string, updates: Partial<Card>) => void;
   onDelete: (cardId: string) => void;
-  projectId: string; // Add projectId for API calls
+  projectId: string;
 }
 
 const priorityConfig = {
@@ -61,14 +64,15 @@ export const CardDetailsDrawer: React.FC<CardDetailsDrawerProps> = ({
   onDelete,
   projectId
 }) => {
+  const dispatch = useAppDispatch();
   const [editedTitle, setEditedTitle] = useState('');
   const [editedDescription, setEditedDescription] = useState('');
   const [editedDueDate, setEditedDueDate] = useState('');
   const [editedStatus, setEditedStatus] = useState<TaskStatus>('todo');
   const [editedPriority, setEditedPriority] = useState<PriorityType>('none');
   const [selectedLabels, setSelectedLabels] = useState<TaskLabelType[]>([]);
-  const [newBadgeText, setNewBadgeText] = useState('');
-  const [newBadgeColor, setNewBadgeColor] = useState<ColorType>('blue');
+  const [] = useState('');
+  const [] = useState<ColorType>('blue');
   const [isEditingTitle, setIsEditingTitle] = useState(false);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
 
@@ -76,26 +80,40 @@ export const CardDetailsDrawer: React.FC<CardDetailsDrawerProps> = ({
     if (card && isOpen) {
       setEditedTitle(card.title || '');
       setEditedDescription(card.description || '');
-      setEditedDueDate(card.dueDate || '');
+      setEditedDueDate(card.dueDate ? new Date(card.dueDate).toISOString().split('T')[0] : '');
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       setEditedStatus((card as any).status || 'todo');
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       setEditedPriority((card as any).priority || 'none');
       setIsEditingTitle(false);
       
-      // Load task labels
-      fetchTaskLabels();
+      // Set labels from card if available
+      if (card.labels && card.labels.length > 0) {
+        setSelectedLabels(card.labels);
+      } else {
+        setSelectedLabels([]);
+      }
+      
+      // Fetch latest labels from backend
+      loadLabels();
     }
   }, [card, isOpen]);
 
-  const fetchTaskLabels = async () => {
+  const loadLabels = async () => {
     if (!card || !card.task_group_id) return;
     
     try {
-      const response = await fetch(`/api/projects/${projectId}/task-groups/${card.task_group_id}/tasks/${card.id}/labels`);
-      const result = await response.json();
-      
-      if (result.success) {
-        setSelectedLabels(result.data.map((l: any) => l.type));
-      }
+      // Use Redux action to fetch labels
+      const result = await dispatch(fetchTaskLabels({
+        projectId,
+        groupId: card.task_group_id,
+        taskId: card.id
+      })).unwrap();
+
+      console.log('Fetched labels:', result.labels);
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const labelTypes = result.labels.map((l: any) => l.type);
+      setSelectedLabels(labelTypes);
     } catch (error) {
       console.error('Error fetching labels:', error);
     }
@@ -105,34 +123,39 @@ export const CardDetailsDrawer: React.FC<CardDetailsDrawerProps> = ({
     if (!card || !card.task_group_id) return;
 
     const isSelected = selectedLabels.includes(labelType);
-    const newLabels = isSelected
-      ? selectedLabels.filter(l => l !== labelType)
-      : [...selectedLabels, labelType];
-
-    setSelectedLabels(newLabels);
-    onUpdate(card.id, { labels: newLabels });
-
+    
     try {
       if (isSelected) {
-        // Remove label
-        await fetch(`/api/projects/${projectId}/task-groups/${card.task_group_id}/tasks/${card.id}/labels`, {
-          method: 'DELETE',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ labelType })
-        });
+        // Remove label using Redux action
+        await dispatch(removeTaskLabel({
+          projectId,
+          groupId: card.task_group_id,
+          taskId: card.id,
+          labelType
+        })).unwrap();
+        
+        // Update local state
+        const newLabels = selectedLabels.filter((l) => l !== labelType);
+        setSelectedLabels(newLabels);
+        console.log('Label removed:', labelType);
       } else {
-        // Add label
-        await fetch(`/api/projects/${projectId}/task-groups/${card.task_group_id}/tasks/${card.id}/labels`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ labelType })
-        });
+        // Add label using Redux action
+        await dispatch(addTaskLabel({
+          projectId,
+          groupId: card.task_group_id,
+          taskId: card.id,
+          labelType
+        })).unwrap();
+        
+        // Update local state
+        const newLabels = [...selectedLabels, labelType];
+        setSelectedLabels(newLabels);
+        console.log('Label added:', labelType);
       }
     } catch (error) {
       console.error('Error toggling label:', error);
-      // Optionally revert state change on error
-      setSelectedLabels(selectedLabels);
-      onUpdate(card.id, { labels: selectedLabels });
+      // Reload labels on error to sync state
+      loadLabels();
     }
   };
 
@@ -145,38 +168,19 @@ export const CardDetailsDrawer: React.FC<CardDetailsDrawerProps> = ({
       dueDate: editedDueDate || undefined,
       status: editedStatus,
       priority: editedPriority,
+      labels: selectedLabels,
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } as any);
     setIsEditingTitle(false);
     onClose();
   };
 
-  const handleStatusChange = (status: TaskStatus) => {
-    setEditedStatus(status);
-    onUpdate(card.id, { status: status } as any);
-  };
-
   const handlePriorityChange = (priority: PriorityType) => {
     setEditedPriority(priority);
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     onUpdate(card.id, { priority: priority } as any);
   };
 
-  const handleAddBadge = () => {
-    if (!newBadgeText.trim()) return;
-    
-    const newBadge: StatusBadge = {
-      id: `badge-${Date.now()}`,
-      text: newBadgeText,
-      color: newBadgeColor
-    };
-
-    const currentBadges = card.statusBadges || [];
-    onUpdate(card.id, {
-      statusBadges: [...currentBadges, newBadge]
-    });
-
-    setNewBadgeText('');
-    setNewBadgeColor('blue');
-  };
 
   const handleDeleteCard = () => {
     onDelete(card.id);
@@ -184,22 +188,7 @@ export const CardDetailsDrawer: React.FC<CardDetailsDrawerProps> = ({
     onClose();
   };
 
-  const handleRemoveBadge = (badgeId: string) => {
-    const currentBadges = card.statusBadges || [];
-    const updatedBadges = currentBadges.filter(badge => badge.id !== badgeId);
-    onUpdate(card.id, {
-      statusBadges: updatedBadges
-    });
-  };
 
-  const getStatusDisplay = (status: TaskStatus) => {
-    switch (status) {
-      case 'todo': return 'To Do';
-      case 'doing': return 'Doing';
-      case 'done': return 'Done';
-      default: return 'To Do';
-    }
-  };
 
   return (
     <>
@@ -288,23 +277,17 @@ export const CardDetailsDrawer: React.FC<CardDetailsDrawerProps> = ({
               {selectedLabels.length > 0 && (
                 <div className="flex flex-wrap gap-2">
                   {selectedLabels.map((labelType) => {
+                    // eslint-disable-next-line @typescript-eslint/no-explicit-any
                     const labelDef = PREDEFINED_LABELS.find((l: { type: any; }) => l.type === labelType);
                     return (
-                      <div key={labelType} className="flex items-center">
-                        <span 
-                          className="inline-flex items-center px-3 py-1 rounded-md text-sm font-medium text-white"
-                          style={{ backgroundColor: labelDef?.color }}
-                        >
-                          {labelDef?.name}
-                        </span>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          className="ml-1 h-6 w-6 p-0 text-white hover:text-red-500"
+                      <div key={labelType} className="flex items-center gap-1 px-3 py-1 rounded-md text-sm font-medium text-white" style={{ backgroundColor: labelDef?.color }}>
+                        <span>{labelDef?.name}</span>
+                        <button
+                          className="ml-1 hover:opacity-70"
                           onClick={() => handleLabelToggle(labelType)}
                         >
                           <X className="h-3 w-3" />
-                        </Button>
+                        </button>
                       </div>
                     );
                   })}
@@ -445,7 +428,7 @@ export const CardDetailsDrawer: React.FC<CardDetailsDrawerProps> = ({
           <AlertDialogHeader>
             <AlertDialogTitle>Delete Task</AlertDialogTitle>
             <AlertDialogDescription>
-              Are you sure you want to delete "{card.title}"? This action cannot be undone.
+              Are you sure you want to delete &quot;{card.title}&quot;? This action cannot be undone.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>

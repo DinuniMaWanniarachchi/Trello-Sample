@@ -4,6 +4,7 @@ import { taskGroupsApi, taskStatusesApi } from '@/lib/api/taskGroupsApi';
 import { tasksApi, CreateTaskData, UpdateTaskData, Task } from '@/lib/api/tasksApi';
 import { TaskGroup, TaskStatus } from '@/types/taskGroup';
 import { Board, Card, ColorType, List, PriorityType, StatusBadge } from '@/types/kanban';
+import { TaskLabelType } from '@/types/taskLabels';
 
 // -------------------- Async thunks (API integration) --------------------
 export const fetchTaskGroups = createAsyncThunk(
@@ -66,6 +67,7 @@ export const moveTask = createAsyncThunk(
   ) => {
     try {
       await tasksApi.moveTask(projectId, { taskId, sourceGroupId, destinationGroupId, newPosition });
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error: any) {
       return rejectWithValue(error.message);
     }
@@ -117,6 +119,59 @@ export const createTaskStatus = createAsyncThunk(
   async ({ projectId, data }: { projectId: string; data: { name: string } }) => {
     const response = await taskStatusesApi.createTaskStatus(projectId, data);
     return response.data;
+  }
+);
+
+// -------------------- Label Async Thunks --------------------
+export const fetchTaskLabels = createAsyncThunk(
+  'board/fetchTaskLabels',
+  async ({ 
+    projectId, 
+    groupId, 
+    taskId 
+  }: { 
+    projectId: string; 
+    groupId: string; 
+    taskId: string;
+  }) => {
+    const response = await tasksApi.getTaskLabels(projectId, groupId, taskId);
+    return { taskId, groupId, labels: response.data };
+  }
+);
+
+export const addTaskLabel = createAsyncThunk(
+  'board/addTaskLabel',
+  async ({ 
+    projectId, 
+    groupId, 
+    taskId, 
+    labelType 
+  }: { 
+    projectId: string; 
+    groupId: string; 
+    taskId: string;
+    labelType: TaskLabelType;
+  }) => {
+    const response = await tasksApi.addTaskLabel(projectId, groupId, taskId, labelType);
+    return { taskId, groupId, label: response.data };
+  }
+);
+
+export const removeTaskLabel = createAsyncThunk(
+  'board/removeTaskLabel',
+  async ({ 
+    projectId, 
+    groupId, 
+    taskId, 
+    labelType 
+  }: { 
+    projectId: string; 
+    groupId: string; 
+    taskId: string;
+    labelType: TaskLabelType;
+  }) => {
+    await tasksApi.removeTaskLabel(projectId, groupId, taskId, labelType);
+    return { taskId, groupId, labelType };
   }
 );
 
@@ -295,6 +350,7 @@ const boardSlice = createSlice({
             title: action.payload.title,
             description: action.payload.description,
             dueDate: action.payload.due_date,
+            task_group_id: action.payload.listId
           };
           if (!list.cards.find(c => c.id === newCard.id)) {
             list.cards.push(newCard);
@@ -315,8 +371,13 @@ const boardSlice = createSlice({
         if (list) {
           const cardIndex = list.cards.findIndex((c) => c.id === action.payload.id);
           if (cardIndex !== -1) {
-            const { priority } = action.payload;
-            list.cards[cardIndex].priority = priority ? priority.toLowerCase() as PriorityType : 'none';
+            const updatedTask = action.payload;
+            const existingCard = list.cards[cardIndex];
+
+            existingCard.title = updatedTask.title;
+            existingCard.description = updatedTask.description;
+            existingCard.dueDate = updatedTask.due_date;
+            existingCard.priority = updatedTask.priority ? (updatedTask.priority.toLowerCase() as PriorityType) : 'none';
           }
         }
         state.loading = false;
@@ -349,18 +410,15 @@ const boardSlice = createSlice({
       .addCase(updateTaskGroup.fulfilled, (state, action) => {
         const updatedGroup = action.payload;
         
-        // Update taskGroups array
         const taskGroupIndex = state.taskGroups.findIndex((tg) => tg.id === updatedGroup.id);
         if (taskGroupIndex !== -1) {
           state.taskGroups[taskGroupIndex] = updatedGroup;
         }
 
-        // Update currentBoard if it exists
         if (state.currentBoard && state.currentBoard.lists) {
           const listIndex = state.currentBoard.lists.findIndex(list => list.id === updatedGroup.id);
           
           if (listIndex !== -1) {
-            // Create a new lists array with the updated list
             const newLists = [...state.currentBoard.lists];
             const updatedList = {
               ...newLists[listIndex],
@@ -369,7 +427,6 @@ const boardSlice = createSlice({
             };
             newLists[listIndex] = updatedList;
 
-            // Return a new state for currentBoard to ensure re-render
             state.currentBoard = {
               ...state.currentBoard,
               lists: newLists,
@@ -389,6 +446,47 @@ const boardSlice = createSlice({
       })
       .addCase(createTaskStatus.fulfilled, (state, action) => {
         state.taskStatuses.push(action.payload);
+      })
+      // Label Management
+      .addCase(fetchTaskLabels.fulfilled, (state, action) => {
+        const { taskId, groupId, labels } = action.payload;
+        if (state.currentBoard) {
+          const list = state.currentBoard.lists.find(l => l.id === groupId);
+          if (list) {
+            const card = list.cards.find(c => c.id === taskId);
+            if (card) {
+              // eslint-disable-next-line @typescript-eslint/no-explicit-any
+              card.labels = labels.map((l: any) => l.type);
+            }
+          }
+        }
+      })
+      .addCase(addTaskLabel.fulfilled, (state, action) => {
+        const { taskId, groupId, label } = action.payload;
+        if (state.currentBoard) {
+          const list = state.currentBoard.lists.find(l => l.id === groupId);
+          if (list) {
+            const card = list.cards.find(c => c.id === taskId);
+            if (card) {
+              if (!card.labels) card.labels = [];
+              if (!card.labels.includes(label.type)) {
+                card.labels.push(label.type);
+              }
+            }
+          }
+        }
+      })
+      .addCase(removeTaskLabel.fulfilled, (state, action) => {
+        const { taskId, groupId, labelType } = action.payload;
+        if (state.currentBoard) {
+          const list = state.currentBoard.lists.find(l => l.id === groupId);
+          if (list) {
+            const card = list.cards.find(c => c.id === taskId);
+            if (card && card.labels) {
+              card.labels = card.labels.filter(l => l !== labelType);
+            }
+          }
+        }
       });
   },
 });

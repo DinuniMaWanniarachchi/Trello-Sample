@@ -1,6 +1,7 @@
 // src/types/kanban.ts
 import { TaskLabelType } from './taskLabels';
-export type ColorType = 'orange' | 'blue' | 'green' | 'red' | 'purple' | 'yellow' | 'gray' | 'white';
+
+export type ColorType = 'orange' | 'blue' | 'green' | 'red' | 'purple' | 'yellow' | 'gray' | 'white' | 'pink';
 export type PriorityType = 'low' | 'medium' | 'high' | 'none';
 
 export interface StatusBadge {
@@ -22,7 +23,7 @@ export interface Card {
   task_status_id?: string;
   priority?: PriorityType;
   task_group_id?: string;
-  labels?: TaskLabelType[];
+  labels?: TaskLabelType[]; // Labels array for task labels
 }
 
 export interface List {
@@ -63,7 +64,8 @@ export const badgeColors: Record<ColorType, string> = {
   purple: 'bg-purple-500 text-white',
   yellow: 'bg-yellow-500 text-black',
   gray: 'bg-gray-500 text-white',
-  white: 'bg-white text-black'
+  white: 'bg-white text-black',
+  pink: 'bg-pink-500 text-white'
 };
 
 // Color configuration for list headers
@@ -75,7 +77,8 @@ export const listHeaderColors: Record<ColorType, string> = {
   purple: 'bg-purple-500 text-white',
   yellow: 'bg-yellow-500 text-black',
   gray: 'bg-gray-500 text-white',
-  white: 'bg-white text-black'
+  white: 'bg-white text-black',
+  pink: 'bg-pink-500 text-white'
 };
 
 // Color configuration for cards
@@ -87,7 +90,8 @@ export const cardColors: Record<ColorType, string> = {
   purple: 'bg-purple-100 border-purple-200 hover:bg-purple-200',
   yellow: 'bg-yellow-100 border-yellow-200 hover:bg-yellow-200',
   gray: 'bg-gray-100 border-gray-200 hover:bg-gray-200',
-  white: 'bg-white border-gray-200 hover:bg-gray-50'
+  white: 'bg-white border-gray-200 hover:bg-gray-50',
+  pink: 'bg-pink-100 border-pink-200 hover:bg-pink-200'
 };
 
 export const availableColors: Array<{name: string, value: ColorType, bg: string}> = [
@@ -98,5 +102,8 @@ export const availableColors: Array<{name: string, value: ColorType, bg: string}
   { name: 'Orange', value: 'orange', bg: 'bg-orange-500' },
   { name: 'Red', value: 'red', bg: 'bg-red-500' },
   { name: 'Purple', value: 'purple', bg: 'bg-purple-500' },
-  { name: 'Yellow', value: 'yellow', bg: 'bg-yellow-500' }
+  { name: 'Yellow', value: 'yellow', bg: 'bg-yellow-500' },
+  { name: 'Pink', value: 'pink', bg: 'bg-pink-500' }
 ];
+
+export type { TaskLabelType };

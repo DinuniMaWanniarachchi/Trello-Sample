@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { Card as UICard, CardContent } from '@/components/ui/card';
-import { Card, badgeColors } from '@/types/kanban';
+import { Card, badgeColors, PriorityType } from '@/types/kanban';
 import { formatDueDate, getDueDateColor } from '@/utils/dateUtils';
 import { DatePicker, Popover, Button } from 'antd';
 import { CalendarOutlined, CloseOutlined } from '@ant-design/icons';
@@ -10,6 +10,22 @@ import dayjs, { Dayjs } from 'dayjs';
 import type { DatePickerProps } from 'antd/es/date-picker';
 import { useAppDispatch } from '@/lib/hooks';
 import { updateCard } from '@/lib/features/boardSlice';
+import { PREDEFINED_LABELS } from '@/types/taskLabels';
+import { getLabelByType } from '@/utils/labelUtils';
+
+const priorityColors: Record<PriorityType, string> = {
+  none: 'bg-gray-400',
+  low: 'bg-blue-500',
+  medium: 'bg-yellow-500',
+  high: 'bg-red-500',
+};
+
+const priorityNames: Record<PriorityType, string> = {
+  none: 'No Priority',
+  low: 'Low',
+  medium: 'Medium',
+  high: 'High',
+};
 
 interface BoardCardProps {
   card: Card;
@@ -143,10 +159,36 @@ export const BoardCard: React.FC<BoardCardProps> = ({
             ))}
           </div>
         )}
+
+        {/* Task Labels */}
+        {card.labels && card.labels.length > 0 && (
+          <div className="flex flex-wrap gap-1 mb-2">
+            {card.labels.map((labelType) => {
+              const labelDef = getLabelByType(labelType);
+              return labelDef ? (
+                <span
+                  key={labelType}
+                  className="inline-block px-2 py-0.5 rounded-md text-xs font-medium text-white"
+                  style={{ backgroundColor: labelDef.color }}
+                >
+                  {labelDef.name}
+                </span>
+              ) : null;
+            })}
+          </div>
+        )}
         
-        <h4 className="text-card-foreground font-medium text-sm leading-tight mb-2">
-          {card.title}
-        </h4>
+        <div className="flex items-center gap-2 mb-2">
+          {card.priority && card.priority !== 'none' && (
+            <div
+              className={`w-2 h-2 rounded-full ${priorityColors[card.priority]} flex-shrink-0`}
+              title={`Priority: ${priorityNames[card.priority]}`}
+            />
+          )}
+          <h4 className="text-card-foreground font-medium text-sm leading-tight">
+            {card.title}
+          </h4>
+        </div>
 
         {/* Card Description */}
         {card.description && (
