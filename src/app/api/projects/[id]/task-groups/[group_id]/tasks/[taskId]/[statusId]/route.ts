@@ -99,6 +99,7 @@ export async function GET(
   { params }: { params: Promise<{ id: string; group_id: string; taskId: string; statusId: string }> }
 ) {
   try {
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const { id: projectId, group_id: taskGroupId, taskId, statusId } = await params;
 
     const result = await pool.query(`

@@ -1,7 +1,7 @@
 // components/common/DropdownMenu.tsx
 "use client";
 
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, createContext, useContext } from 'react';
 
 interface DropdownMenuProps {
   children: React.ReactNode;
@@ -24,60 +24,70 @@ interface DropdownMenuItemProps {
   children: React.ReactNode;
 }
 
+// Create a context to share state between components
+interface DropdownContextType {
+  isOpen: boolean;
+  setIsOpen: (open: boolean) => void;
+}
+
+const DropdownContext = createContext<DropdownContextType | undefined>(undefined);
+
+const useDropdown = () => {
+  const context = useContext(DropdownContext);
+  if (!context) {
+    throw new Error('Dropdown components must be used within DropdownMenu');
+  }
+  return context;
+};
+
 export const DropdownMenu: React.FC<DropdownMenuProps> = ({ children }) => {
   const [isOpen, setIsOpen] = useState(false);
   
   return (
-    <div className="relative inline-block">
-      {React.Children.map(children, (child) => {
-        if (React.isValidElement(child)) {
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          return React.cloneElement(child as React.ReactElement<any>, {
-            isOpen,
-            setIsOpen,
-          });
-        }
-        return child;
-      })}
-    </div>
+    <DropdownContext.Provider value={{ isOpen, setIsOpen }}>
+      <div className="relative inline-block">
+        {children}
+      </div>
+    </DropdownContext.Provider>
   );
 };
 
-export const DropdownMenuTrigger: React.FC<DropdownMenuTriggerProps & { isOpen?: boolean; setIsOpen?: (open: boolean) => void }> = ({ 
+export const DropdownMenuTrigger: React.FC<DropdownMenuTriggerProps> = ({ 
   children, 
-  isOpen, 
-  setIsOpen,
-  asChild, // Extract React-specific props
-  ...domProps // Only DOM-safe props
+  asChild,
 }) => {
+  const { isOpen, setIsOpen } = useDropdown();
+
   const handleClick = () => {
-    setIsOpen?.(!isOpen);
+    setIsOpen(!isOpen);
   };
 
-  if (React.isValidElement(children)) {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    return React.cloneElement(children as React.ReactElement<any>, {
+  if (asChild && React.isValidElement(children)) {
+    // Clone the child and add onClick handler
+    return React.cloneElement(children as React.ReactElement<{ onClick?: () => void }>, {
       onClick: handleClick,
-      ...domProps // Only pass DOM-safe props
     });
   }
-  return <>{children}</>;
+
+  return (
+    <button onClick={handleClick} type="button">
+      {children}
+    </button>
+  );
 };
 
-export const DropdownMenuContent: React.FC<DropdownMenuContentProps & { isOpen?: boolean; setIsOpen?: (open: boolean) => void }> = ({ 
+export const DropdownMenuContent: React.FC<DropdownMenuContentProps> = ({ 
   align = 'start', 
   className = '', 
-  children, 
-  isOpen,
-  setIsOpen,
-  // Don't spread props here - extract only what we need
+  children,
 }) => {
+  const { isOpen, setIsOpen } = useDropdown();
   const ref = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (ref.current && !ref.current.contains(event.target as Node)) {
-        setIsOpen?.(false);
+        setIsOpen(false);
       }
     };
 
@@ -98,38 +108,36 @@ export const DropdownMenuContent: React.FC<DropdownMenuContentProps & { isOpen?:
     <div
       ref={ref}
       className={`absolute top-full mt-1 z-50 ${alignmentClass} ${className}`}
-      // Removed {...props} - this was causing the error
     >
-      {React.Children.map(children, (child) => {
-        if (React.isValidElement(child)) {
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          return React.cloneElement(child as React.ReactElement<any>, {
-            setIsOpen,
-          });
-        }
-        return child;
-      })}
+      {children}
     </div>
   );
 };
 
-export const DropdownMenuItem: React.FC<DropdownMenuItemProps & { setIsOpen?: (open: boolean) => void }> = ({ 
+export const DropdownMenuItem: React.FC<DropdownMenuItemProps> = ({ 
   onClick, 
   className = '', 
-  children, 
-  setIsOpen,
-  // Don't spread props here - extract only what we need
+  children,
 }) => {
+  const { setIsOpen } = useDropdown();
+
   const handleClick = () => {
     onClick?.();
-    setIsOpen?.(false);
+    setIsOpen(false);
   };
 
   return (
     <div
       onClick={handleClick}
       className={`cursor-pointer ${className}`}
-      // Removed {...props} - this was causing the error
+      role="menuitem"
+      tabIndex={0}
+      onKeyDown={(e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          handleClick();
+        }
+      }}
     >
       {children}
     </div>

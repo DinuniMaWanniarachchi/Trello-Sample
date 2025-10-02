@@ -5,10 +5,10 @@ import pool from '@/lib/db';
 // GET /api/projects/[id]/task-statuses/[statusId] - Get specific task status
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string; statusId: string } }
+  { params }: { params: Promise<{ id: string; statusId: string }> }
 ) {
   try {
-    const { id: projectId, statusId } = params;
+    const { id: projectId, statusId } = await params;
 
     const result = await pool.query(`
       SELECT 
@@ -35,7 +35,11 @@ export async function GET(
   } catch (error) {
     console.error('Error fetching task status:', error);
     return NextResponse.json(
-      { success: false, error: 'Failed to fetch task status' },
+      { 
+        success: false, 
+        error: 'Failed to fetch task status',
+        details: error instanceof Error ? error.message : 'Unknown error'
+      },
       { status: 500 }
     );
   }
@@ -44,10 +48,10 @@ export async function GET(
 // PUT /api/projects/[id]/task-statuses/[statusId] - Update task status
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { id: string; statusId: string } }
+  { params }: { params: Promise<{ id: string; statusId: string }> }
 ) {
   try {
-    const { id: projectId, statusId } = params;
+    const { id: projectId, statusId } = await params;
     const { name } = await request.json();
 
     if (!name) {
@@ -78,7 +82,11 @@ export async function PUT(
   } catch (error) {
     console.error('Error updating task status:', error);
     return NextResponse.json(
-      { success: false, error: 'Failed to update task status' },
+      { 
+        success: false, 
+        error: 'Failed to update task status',
+        details: error instanceof Error ? error.message : 'Unknown error'
+      },
       { status: 500 }
     );
   }
@@ -87,16 +95,16 @@ export async function PUT(
 // DELETE /api/projects/[id]/task-statuses/[statusId] - Delete task status
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string; statusId: string } }
+  { params }: { params: Promise<{ id: string; statusId: string }> }
 ) {
   try {
-    const { id: projectId, statusId } = params;
+    const { id: projectId, statusId } = await params;
 
     // Check if any tasks are using this status
     const tasksCheck = await pool.query(`
       SELECT COUNT(*) as task_count 
       FROM tasks 
-      WHERE task_status_id = $1
+      WHERE status_id = $1
     `, [statusId]);
 
     if (parseInt(tasksCheck.rows[0].task_count) > 0) {
@@ -126,7 +134,11 @@ export async function DELETE(
   } catch (error) {
     console.error('Error deleting task status:', error);
     return NextResponse.json(
-      { success: false, error: 'Failed to delete task status' },
+      { 
+        success: false, 
+        error: 'Failed to delete task status',
+        details: error instanceof Error ? error.message : 'Unknown error'
+      },
       { status: 500 }
     );
   }
