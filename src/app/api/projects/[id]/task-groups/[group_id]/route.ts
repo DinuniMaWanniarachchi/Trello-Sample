@@ -147,7 +147,8 @@ export async function DELETE(
   { params }: { params: Promise<{ id: string; group_id: string }> }
 ) {
   try {
-    const { id: projectId, group_id: groupId } = await params; // Added await
+    const { id: projectId, group_id: groupId } = await params;
+    console.log('DELETE request received for groupId:', groupId, 'projectId:', projectId);
 
     // Check if task group exists
     const checkQuery = `
@@ -155,8 +156,10 @@ export async function DELETE(
       WHERE id = $1 AND project_id = $2
     `;
     const checkResult = await pool.query(checkQuery, [groupId, projectId]);
+    console.log('Check result for group existence:', checkResult.rows);
 
     if (checkResult.rows.length === 0) {
+      console.log('Task group not found for deletion.');
       return NextResponse.json(
         { 
           success: false, 
@@ -173,9 +176,11 @@ export async function DELETE(
     `;
 
     const result = await pool.query(deleteQuery, [groupId, projectId]);
+    console.log('Delete query result - rowCount:', result.rowCount);
 
     // Check if any row was actually deleted
     if (result.rowCount === 0) {
+      console.log('Task group not deleted (rowCount is 0).');
       return NextResponse.json(
         { 
           success: false, 

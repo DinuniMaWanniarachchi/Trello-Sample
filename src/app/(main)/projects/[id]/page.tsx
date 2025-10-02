@@ -29,7 +29,8 @@ import {
   moveTask,
   fetchTaskStatuses,
   updateTaskGroup,
-  updateCard
+  updateCard,
+  deleteTaskGroup
 } from '@/lib/features/boardSlice';
 import { UpdateTaskData } from '@/lib/api/tasksApi';
 import { SharedHeader } from '@/components/common/SharedHeader';
@@ -399,7 +400,11 @@ export default function ProjectPage() {
   };
 
   const handleDeleteList = (listId: string) => {
+    console.log('Attempting to delete list:', listId);
+    // Optimistically update the UI
     dispatch(deleteList(listId));
+    // Then, trigger the backend deletion
+    dispatch(deleteTaskGroup({ projectId, groupId: listId }));
   };
 
   const handleRenameList = (listId: string) => {
