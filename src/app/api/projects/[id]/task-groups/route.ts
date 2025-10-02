@@ -70,17 +70,13 @@ export async function POST(
     const positionResult = await pool.query(positionQuery, [projectId]);
     const position = positionResult.rows[0].next_position;
 
-    // Generate unique ID
-    const id = `${projectId}-list-${Date.now()}`;
-
     const insertQuery = `
-      INSERT INTO task_groups (id, name, position, color, project_id, created_at, updated_at)
-      VALUES ($1, $2, $3, $4, $5, NOW(), NOW())
+      INSERT INTO task_groups (name, position, color, project_id, created_at, updated_at)
+      VALUES ($1, $2, $3, $4, NOW(), NOW())
       RETURNING *
     `;
 
     const result = await pool.query(insertQuery, [
-      id,
       name,
       position,
       color,

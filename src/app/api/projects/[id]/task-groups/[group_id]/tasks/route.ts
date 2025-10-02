@@ -72,21 +72,17 @@ export async function POST(
 
     const position = positionResult.rows[0].next_position;
 
-    // Generate UUID for task id
-    const taskId = crypto.randomUUID();
-
-    const result = await pool.query(`
-      INSERT INTO tasks (
-        id, title, description, position, priority, 
-        due_date, task_group_id, project_id
-      )
-      VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
-      RETURNING *
-    `, [
-      taskId, title, description, position, priority,
-      due_date, taskGroupId, projectId
-    ]);
-
+        const result = await pool.query(`
+          INSERT INTO tasks (
+            title, description, position, priority, 
+            due_date, task_group_id, project_id
+          )
+          VALUES ($1, $2, $3, $4, $5, $6, $7)
+          RETURNING *
+        `, [
+          title, description, position, priority, 
+          due_date, taskGroupId, projectId
+        ]);
     return NextResponse.json({
       success: true,
       data: result.rows[0]

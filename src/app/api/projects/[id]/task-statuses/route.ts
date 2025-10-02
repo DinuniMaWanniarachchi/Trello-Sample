@@ -75,8 +75,8 @@ export async function POST(
     }
 
     const result = await pool.query(`
-      INSERT INTO task_statuses (id, project_id, name, color, position)
-      VALUES (gen_random_uuid(), $1, $2, $3, $4)
+      INSERT INTO task_statuses (project_id, name, color, position)
+      VALUES ($1, $2, $3, $4)
       RETURNING id as status_id, project_id, name, color, position, created_at, updated_at
     `, [projectId, name, color, finalPosition]);
 

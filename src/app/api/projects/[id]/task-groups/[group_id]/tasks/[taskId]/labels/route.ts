@@ -101,13 +101,11 @@ export async function POST(
       );
     }
 
-    // Generate ID and add the label
-    const labelId = `label-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
     const result = await pool.query(
-      `INSERT INTO task_labels (id, task_id, label_type)
-       VALUES ($1, $2, $3)
+      `INSERT INTO task_labels (task_id, label_type)
+       VALUES ($1, $2)
        RETURNING id, task_id, label_type as type, created_at`,
-      [labelId, taskId, labelType]
+      [taskId, labelType]
     );
 
     console.log('Label added successfully:', result.rows[0]);

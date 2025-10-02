@@ -31,6 +31,13 @@ async function getUserFromToken(request: NextRequest) {
   }
 }
 
+// Default task groups to create for new projects
+const DEFAULT_TASK_GROUPS = [
+  { name: 'To Do', color: '#e2e8f0', position: 1 },
+  { name: 'Doing', color: '#3b82f6', position: 2 },
+  { name: 'Done', color: '#10b981', position: 3 },
+] as const;
+
 // ================= GET =================
 export async function GET(request: NextRequest) {
   const user = await getUserFromToken(request);
@@ -64,15 +71,13 @@ export async function POST(request: NextRequest) {
 
   try {
     const body: CreateProjectData = await request.json();
-    const projectId = crypto.randomUUID();
 
     const result = await pool.query(
       `INSERT INTO projects 
-        (id, name, description, workspace, user_id, background, visibility, created_at, updated_at)
-       VALUES ($1, $2, $3, $4, $5, $6, $7, NOW(), NOW())
+        (name, description, workspace, user_id, background, visibility, created_at, updated_at)
+       VALUES ($1, $2, $3, $4, $5, $6, NOW(), NOW())
        RETURNING *`,
       [
-        projectId,
         body.name,
         body.description || '',
         body.workspace || 'My Workspace',
@@ -82,7 +87,29 @@ export async function POST(request: NextRequest) {
       ]
     );
 
-    return NextResponse.json(result.rows[0], { status: 201 });
+    const newProject = result.rows[0];
+    const projectId = newProject.id;
+
+    if (projectId) {
+      // Create default task groups for the new project
+      const insertPromises = DEFAULT_TASK_GROUPS.map(async (groupData) => {
+        const insertQuery = `
+          INSERT INTO task_groups (name, position, color, project_id, created_at, updated_at)
+          VALUES ($1, $2, $3, $4, NOW(), NOW())
+          RETURNING id, name, position, color, project_id, created_at, updated_at
+        `;
+        return pool.query(insertQuery, [
+          groupData.name,
+          groupData.position,
+          groupData.color,
+          projectId
+        ]);
+      });
+
+      await Promise.all(insertPromises);
+    }
+
+    return NextResponse.json(newProject, { status: 201 });
   } catch (error) {
     console.error('Error creating project:', error);
     return NextResponse.json({ error: 'Failed to create project' }, { status: 500 });
