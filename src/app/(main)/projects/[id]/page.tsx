@@ -6,7 +6,6 @@ import {
   DndContext, 
   DragEndEvent,
   DragStartEvent,
-  DragOverEvent,
   DragOverlay,
   closestCorners,
   KeyboardSensor,
@@ -58,7 +57,7 @@ export default function ProjectPage() {
   const router = useRouter();
   const projectId = params.id as string;
   
-  const { currentBoard, loading, error, draggedCard } = useAppSelector((state) => state.kanban);
+  const { currentBoard, loading, error } = useAppSelector((state) => state.kanban);
   const { user, isAuthenticated, isLoading: authLoading } = useAuth();
   const { projects, getProject, isLoading: projectsLoading } = useProjects();
   
@@ -142,8 +141,16 @@ export default function ProjectPage() {
     }
   };
 
-  const handleDragOver = (event: DragOverEvent) => {
+  const handleDragOver = () => {
+    // This is intentionally left blank. 
+    // State updates are now handled in onDragEnd to ensure consistency and allow for API calls.
+  };
+
+  const handleDragEnd = (event: DragEndEvent) => {
     const { active, over } = event;
+    setActiveCard(null);
+    dispatch(setDraggedCard(null));
+
     if (!over || !currentBoard) return;
 
     const activeId = active.id as string;
@@ -154,58 +161,29 @@ export default function ProjectPage() {
     const activeList = currentBoard.lists.find(list => list.cards.some(c => c.id === activeId));
     const overList = currentBoard.lists.find(list => list.id === overId || list.cards.some(c => c.id === overId));
 
-    if (!activeList || !overList || activeList.id === overList.id) {
-      return;
-    }
+    if (!activeList || !overList) return;
 
     const activeIndex = activeList.cards.findIndex(c => c.id === activeId);
     const overCardIndex = overList.cards.findIndex(c => c.id === overId);
     const newIndex = overCardIndex >= 0 ? overCardIndex : overList.cards.length;
 
-    dispatch(moveCard({
-      sourceListId: activeList.id,
-      destinationListId: overList.id,
-      sourceIndex: activeIndex,
-      destinationIndex: newIndex,
-    }));
-  };
-
-  const handleDragEnd = (event: DragEndEvent) => {
-    const { active, over } = event;
-    setActiveCard(null);
-
-    if (!over || !currentBoard || !draggedCard) {
-      dispatch(setDraggedCard(null));
-      return;
+    // Dispatch optimistic update to UI
+    if (activeList.id === overList.id) {
+      if (activeIndex !== newIndex) {
+        dispatch(reorderCards({ listId: activeList.id, sourceIndex: activeIndex, destinationIndex: newIndex }));
+      }
+    } else {
+      dispatch(moveCard({ sourceListId: activeList.id, destinationListId: overList.id, sourceIndex: activeIndex, destinationIndex: newIndex }));
     }
 
-    const activeId = active.id as string;
-
-    const finalList = currentBoard.lists.find(list => list.cards.some(c => c.id === activeId));
-    if (!finalList) {
-      dispatch(setDraggedCard(null));
-      return;
-    }
-
-    const finalIndex = finalList.cards.findIndex(c => c.id === activeId);
-
-    if (draggedCard.sourceListId === finalList.id && draggedCard.sourceIndex !== finalIndex) {
-      dispatch(reorderCards({
-        listId: draggedCard.sourceListId,
-        sourceIndex: draggedCard.sourceIndex,
-        destinationIndex: finalIndex,
-      }));
-    }
-
+    // Dispatch API call to persist change
     dispatch(moveTask({
       projectId,
       taskId: activeId,
-      sourceGroupId: draggedCard.sourceListId,
-      destinationGroupId: finalList.id,
-      newPosition: finalIndex,
+      sourceGroupId: activeList.id,
+      destinationGroupId: overList.id,
+      newPosition: newIndex
     }));
-
-    dispatch(setDraggedCard(null));
   };
 
   const handleAddCard = (listId: string, title: string, description?: string) => {

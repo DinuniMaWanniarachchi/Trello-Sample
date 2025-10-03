@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { jwtVerify } from 'jose';
 import pool from '@/lib/db';
-import { CreateProjectData } from '@/types/project';
 
 const getSecretKey = () => {
   const secret = process.env.JWT_SECRET;
@@ -30,13 +29,6 @@ async function getUserFromToken(request: NextRequest) {
     return null;
   }
 }
-
-// Default task groups to create for new projects
-const DEFAULT_TASK_GROUPS = [
-  { name: 'To Do', color: 'gray', position: 1 },
-  { name: 'Doing', color: 'blue', position: 2 },
-  { name: 'Done', color: 'green', position: 3 },
-] as const;
 
 // ================= GET =================
 export async function GET(request: NextRequest) {
@@ -69,13 +61,19 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
 
+  const DEFAULT_TASK_GROUPS = [
+    { name: 'To Do', color: 'gray', position: 1 },
+    { name: 'Doing', color: 'blue', position: 2 },
+    { name: 'Done', color: 'green', position: 3 },
+  ] as const;
+
   try {
-    const body: CreateProjectData = await request.json();
+    const body = await request.json();
 
     const result = await pool.query(
       `INSERT INTO projects 
-        (name, description, workspace, user_id, background, visibility, created_at, updated_at)
-       VALUES ($1, $2, $3, $4, $5, $6, NOW(), NOW())
+        (name, description, workspace, user_id, background, visibility)
+       VALUES ($1, $2, $3, $4, $5, $6::visibility_type)
        RETURNING *`,
       [
         body.name,
@@ -94,9 +92,9 @@ export async function POST(request: NextRequest) {
       // Create default task groups for the new project
       const insertPromises = DEFAULT_TASK_GROUPS.map(async (groupData) => {
         const insertQuery = `
-          INSERT INTO task_groups (name, position, color, project_id, created_at, updated_at)
-          VALUES ($1, $2, $3, $4, NOW(), NOW())
-          RETURNING id, name, position, color, project_id, created_at, updated_at
+          INSERT INTO task_groups (name, position, color, project_id)
+          VALUES ($1, $2, $3, $4)
+          RETURNING id, name, position, color, project_id
         `;
         return pool.query(insertQuery, [
           groupData.name,
