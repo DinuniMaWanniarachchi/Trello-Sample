@@ -1,13 +1,14 @@
 // app/api/projects/[id]/task-groups/route.ts
 import { NextRequest, NextResponse } from 'next/server';
-import  pool  from '@/lib/db';
+import pool from '@/lib/db';
 
 // GET /api/projects/[id]/task-groups - Get all task groups for a project
 export async function GET(
-  request: NextRequest
+  request: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const projectId = request.nextUrl.pathname.split('/')[3];
+    const { id: projectId } = await params;
 
     const query = `
       SELECT 
@@ -35,7 +36,8 @@ export async function GET(
     return NextResponse.json(
       { 
         success: false, 
-        error: 'Failed to fetch task groups' 
+        error: 'Failed to fetch task groups',
+        details: error instanceof Error ? error.message : 'Unknown error'
       },
       { status: 500 }
     );
@@ -44,12 +46,15 @@ export async function GET(
 
 // POST /api/projects/[id]/task-groups - Create a new task group
 export async function POST(
-  request: NextRequest
+  request: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const projectId = request.nextUrl.pathname.split('/')[3];
+    const { id: projectId } = await params;
     const body = await request.json();
-    const { name, color = '#e2e8f0' } = body;
+    const { name, color = 'gray' } = body;
+
+    console.log('Creating task group:', { name, color, projectId });
 
     if (!name) {
       return NextResponse.json(
@@ -61,27 +66,13 @@ export async function POST(
       );
     }
 
-    // Get the next position
-    const positionQuery = `
-      SELECT COALESCE(MAX(position), 0) + 1 as next_position 
-      FROM task_groups 
-      WHERE project_id = $1
-    `;
-    const positionResult = await pool.query(positionQuery, [projectId]);
-    const position = positionResult.rows[0].next_position;
+    // Call the PostgreSQL function
+    const result = await pool.query(
+      `SELECT * FROM create_task_group($1, $2, $3)`,
+      [name, color, projectId]
+    );
 
-    const insertQuery = `
-      INSERT INTO task_groups (name, position, color, project_id, created_at, updated_at)
-      VALUES ($1, $2, $3, $4, NOW(), NOW())
-      RETURNING *
-    `;
-
-    const result = await pool.query(insertQuery, [
-      name,
-      position,
-      color,
-      projectId
-    ]);
+    console.log('Task group created:', result.rows[0]);
 
     return NextResponse.json({
       success: true,
@@ -89,11 +80,17 @@ export async function POST(
     }, { status: 201 });
 
   } catch (error) {
-    console.error('Error creating task group:', error);
+    console.error('Error creating task group - Full error:', error);
+    console.error('Error details:', {
+      message: error instanceof Error ? error.message : 'Unknown error',
+      stack: error instanceof Error ? error.stack : undefined
+    });
+    
     return NextResponse.json(
       { 
         success: false, 
-        error: 'Failed to create task group' 
+        error: 'Failed to create task group',
+        details: error instanceof Error ? error.message : 'Unknown error'
       },
       { status: 500 }
     );
