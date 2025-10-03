@@ -63,22 +63,10 @@ export async function POST(
       );
     }
 
-    // Get the next position if not provided
-    let finalPosition = position;
-    if (finalPosition === undefined) {
-      const maxPositionResult = await pool.query(`
-        SELECT COALESCE(MAX(position), -1) + 1 as next_position
-        FROM task_statuses
-        WHERE project_id = $1
-      `, [projectId]);
-      finalPosition = maxPositionResult.rows[0].next_position;
-    }
-
+    // Use the stored procedure
     const result = await pool.query(`
-      INSERT INTO task_statuses (project_id, name, color, position)
-      VALUES ($1, $2, $3, $4)
-      RETURNING id as status_id, project_id, name, color, position, created_at, updated_at
-    `, [projectId, name, color, finalPosition]);
+      SELECT * FROM create_task_status($1, $2, $3, $4)
+    `, [projectId, name, color, position ?? null]);
 
     console.log('Task status created:', result.rows[0]);
 
