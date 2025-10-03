@@ -4,6 +4,22 @@ import { taskGroupsApi, taskStatusesApi } from '@/lib/api/taskGroupsApi';
 import { tasksApi, CreateTaskData, UpdateTaskData, Task } from '@/lib/api/tasksApi';
 import { TaskGroup, TaskStatus } from '@/types/taskGroup';
 import { Board, Card, ColorType, List, PriorityType, StatusBadge } from '@/types/kanban';
+
+const mapDbColorToColorType = (dbColor: string): ColorType => {
+    const colorMap: Record<string, ColorType> = {
+        '#e2e8f0': 'gray',
+        '#3b82f6': 'blue',
+        '#10b981': 'green',
+    };
+    if (dbColor in colorMap) {
+        return colorMap[dbColor];
+    }
+    const validColorTypes: ColorType[] = ['orange', 'blue', 'green', 'red', 'purple', 'yellow', 'gray', 'white', 'pink'];
+    if (validColorTypes.includes(dbColor as ColorType)) {
+        return dbColor as ColorType;
+    }
+    return 'gray';
+};
 import { TaskLabelType } from '@/types/taskLabels';
 
 // -------------------- Async thunks (API integration) --------------------
@@ -111,6 +127,55 @@ export const fetchTaskStatuses = createAsyncThunk(
   async (projectId: string) => {
     const response = await taskStatusesApi.getTaskStatuses(projectId);
     return response.data;
+  }
+);
+
+export const fetchBoardData = createAsyncThunk(
+  'board/fetchBoardData',
+  async ({ projectId, projectName }: { projectId: string, projectName: string }) => {
+    const taskGroupsResponse = await taskGroupsApi.getTaskGroups(projectId);
+    if (!taskGroupsResponse.success) {
+      throw new Error(taskGroupsResponse.error || 'Failed to fetch task groups');
+    }
+    const taskGroups: TaskGroup[] = taskGroupsResponse.data;
+
+    const lists: List[] = await Promise.all(taskGroups.map(async (group) => {
+      const tasksResponse = await tasksApi.getTasks(projectId, group.id);
+      if (!tasksResponse.success) {
+        console.error(`Failed to fetch tasks for group ${group.id}:`, tasksResponse.error);
+        return {
+          id: group.id,
+          title: group.name,
+          titleColor: (group.color as ColorType) || 'gray',
+          cards: [],
+        };
+      }
+      const tasks: Task[] = tasksResponse.data;
+      
+      const cards: Card[] = tasks.map(task => ({
+        id: task.id,
+        title: task.title,
+        description: task.description,
+        dueDate: task.due_date,
+        priority: task.priority ? (task.priority.toLowerCase() as PriorityType) : 'none',
+        task_group_id: task.task_group_id,
+        labels: task.labels || [],
+      }));
+
+      return {
+        id: group.id,
+        title: group.name,
+        titleColor: mapDbColorToColorType(group.color),
+        cards: cards,
+      };
+    }));
+
+    const board: Board = {
+      id: projectId,
+      title: projectName,
+      lists: lists,
+    };
+    return board;
   }
 );
 
@@ -316,6 +381,18 @@ const boardSlice = createSlice({
   // ---- Extra reducers for API calls ----
   extraReducers: (builder) => {
     builder
+      .addCase(fetchBoardData.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(fetchBoardData.fulfilled, (state, action: PayloadAction<Board>) => {
+        state.currentBoard = action.payload;
+        state.loading = false;
+      })
+      .addCase(fetchBoardData.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.error.message || 'Failed to fetch board data';
+      })
       // Task Groups
       .addCase(fetchTaskGroups.pending, (state) => {
         state.loading = true;

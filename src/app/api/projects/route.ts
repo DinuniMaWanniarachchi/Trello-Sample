@@ -33,9 +33,9 @@ async function getUserFromToken(request: NextRequest) {
 
 // Default task groups to create for new projects
 const DEFAULT_TASK_GROUPS = [
-  { name: 'To Do', color: '#e2e8f0', position: 1 },
-  { name: 'Doing', color: '#3b82f6', position: 2 },
-  { name: 'Done', color: '#10b981', position: 3 },
+  { name: 'To Do', color: 'gray', position: 1 },
+  { name: 'Doing', color: 'blue', position: 2 },
+  { name: 'Done', color: 'green', position: 3 },
 ] as const;
 
 // ================= GET =================

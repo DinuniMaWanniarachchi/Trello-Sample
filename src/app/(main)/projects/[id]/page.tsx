@@ -6,7 +6,8 @@ import {
   DndContext, 
   DragEndEvent,
   DragStartEvent,
-  DragOverlay,     
+  DragOverEvent,
+  DragOverlay,
   closestCorners,
   KeyboardSensor,
   PointerSensor,
@@ -14,7 +15,7 @@ import {
   useSensors,
 } from '@dnd-kit/core';
 import { sortableKeyboardCoordinates } from '@dnd-kit/sortable';
-import { Card, Board, List, ColorType } from '@/types/kanban';
+import { Card, List, ColorType } from '@/types/kanban';
 import { useAppSelector, useAppDispatch } from '@/lib/hooks';
 import { 
   setCurrentBoard, 
@@ -30,7 +31,8 @@ import {
   fetchTaskStatuses,
   updateTaskGroup,
   updateCard,
-  deleteTaskGroup
+  deleteTaskGroup,
+  fetchBoardData
 } from '@/lib/features/boardSlice';
 import { UpdateTaskData } from '@/lib/api/tasksApi';
 import { SharedHeader } from '@/components/common/SharedHeader';
@@ -42,6 +44,7 @@ import { useProjects } from '@/contexts/ProjectContext';
 import { useAuth } from '@/contexts/AuthContext';
 
 // Types for board storage
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 interface StoredBoard {
   id: string;
   title: string;
@@ -55,9 +58,9 @@ export default function ProjectPage() {
   const router = useRouter();
   const projectId = params.id as string;
   
-  const { currentBoard, loading, error } = useAppSelector((state) => state.kanban);
+  const { currentBoard, loading, error, draggedCard } = useAppSelector((state) => state.kanban);
   const { user, isAuthenticated, isLoading: authLoading } = useAuth();
-  const { projects, getProject } = useProjects();
+  const { projects, getProject, isLoading: projectsLoading } = useProjects();
   
   const [selectedCard, setSelectedCard] = useState<Card | null>(null);
   const [isCardDrawerOpen, setIsCardDrawerOpen] = useState(false);
@@ -89,139 +92,7 @@ export default function ProjectPage() {
     }
   }, [currentBoard, selectedCard]);
 
-  // Storage key for this specific project
-  const getStorageKey = (projectId: string) => `kanban_board_${projectId}`;
 
-  // Save board state to localStorage
-  const saveBoardState = (board: Board) => {
-    const storedBoard: StoredBoard = {
-      ...board,
-      lastModified: new Date().toISOString()
-    };
-    
-    if (typeof window !== 'undefined') {
-      try {
-        localStorage.setItem(getStorageKey(projectId), JSON.stringify(storedBoard));
-      } catch (error) {
-        console.warn('Could not save board state:', error);
-      }
-    }
-  };
-
-  // Load board state from localStorage
-  const loadBoardState = (projectId: string): Board | null => {
-    if (typeof window !== 'undefined') {
-      try {
-        const stored = localStorage.getItem(getStorageKey(projectId));
-        if (stored) {
-          const storedBoard: StoredBoard = JSON.parse(stored);
-          return {
-            id: storedBoard.id,
-            title: storedBoard.title,
-            lists: storedBoard.lists
-          };
-        }
-      } catch (error) {
-        console.warn('Could not load board state:', error);
-      }
-    }
-    return null;
-  };
-
-  // Create default board structure
-  const createDefaultBoard = (projectId: string, projectName: string): Board => {
-    return {
-      id: projectId,
-      title: projectName,
-      lists: [
-        {
-          id: `${projectId}-list-todo`,
-          title: 'To Do',
-          titleColor: 'gray',
-          cards: []
-        },
-        {
-          id: `${projectId}-list-doing`,
-          title: 'Doing',
-          titleColor: 'blue',
-          cards: []
-        },
-        {
-          id: `${projectId}-list-done`,
-          title: 'Done',
-          titleColor: 'green',
-          cards: []
-        }
-      ]
-    };
-  };
-
-  // Create sample board for demonstration
-  const createSampleBoard = (projectId: string, projectName: string): Board => {
-    return {
-      id: projectId,
-      title: projectName,
-      lists: [
-        {
-          id: `${projectId}-list-todo`,
-          title: 'To Do',
-          titleColor: 'gray',
-          cards: [
-            {
-              id: `${projectId}-card-1`,
-              title: 'Plan project structure',
-              description: 'Define the overall architecture and folder structure',
-              color: 'blue',
-              statusBadges: [
-                { id: 'badge-1', text: 'Planning', color: 'blue' }
-              ]
-            },
-            {
-              id: `${projectId}-card-2`,
-              title: 'Research requirements',
-              description: 'Gather all necessary requirements and constraints',
-              color: 'yellow',
-              statusBadges: [
-                { id: 'badge-2', text: 'Research', color: 'purple' }
-              ]
-            }
-          ]
-        },
-        {
-          id: `${projectId}-list-doing`,
-          title: 'Doing',
-          titleColor: 'blue',
-          cards: [
-            {
-              id: `${projectId}-card-3`,
-              title: 'Setup development environment',
-              description: 'Configure tools and dependencies',
-              color: 'green',
-              statusBadges: [
-                { id: 'badge-3', text: 'In Progress', color: 'orange' }
-              ]
-            }
-          ]
-        },
-        {
-          id: `${projectId}-list-done`,
-          title: 'Done',
-          titleColor: 'green',
-          cards: [
-            {
-              id: `${projectId}-card-4`,
-              title: 'Project initialization',
-              description: 'Created the project and initial setup',
-              color: 'white',
-              statusBadges: [
-                { id: 'badge-4', text: 'Completed', color: 'green' }
-              ]
-            }
-          ]
-        }
-      ]
-    };
-  };
 
   // Initialize board based on project ID
   useEffect(() => {
@@ -229,41 +100,22 @@ export default function ProjectPage() {
       const project = getProject(projectId);
       
       if (project) {
-        // Try to load existing board state first
-        let boardData = loadBoardState(projectId);
-        
-        if (!boardData) {
-          // If no saved state, check if this is the first project (for demo purposes)
-          const isFirstProject = projects.findIndex(p => p.id === projectId) === 0;
-          
-          if (isFirstProject && projects.length === 1) {
-            // Create sample board for the first project
-            boardData = createSampleBoard(projectId, project.name);
-          } else {
-            // Create empty board for new projects
-            boardData = createDefaultBoard(projectId, project.name);
-          }
-          
-          // Save the initial state
-          saveBoardState(boardData);
-        }
-        
-        dispatch(setCurrentBoard(boardData));
+        dispatch(fetchBoardData({ projectId, projectName: project.name }));
         setIsInitialized(true);
-      } else {
-        // Project not found, redirect to home
+      } else if (!projectsLoading) {
+        console.warn(`Project with ID ${projectId} not found. Redirecting to home.`);
         router.push('/home');
       }
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [dispatch, projectId, projects, getProject, isInitialized, isAuthenticated, router]);
+   
+  }, [dispatch, projectId, projects, getProject, isInitialized, isAuthenticated, router, projectsLoading]);
 
   // Save board state whenever it changes
   useEffect(() => {
     if (currentBoard && isInitialized) {
-      saveBoardState(currentBoard);
+      // This is where you might save UI state, like open drawers, etc.
+      // For now, we are not saving the whole board state to prevent conflicts.
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentBoard, isInitialized, projectId]);
 
   // Configure sensors for better drag experience
@@ -290,16 +142,8 @@ export default function ProjectPage() {
     }
   };
 
-  const handleDragOver = () => {
-    // This is intentionally left blank. 
-    // State updates are now handled in onDragEnd to ensure consistency and allow for API calls.
-  };
-
-  const handleDragEnd = (event: DragEndEvent) => {
+  const handleDragOver = (event: DragOverEvent) => {
     const { active, over } = event;
-    setActiveCard(null);
-    dispatch(setDraggedCard(null));
-
     if (!over || !currentBoard) return;
 
     const activeId = active.id as string;
@@ -310,29 +154,58 @@ export default function ProjectPage() {
     const activeList = currentBoard.lists.find(list => list.cards.some(c => c.id === activeId));
     const overList = currentBoard.lists.find(list => list.id === overId || list.cards.some(c => c.id === overId));
 
-    if (!activeList || !overList) return;
+    if (!activeList || !overList || activeList.id === overList.id) {
+      return;
+    }
 
     const activeIndex = activeList.cards.findIndex(c => c.id === activeId);
     const overCardIndex = overList.cards.findIndex(c => c.id === overId);
     const newIndex = overCardIndex >= 0 ? overCardIndex : overList.cards.length;
 
-    // Dispatch optimistic update to UI
-    if (activeList.id === overList.id) {
-      if (activeIndex !== newIndex) {
-        dispatch(reorderCards({ listId: activeList.id, sourceIndex: activeIndex, destinationIndex: newIndex }));
-      }
-    } else {
-      dispatch(moveCard({ sourceListId: activeList.id, destinationListId: overList.id, sourceIndex: activeIndex, destinationIndex: newIndex }));
+    dispatch(moveCard({
+      sourceListId: activeList.id,
+      destinationListId: overList.id,
+      sourceIndex: activeIndex,
+      destinationIndex: newIndex,
+    }));
+  };
+
+  const handleDragEnd = (event: DragEndEvent) => {
+    const { active, over } = event;
+    setActiveCard(null);
+
+    if (!over || !currentBoard || !draggedCard) {
+      dispatch(setDraggedCard(null));
+      return;
     }
 
-    // Dispatch API call to persist change
+    const activeId = active.id as string;
+
+    const finalList = currentBoard.lists.find(list => list.cards.some(c => c.id === activeId));
+    if (!finalList) {
+      dispatch(setDraggedCard(null));
+      return;
+    }
+
+    const finalIndex = finalList.cards.findIndex(c => c.id === activeId);
+
+    if (draggedCard.sourceListId === finalList.id && draggedCard.sourceIndex !== finalIndex) {
+      dispatch(reorderCards({
+        listId: draggedCard.sourceListId,
+        sourceIndex: draggedCard.sourceIndex,
+        destinationIndex: finalIndex,
+      }));
+    }
+
     dispatch(moveTask({
       projectId,
       taskId: activeId,
-      sourceGroupId: activeList.id,
-      destinationGroupId: overList.id,
-      newPosition: newIndex
+      sourceGroupId: draggedCard.sourceListId,
+      destinationGroupId: finalList.id,
+      newPosition: finalIndex,
     }));
+
+    dispatch(setDraggedCard(null));
   };
 
   const handleAddCard = (listId: string, title: string, description?: string) => {

@@ -1,15 +1,15 @@
-// src/app/api/projects/[id]/tasks/reorder/route.ts
+// src/app/api/projects/[id]/task-groups/[group_id]/tasks/reorder/route.ts
 import { NextRequest, NextResponse } from 'next/server';
 import pool from '@/lib/db';
 
-// PUT /api/projects/[id]/tasks/reorder - Reorder tasks (for drag and drop)
+// PUT /api/projects/[id]/task-groups/[group_id]/tasks/reorder - Reorder tasks (for drag and drop)
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string; group_id: string }> }
 ) {
   try {
-    const projectId = params.id;
-    const { taskId, sourceGroupId, destinationGroupId, newPosition } = await request.json();
+    const { id: projectId, group_id: sourceGroupId } = await params;
+    const { taskId, destinationGroupId, newPosition } = await request.json();
 
     if (!taskId || !destinationGroupId || newPosition === undefined) {
       return NextResponse.json(
