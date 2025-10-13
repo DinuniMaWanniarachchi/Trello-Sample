@@ -12,19 +12,10 @@ export async function GET(
 
     console.log('Fetching task statuses for project:', projectId);
 
-    const taskStatuses = await pool.query(`
-      SELECT 
-        id as status_id,
-        project_id,
-        name,
-        color,
-        position,
-        created_at,
-        updated_at
-      FROM task_statuses
-      WHERE project_id = $1 
-      ORDER BY position ASC, created_at ASC
-    `, [projectId]);
+    const taskStatuses = await pool.query(
+      `SELECT * FROM get_task_statuses_by_project($1::UUID)`,
+      [projectId]
+    );
 
     console.log('Task statuses found:', taskStatuses.rows.length);
 
@@ -45,7 +36,7 @@ export async function GET(
   }
 }
 
-// POST /api/projects/[id]/task-statuses - Create new task status
+// POST /api/projects/[id]/task-statuses - Create a new task status
 export async function POST(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }

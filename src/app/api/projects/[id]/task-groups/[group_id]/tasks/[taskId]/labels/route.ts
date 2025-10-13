@@ -11,32 +11,11 @@ export async function GET(
 ) {
   try {
     const { id: projectId, group_id: taskGroupId, taskId } = await params;
-
-    // Verify task exists in this project/group
-    const taskCheck = await pool.query(
-      `SELECT id FROM tasks 
-       WHERE id = $1 AND task_group_id = $2 AND project_id = $3`,
-      [taskId, taskGroupId, projectId]
-    );
-
-    if (taskCheck.rows.length === 0) {
-      return NextResponse.json(
-        { success: false, error: 'Task not found' },
-        { status: 404 }
-      );
-    }
-
-    // Get all labels for this task
+    
+    // Use stored procedure to fetch labels with scope validation
     const result = await pool.query(
-      `SELECT 
-        id,
-        task_id,
-        label_type as type,
-        created_at
-       FROM task_labels
-       WHERE task_id = $1
-       ORDER BY created_at DESC`,
-      [taskId]
+      `SELECT * FROM get_task_labels($1::UUID, $2::UUID, $3::UUID)`,
+      [taskId, taskGroupId, projectId]
     );
 
     return NextResponse.json({
@@ -66,7 +45,7 @@ export async function POST(
 
     console.log('Adding label:', { projectId, taskGroupId, taskId, labelType });
 
-    // Validate label type
+    // Validate label type (basic client/server guard; DB also validates scope)
     if (!labelType || !isValidLabelType(labelType)) {
       return NextResponse.json(
         { success: false, error: 'Invalid label type' },
@@ -74,38 +53,10 @@ export async function POST(
       );
     }
 
-    // Verify task exists in this project/group
-    const taskCheck = await pool.query(
-      `SELECT id FROM tasks 
-       WHERE id = $1 AND task_group_id = $2 AND project_id = $3`,
-      [taskId, taskGroupId, projectId]
-    );
-
-    if (taskCheck.rows.length === 0) {
-      return NextResponse.json(
-        { success: false, error: 'Task not found' },
-        { status: 404 }
-      );
-    }
-
-    // Check if label already exists
-    const existingLabel = await pool.query(
-      `SELECT id FROM task_labels WHERE task_id = $1 AND label_type = $2`,
-      [taskId, labelType]
-    );
-
-    if (existingLabel.rows.length > 0) {
-      return NextResponse.json(
-        { success: false, error: 'Label already exists on this task' },
-        { status: 409 }
-      );
-    }
-
+    // Use stored procedure (idempotent add)
     const result = await pool.query(
-      `INSERT INTO task_labels (task_id, label_type)
-       VALUES ($1, $2)
-       RETURNING id, task_id, label_type as type, created_at`,
-      [taskId, labelType]
+      `SELECT * FROM add_task_label($1::UUID, $2::UUID, $3::UUID, $4::TEXT)`,
+      [taskId, taskGroupId, projectId, labelType]
     );
 
     console.log('Label added successfully:', result.rows[0]);
@@ -145,26 +96,10 @@ export async function DELETE(
       );
     }
 
-    // Verify task exists in this project/group
-    const taskCheck = await pool.query(
-      `SELECT id FROM tasks 
-       WHERE id = $1 AND task_group_id = $2 AND project_id = $3`,
-      [taskId, taskGroupId, projectId]
-    );
-
-    if (taskCheck.rows.length === 0) {
-      return NextResponse.json(
-        { success: false, error: 'Task not found' },
-        { status: 404 }
-      );
-    }
-
-    // Delete the label
+    // Use stored procedure to remove label with scope validation
     const result = await pool.query(
-      `DELETE FROM task_labels 
-       WHERE task_id = $1 AND label_type = $2
-       RETURNING id`,
-      [taskId, labelType]
+      `SELECT * FROM remove_task_label($1::UUID, $2::UUID, $3::UUID, $4::TEXT)`,
+      [taskId, taskGroupId, projectId, labelType]
     );
 
     if (result.rows.length === 0) {

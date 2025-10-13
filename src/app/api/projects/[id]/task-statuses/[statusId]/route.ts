@@ -10,16 +10,10 @@ export async function GET(
   try {
     const { id: projectId, statusId } = await params;
 
-    const result = await pool.query(`
-      SELECT 
-        status_id,
-        project_id,
-        name,
-        created_at,
-        updated_at
-      FROM task_statuses 
-      WHERE status_id = $1 AND project_id = $2
-    `, [statusId, projectId]);
+    const result = await pool.query(
+      `SELECT * FROM get_task_status_by_ids($1::UUID, $2::UUID)`,
+      [statusId, projectId]
+    );
 
     if (result.rows.length === 0) {
       return NextResponse.json(
@@ -52,7 +46,7 @@ export async function PUT(
 ) {
   try {
     const { id: projectId, statusId } = await params;
-    const { name } = await request.json();
+    const { name = null } = await request.json();
 
     if (!name) {
       return NextResponse.json(
@@ -61,12 +55,15 @@ export async function PUT(
       );
     }
 
-    const result = await pool.query(`
-      UPDATE task_statuses 
-      SET name = $1, updated_at = now()
-      WHERE status_id = $2 AND project_id = $3
-      RETURNING status_id, project_id, name, created_at, updated_at
-    `, [name, statusId, projectId]);
+    const result = await pool.query(
+      `
+      SELECT * FROM update_task_status(
+        $1::UUID, $2::UUID,
+        $3::TEXT
+      )
+    `,
+      [statusId, projectId, name]
+    );
 
     if (result.rows.length === 0) {
       return NextResponse.json(
@@ -114,11 +111,10 @@ export async function DELETE(
       );
     }
 
-    const result = await pool.query(`
-      DELETE FROM task_statuses 
-      WHERE status_id = $1 AND project_id = $2
-      RETURNING status_id
-    `, [statusId, projectId]);
+    const result = await pool.query(
+      `SELECT * FROM delete_task_status($1::UUID, $2::UUID)`,
+      [statusId, projectId]
+    );
 
     if (result.rows.length === 0) {
       return NextResponse.json(
