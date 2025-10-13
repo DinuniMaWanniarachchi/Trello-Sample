@@ -8,25 +8,16 @@ export async function GET(
   context: { params: { id: string; group_id: string } }
 ) {
   try {
-    await request.text(); // Ensure request is processed
-    const { id: projectId, group_id: taskGroupId } = await context.params;
+    const { id: projectId, group_id: taskGroupId } = context.params;
 
+    console.log('Fetching tasks for group:', { projectId, taskGroupId });
+
+    // Use the stored procedure to get tasks
     const tasks = await pool.query(`
-      SELECT 
-        t.id,
-        t.title,
-        t.description,
-        t.position,
-        t.priority,
-        t.due_date,
-        t.task_group_id,
-        t.project_id,
-        t.created_at,
-        t.updated_at
-      FROM tasks t
-      WHERE t.task_group_id = $1 AND t.project_id = $2
-      ORDER BY t.position ASC
-    `, [taskGroupId, projectId]);
+      SELECT * FROM get_tasks_by_group($1::UUID, $2::UUID)
+    `, [projectId, taskGroupId]);
+
+    console.log('Tasks found:', tasks.rows.length);
 
     return NextResponse.json({
       success: true,
@@ -35,7 +26,11 @@ export async function GET(
   } catch (error) {
     console.error('Error fetching tasks:', error);
     return NextResponse.json(
-      { success: false, error: 'Failed to fetch tasks' },
+      { 
+        success: false, 
+        error: 'Failed to fetch tasks',
+        details: error instanceof Error ? error.message : 'Unknown error'
+      },
       { status: 500 }
     );
   }
@@ -48,13 +43,15 @@ export async function POST(
 ) {
   try {
     const body = await request.json();
-    const { id: projectId, group_id: taskGroupId } = await context.params;
+    const { id: projectId, group_id: taskGroupId } = context.params;
     const { 
       title,
       description,
       priority = 'MEDIUM',
       due_date
     } = body;
+
+    console.log('Creating task:', { projectId, taskGroupId, title, priority });
 
     if (!title) {
       return NextResponse.json(
@@ -63,26 +60,27 @@ export async function POST(
       );
     }
 
-    // Get the next position
-    const positionResult = await pool.query(`
-      SELECT COALESCE(MAX(position), 0) + 1 as next_position
-      FROM tasks 
-      WHERE task_group_id = $1
-    `, [taskGroupId]);
+    // Use the stored procedure to create task with explicit type casting
+    const result = await pool.query(`
+      SELECT * FROM create_task(
+        $1::TEXT,
+        $2::UUID,
+        $3::UUID,
+        $4::TEXT,
+        $5::TEXT,
+        $6::TIMESTAMPTZ
+      )
+    `, [
+      title,
+      taskGroupId,
+      projectId,
+      description || null,
+      priority,
+      due_date || null
+    ]);
 
-    const position = positionResult.rows[0].next_position;
+    console.log('Task created:', result.rows[0]);
 
-        const result = await pool.query(`
-          INSERT INTO tasks (
-            title, description, position, priority, 
-            due_date, task_group_id, project_id
-          )
-          VALUES ($1, $2, $3, $4, $5, $6, $7)
-          RETURNING *
-        `, [
-          title, description, position, priority, 
-          due_date, taskGroupId, projectId
-        ]);
     return NextResponse.json({
       success: true,
       data: result.rows[0]
@@ -90,7 +88,11 @@ export async function POST(
   } catch (error) {
     console.error('Error creating task:', error);
     return NextResponse.json(
-      { success: false, error: 'Failed to create task' },
+      { 
+        success: false, 
+        error: 'Failed to create task',
+        details: error instanceof Error ? error.message : 'Unknown error'
+      },
       { status: 500 }
     );
   }
