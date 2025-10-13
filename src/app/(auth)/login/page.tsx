@@ -1,12 +1,13 @@
 // app/(auth)/login/page.tsx
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card } from '@/components/ui/card';
 import { Lock, User, Eye, EyeOff } from 'lucide-react';
+import { useAuth } from '@/contexts/AuthContext';
 
 interface LoginFormData {
   email: string;
@@ -17,8 +18,8 @@ interface LoginFormData {
 export default function LoginPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const { login, isAuthenticated, checkAuth } = useAuth();
   
-  // Get the return URL from query params, default to home page
   const returnUrl = searchParams.get('returnUrl') || '/home';
   
   const [formData, setFormData] = useState<LoginFormData>({
@@ -32,8 +33,13 @@ export default function LoginPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [loginError, setLoginError] = useState<string>('');
 
-  // REMOVED: The useEffect that was automatically redirecting authenticated users
-  // The middleware now handles this logic properly
+  // Redirect if already authenticated
+  useEffect(() => {
+    if (isAuthenticated && checkAuth()) {
+      console.log('Already authenticated, redirecting to:', returnUrl);
+      router.push(returnUrl);
+    }
+  }, [isAuthenticated, checkAuth, returnUrl, router]);
 
   const validateForm = (): boolean => {
     const newErrors: Partial<LoginFormData> = {};
@@ -61,6 +67,8 @@ export default function LoginPage() {
     setIsLoading(true);
     
     try {
+      console.log('🔑 Attempting login for:', formData.email);
+      
       const response = await fetch('/api/auth/login', {
         method: 'POST',
         headers: {
@@ -75,38 +83,22 @@ export default function LoginPage() {
       const data = await response.json();
 
       if (data.success) {
-        // Store token in cookie with proper settings
-        if (formData.remember) {
-          // Store for 7 days if remember is checked
-          document.cookie = `token=${data.token}; path=/; max-age=${7 * 24 * 60 * 60}; SameSite=Lax`;
-        } else {
-          // Session cookie
-          document.cookie = `token=${data.token}; path=/; SameSite=Lax`;
-        }
+        console.log('✅ Login API successful');
         
-        // Log token for debugging
-        console.log('Token stored:', data.token.substring(0, 20) + '...');
+        // CRITICAL: Use AuthContext login method
+        login(data.token, data.user, formData.remember);
         
-        // Store user data in localStorage
-        localStorage.setItem('user', JSON.stringify(data.user));
+        console.log('✅ Auth context updated, navigating...');
         
-        console.log('Login successful:', data.user);
-        console.log('Redirecting to:', returnUrl);
+        // Small delay to ensure cookie is set
+        await new Promise(resolve => setTimeout(resolve, 150));
         
-        // Wait a moment to ensure cookie is set before navigation
-        await new Promise(resolve => setTimeout(resolve, 100));
-        
-        // Navigation logic: Always navigate to home page after successful login
-        // If user has a default board and no specific return URL, go to that board
-        // Otherwise, go to home page or the intended return URL
+        // Navigate based on user preferences
         if (data.user.defaultBoardId && returnUrl === '/home') {
-          // User has default board and no specific return URL, go to default board
+          console.log('Navigating to default board:', data.user.defaultBoardId);
           router.push(`/projects/${data.user.defaultBoardId}`);
-        } else if (returnUrl === '/home') {
-          // No specific return URL, go to home page
-          router.push('/home');
         } else {
-          // Go to the intended return URL
+          console.log('Navigating to:', returnUrl);
           router.push(returnUrl);
         }
         
@@ -114,7 +106,7 @@ export default function LoginPage() {
         setLoginError(data.message || 'Login failed');
       }
     } catch (error) {
-      console.error('Login error:', error);
+      console.error('❌ Login error:', error);
       setLoginError('Login failed. Please try again.');
     } finally {
       setIsLoading(false);
@@ -123,11 +115,9 @@ export default function LoginPage() {
 
   const handleInputChange = (field: keyof LoginFormData, value: string | boolean) => {
     setFormData(prev => ({ ...prev, [field]: value }));
-    // Clear error when user starts typing
     if (errors[field]) {
       setErrors(prev => ({ ...prev, [field]: undefined }));
     }
-    // Clear login error
     if (loginError) {
       setLoginError('');
     }
@@ -140,7 +130,6 @@ export default function LoginPage() {
           <div className="text-center mb-6">
             <h1 className="text-2xl font-bold">Sign In</h1>
             <p className="text-gray-600 mt-2">Enter your credentials to continue</p>
-            {/* Show return URL for debugging (remove in production) */}
             {returnUrl !== '/home' && (
               <p className="text-xs text-blue-600 mt-1">
                 Redirecting to: {returnUrl}
@@ -148,14 +137,12 @@ export default function LoginPage() {
             )}
           </div>
 
-          {/* Login Error */}
           {loginError && (
             <div className="p-4 bg-red-50 border border-red-200 rounded-md">
               <p className="text-sm text-red-600">{loginError}</p>
             </div>
           )}
 
-          {/* Email Field */}
           <div className="space-y-2">
             <div className="relative">
               <User className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
@@ -173,7 +160,6 @@ export default function LoginPage() {
             )}
           </div>
 
-          {/* Password Field */}
           <div className="space-y-2">
             <div className="relative">
               <Lock className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
@@ -199,7 +185,6 @@ export default function LoginPage() {
             )}
           </div>
 
-          {/* Remember Me and Forgot Password */}
           <div className="flex items-center justify-between">
             <label className="flex items-center space-x-2 cursor-pointer">
               <input
@@ -218,7 +203,6 @@ export default function LoginPage() {
             </div>
           </div>
 
-          {/* Submit Button */}
           <Button 
             type="submit" 
             className="w-full" 
@@ -227,7 +211,6 @@ export default function LoginPage() {
             {isLoading ? 'Signing in...' : 'Sign In'}
           </Button>
 
-          {/* Register Link */}
           <div className="text-center">
             <span className="text-sm text-gray-600">Don&apos;t have an account? </span>
             <a 

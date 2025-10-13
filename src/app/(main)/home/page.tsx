@@ -1,4 +1,5 @@
- "use client";
+// app/(main)/home/page.tsx
+"use client";
 
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
@@ -9,10 +10,6 @@ import {
   Clock,
   X,
   User,
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  LogOut,
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  Settings,
   Plus
 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
@@ -26,16 +23,31 @@ export default function HomePage() {
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const [isDarkMode, setIsDarkMode] = useState(false);
   
-  // Use both auth and projects from context
-  const { user, isAuthenticated, logout, isLoading: authLoading } = useAuth();
+  const { user, isAuthenticated, isLoading: authLoading, checkAuth } = useAuth();
   const { projects, isLoading: projectsLoading, error, createProject, clearError } = useProjects();
 
-  // Redirect to login if not authenticated
+  // CRITICAL: Only redirect after auth is fully loaded AND we verify no token exists
   useEffect(() => {
-    if (!authLoading && !isAuthenticated) {
-      router.push('/login');
+    console.log('🏠 HomePage: Auth check', { authLoading, isAuthenticated });
+    
+    // Wait for auth to finish loading
+    if (authLoading) {
+      console.log('🏠 Still loading auth...');
+      return;
     }
-  }, [isAuthenticated, authLoading, router]);
+
+    // Double-check with the checkAuth function
+    const hasAuth = checkAuth();
+    console.log('🏠 Has valid auth:', hasAuth);
+    
+    // Only redirect if we're absolutely sure there's no authentication
+    if (!isAuthenticated && !hasAuth) {
+      console.log('🏠 No authentication, redirecting to login');
+      router.push('/login');
+    } else {
+      console.log('🏠 User authenticated:', user?.email);
+    }
+  }, [authLoading, isAuthenticated, checkAuth, user, router]);
 
   // Check for dark mode
   useEffect(() => {
@@ -45,7 +57,6 @@ export default function HomePage() {
     
     checkDarkMode();
     
-    // Watch for changes to the dark class
     const observer = new MutationObserver(checkDarkMode);
     observer.observe(document.documentElement, { 
       attributes: true, 
@@ -86,11 +97,6 @@ export default function HomePage() {
     setIsDrawerOpen(false);
   };
 
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const handleLogout = () => {
-    logout();
-  };
-
   // Show loading state while checking authentication
   if (authLoading) {
     return (
@@ -103,7 +109,7 @@ export default function HomePage() {
     );
   }
 
-  // Don't render if not authenticated (will redirect)
+  // Don't render content if not authenticated
   if (!isAuthenticated || !user) {
     return null;
   }
@@ -111,40 +117,6 @@ export default function HomePage() {
   return (
     <div className="p-8">
       <div className="max-w-4xl mx-auto">
-        {/* User Header */}
-        <div className="flex items-center justify-between mb-6">
-          {/* <div className="flex items-center space-x-3">
-            <div className="w-10 h-10 rounded-full bg-blue-600 flex items-center justify-center text-white font-semibold">
-              {user.name ? user.name.charAt(0).toUpperCase() : user.email.charAt(0).toUpperCase()}
-            </div>
-            <div>
-              <h1 className="text-xl font-semibold text-gray-900 dark:text-white">
-                Welcome back{user.name ? `, ${user.name}` : ''}!
-              </h1>
-              <p className="text-sm text-gray-600 dark:text-gray-400">{user.email}</p>
-            </div>
-          </div> */}
-          
-          <div className="flex items-center space-x-2">
-            {/* <Button
-              variant="outline"
-              size="sm"
-              className="flex items-center space-x-2"
-            >
-              <Settings className="h-4 w-4" />
-              <span className="hidden md:inline">Settings</span>
-            </Button> */}
-            {/* <Button
-              variant="outline"
-              onClick={handleLogout}
-              className="flex items-center space-x-2"
-            >
-              <LogOut className="h-4 w-4" />
-              <span className="hidden md:inline">Logout</span>
-            </Button> */}
-          </div>
-        </div>
-
         {/* Error Display */}
         {error && (
           <div className="mb-6 p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-md">
@@ -178,7 +150,7 @@ export default function HomePage() {
           </div>
         </div>
 
-        {/* Organize Anything Section - Show only when no projects exist */}
+        {/* Organize Anything Section */}
         {!projectsLoading && projects.length === 0 && (
           <div className="text-center mb-8">
             <div 
@@ -245,7 +217,7 @@ export default function HomePage() {
           </div>
         )}
 
-        {/* Quick Create Section for existing users */}
+        {/* Quick Create Section */}
         {!projectsLoading && projects.length > 0 && (
           <div className="mb-8 p-6 bg-gradient-to-r from-blue-50 to-purple-50 dark:from-blue-900/20 dark:to-purple-900/20 rounded-lg border border-blue-200 dark:border-blue-800">
             <h3 className="text-lg font-semibold mb-3 text-gray-900 dark:text-white">
@@ -335,7 +307,7 @@ export default function HomePage() {
             <div className="text-center py-12 text-gray-500 dark:text-gray-400">
               <User className="h-16 w-16 mx-auto mb-4 opacity-50" />
               <h3 className="text-lg font-medium mb-2 text-gray-900 dark:text-white">No projects yet</h3>
-              <p className="mb-4">Create your first project to get started with organizing your work!</p>
+              <p className="mb-4">Create your first project to get started!</p>
               <Button
                 onClick={showDrawer}
                 className="bg-blue-600 hover:bg-blue-700 text-white"
@@ -348,7 +320,7 @@ export default function HomePage() {
         </div>
       </div>
 
-      {/* Enhanced Create Modal */}
+      {/* Create Modal */}
       {isDrawerOpen && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <div 
@@ -383,17 +355,6 @@ export default function HomePage() {
                       onCloseDrawer();
                     }
                   }}
-                />
-              </div>
-              
-              <div>
-                <label className="block text-sm font-medium mb-2 text-gray-700 dark:text-gray-300">
-                  Description (Optional)
-                </label>
-                <textarea 
-                  placeholder="Enter board description"
-                  className="w-full p-3 rounded-md border bg-white dark:bg-gray-700 border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                  rows={3}
                 />
               </div>
               

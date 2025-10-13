@@ -15,10 +15,9 @@ const isValidToken = async (token: string): Promise<boolean> => {
   
   try {
     const { payload } = await jwtVerify(token, getSecretKey());
-    // Additional validation - check if token has required fields
     return !!(payload && payload.userId);
   } catch (error) {
-    console.error('Token verification failed:', error);
+    console.error('🔒 Middleware: Token verification failed:', error);
     return false;
   }
 };
@@ -26,6 +25,7 @@ const isValidToken = async (token: string): Promise<boolean> => {
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
+  // Skip API routes entirely
   if (pathname.startsWith('/api')) {
     return NextResponse.next();
   }
@@ -45,35 +45,79 @@ export async function middleware(request: NextRequest) {
   }
   
   const token = request.cookies.get('token')?.value;
-  const isTokenValid = token ? await isValidToken(token) : false;
+  
+  console.log('🔒 Middleware check:', { 
+    pathname, 
+    hasToken: !!token,
+    isProtectedPath,
+    isAuthPath 
+  });
   
   // Handle protected paths
   if (isProtectedPath) {
-    if (!isTokenValid) {
-      console.log(`Redirecting from protected path ${pathname} to login`);
-      // Clear invalid token
-      const response = NextResponse.redirect(new URL('/login', request.url));
-      if (token) {
-        response.cookies.set('token', '', { path: '/', expires: new Date(0) });
-      }
+    if (!token) {
+      console.log('🔒 No token found, redirecting to login from:', pathname);
+      const loginUrl = new URL('/login', request.url);
+      // Save the intended destination
+      loginUrl.searchParams.set('returnUrl', pathname);
+      const response = NextResponse.redirect(loginUrl);
       return response;
     }
+    
+    const isTokenValid = await isValidToken(token);
+    
+    if (!isTokenValid) {
+      console.log('🔒 Invalid token, redirecting to login from:', pathname);
+      const loginUrl = new URL('/login', request.url);
+      loginUrl.searchParams.set('returnUrl', pathname);
+      const response = NextResponse.redirect(loginUrl);
+      // Clear invalid token
+      response.cookies.set('token', '', { 
+        path: '/', 
+        expires: new Date(0),
+        sameSite: 'lax' 
+      });
+      return response;
+    }
+    
+    console.log('🔒 Token valid, allowing access to:', pathname);
   }
   
-  // Handle auth paths (login/register) - redirect if already authenticated
+  // Handle auth paths (login/register)
   if (isAuthPath) {
-    if (isTokenValid) {
-      console.log(`User already authenticated, redirecting from ${pathname} to /home`);
-      return NextResponse.redirect(new URL('/home', request.url));
-    }
-    // If token exists but is invalid, clear it and allow access to auth pages
-    if (token && !isTokenValid) {
-      console.log(`Clearing invalid token on auth page ${pathname}`);
-      const response = NextResponse.next();
-      response.cookies.set('token', '', { path: '/', expires: new Date(0) });
-      return response;
+    if (token) {
+      const isTokenValid = await isValidToken(token);
+      
+      if (isTokenValid) {
+        console.log('🔒 Already authenticated, redirecting from', pathname, 'to /home');
+        return NextResponse.redirect(new URL('/home', request.url));
+      } else {
+        // Token exists but is invalid - clear it and allow access to auth pages
+        console.log('🔒 Invalid token on auth page, clearing it');
+        const response = NextResponse.next();
+        response.cookies.set('token', '', { 
+          path: '/', 
+          expires: new Date(0),
+          sameSite: 'lax' 
+        });
+        return response;
+      }
     }
   }
   
   return NextResponse.next();
 }
+
+// Configure which routes the middleware runs on
+export const config = {
+  matcher: [
+    /*
+     * Match all request paths except:
+     * - _next/static (static files)
+     * - _next/image (image optimization files)
+     * - favicon.ico (favicon file)
+     * - public files (public folder)
+     */
+    '/((?!_next/static|_next/image|favicon.ico|.*\\..*|api).*)',
+  ],
+};
