@@ -5,10 +5,10 @@ import pool from '@/lib/db';
 // GET /api/projects/[id]/task-groups/[group_id]/tasks/[taskId] - Get specific task
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string; group_id: string; taskId: string } }
+  { params }: { params: Promise<{ id: string; group_id: string; taskId: string }> }
 ) {
   try {
-    const { id: projectId, group_id: taskGroupId, taskId } = params;
+    const { id: projectId, group_id: taskGroupId, taskId } = await params;
 
     const result = await pool.query(
       `SELECT * FROM get_task_by_ids($1::UUID, $2::UUID, $3::UUID)`,
@@ -38,10 +38,10 @@ export async function GET(
 // PUT /api/projects/[id]/task-groups/[group_id]/tasks/[taskId] - Update task
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { id: string; group_id: string; taskId: string } }
+  { params }: { params: Promise<{ id: string; group_id: string; taskId: string }> }
 ) {
   try {
-    const { id: projectId, group_id: taskGroupId, taskId } = params;
+    const { id: projectId, group_id: taskGroupId, taskId } = await params;
     const text = await request.text();
     const body = text ? JSON.parse(text) : {};
     const { 
@@ -87,10 +87,10 @@ export async function PUT(
 // DELETE /api/projects/[id]/task-groups/[group_id]/tasks/[taskId] - Delete task
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string; group_id: string; taskId: string } }
+  { params }: { params: Promise<{ id: string; group_id: string; taskId: string }> }
 ) {
   try {
-    const { id: projectId, group_id: taskGroupId, taskId } = params;
+    const { id: projectId, group_id: taskGroupId, taskId } = await params;
 
     const result = await pool.query(
       `SELECT * FROM delete_task_and_compact($1::UUID, $2::UUID, $3::UUID)`,
