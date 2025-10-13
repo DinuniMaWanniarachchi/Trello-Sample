@@ -1,7 +1,7 @@
 // hooks/useDragAndDrop.ts (Updated with @dnd-kit/sortable)
 "use client";
 
-import { useState } from 'react';
+import React, { useState } from 'react';
 import {
   DndContext,
   DragEndEvent,
@@ -88,24 +88,34 @@ export const useDragAndDrop = ({ onMoveCard }: UseDragAndDropProps) => {
   };
 
   const DndContextProvider = ({ children }: { children: React.ReactNode }) => (
-    <DndContext
-      sensors={sensors}
-      collisionDetection={closestCorners}
-      onDragStart={handleDragStart}
-      onDragOver={handleDragOver}
-      onDragEnd={handleDragEnd}
-    >
-      {children}
-      <DragOverlay>
-        {activeCard ? (
-          <div className="bg-card border border-border rounded-md p-3 shadow-lg opacity-95">
-            <h4 className="text-card-foreground font-medium text-sm">
-              {activeCard.title}
-            </h4>
-          </div>
-        ) : null}
-      </DragOverlay>
-    </DndContext>
+    React.createElement(
+      DndContext,
+      {
+        sensors,
+        collisionDetection: closestCorners,
+        onDragStart: handleDragStart,
+        onDragOver: handleDragOver,
+        onDragEnd: handleDragEnd,
+        children: [
+          children,
+          React.createElement(
+            DragOverlay,
+            null,
+            activeCard
+              ? React.createElement(
+                  'div',
+                  { className: 'bg-card border border-border rounded-md p-3 shadow-lg opacity-95' },
+                  React.createElement(
+                    'h4',
+                    { className: 'text-card-foreground font-medium text-sm' },
+                    activeCard.title
+                  )
+                )
+              : null
+          )
+        ]
+      }
+    )
   );
 
   const SortableContextProvider = ({ 
@@ -115,9 +125,10 @@ export const useDragAndDrop = ({ onMoveCard }: UseDragAndDropProps) => {
     children: React.ReactNode; 
     items: string[] 
   }) => (
-    <SortableContext items={items} strategy={verticalListSortingStrategy}>
-      {children}
-    </SortableContext>
+    React.createElement(
+      SortableContext,
+      { items, strategy: verticalListSortingStrategy, children }
+    )
   );
 
   return {
