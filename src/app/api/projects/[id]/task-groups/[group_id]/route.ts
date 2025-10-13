@@ -10,20 +10,10 @@ export async function GET(
   try {
     const { id: projectId, group_id: groupId } = await params; // Added await
 
-    const query = `
-      SELECT 
-        id,
-        name,
-        position,
-        color,
-        project_id,
-        created_at,
-        updated_at
-      FROM task_groups 
-      WHERE id = $1 AND project_id = $2
-    `;
-
-    const result = await pool.query(query, [groupId, projectId]);
+    const result = await pool.query(
+      `SELECT * FROM get_task_group_by_ids($1::UUID, $2::UUID)`,
+      [groupId, projectId]
+    );
 
     if (result.rows.length === 0) {
       return NextResponse.json(
@@ -64,53 +54,15 @@ export async function PUT(
 
     console.log('Updating task group:', { projectId, groupId, body }); // Debug log
 
-    // Build dynamic update query
-    const updates: string[] = [];
-    const values: any[] = [];
-    let paramCount = 1;
-
-    if (name !== undefined) {
-      updates.push(`name = $${paramCount}`);
-      values.push(name);
-      paramCount++;
-    }
-
-    if (color !== undefined) {
-      updates.push(`color = $${paramCount}`);
-      values.push(color);
-      paramCount++;
-    }
-
-    if (position !== undefined) {
-      updates.push(`position = $${paramCount}`);
-      values.push(position);
-      paramCount++;
-    }
-
-    if (updates.length === 0) {
-      return NextResponse.json(
-        { 
-          success: false, 
-          error: 'No valid fields to update' 
-        },
-        { status: 400 }
-      );
-    }
-
-    updates.push(`updated_at = NOW()`);
-    values.push(groupId, projectId);
-
-    const query = `
-      UPDATE task_groups 
-      SET ${updates.join(', ')} 
-      WHERE id = $${paramCount} AND project_id = $${paramCount + 1}
-      RETURNING *
-    `;
-
-    console.log('SQL Query:', query); // Debug log
-    console.log('SQL Values:', values); // Debug log
-
-    const result = await pool.query(query, values);
+    const result = await pool.query(
+      `
+      SELECT * FROM update_task_group(
+        $1::UUID, $2::UUID,
+        $3::TEXT, $4::TEXT, $5::INT
+      )
+    `,
+      [groupId, projectId, name ?? null, color ?? null, position ?? null]
+    );
 
     if (result.rows.length === 0) {
       return NextResponse.json(
@@ -150,41 +102,16 @@ export async function DELETE(
     const { id: projectId, group_id: groupId } = await params;
     console.log('DELETE request received for groupId:', groupId, 'projectId:', projectId);
 
-    // Check if task group exists
-    const checkQuery = `
-      SELECT id FROM task_groups 
-      WHERE id = $1 AND project_id = $2
-    `;
-    const checkResult = await pool.query(checkQuery, [groupId, projectId]);
-    console.log('Check result for group existence:', checkResult.rows);
+    const result = await pool.query(
+      `SELECT * FROM delete_task_group_and_compact($1::UUID, $2::UUID)`,
+      [groupId, projectId]
+    );
 
-    if (checkResult.rows.length === 0) {
-      console.log('Task group not found for deletion.');
+    if (result.rows.length === 0 || !result.rows[0]) {
       return NextResponse.json(
         { 
           success: false, 
           error: 'Task group not found' 
-        },
-        { status: 404 }
-      );
-    }
-
-    // Delete task group (this will cascade delete related tasks if foreign key is set up)
-    const deleteQuery = `
-      DELETE FROM task_groups 
-      WHERE id = $1 AND project_id = $2
-    `;
-
-    const result = await pool.query(deleteQuery, [groupId, projectId]);
-    console.log('Delete query result - rowCount:', result.rowCount);
-
-    // Check if any row was actually deleted
-    if (result.rowCount === 0) {
-      console.log('Task group not deleted (rowCount is 0).');
-      return NextResponse.json(
-        { 
-          success: false, 
-          error: 'Task group not found or already deleted' 
         },
         { status: 404 }
       );
