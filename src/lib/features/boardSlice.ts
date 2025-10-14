@@ -241,7 +241,7 @@ export const removeTaskLabel = createAsyncThunk(
 );
 
 // -------------------- State interface --------------------
-interface BoardState {
+export interface BoardState {
   currentBoard: Board | null;
   taskGroups: TaskGroup[];
   taskStatuses: TaskStatus[];

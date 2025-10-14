@@ -12,6 +12,7 @@ import {
   PointerSensor,
   useSensor,
   useSensors,
+  UniqueIdentifier,
 } from '@dnd-kit/core';
 import { sortableKeyboardCoordinates } from '@dnd-kit/sortable';
 import { Card, List, ColorType } from '@/types/kanban';
@@ -31,8 +32,9 @@ import {
   updateTaskGroup,
   updateCard,
   deleteTaskGroup,
-  fetchBoardData
+  fetchBoardData,
 } from '@/lib/features/boardSlice';
+
 import { UpdateTaskData } from '@/lib/api/tasksApi';
 import { SharedHeader } from '@/components/common/SharedHeader';
 import { SortableList } from '@/components/board/SortableList';
@@ -81,9 +83,9 @@ export default function ProjectPage() {
 
   useEffect(() => {
     if (currentBoard && selectedCard) {
-      const list = currentBoard.lists.find(l => l.cards.some(c => c.id === selectedCard.id));
+      const list = currentBoard.lists.find((l: { cards: any[]; }) => l.cards.some((c: { id: string; }) => c.id === selectedCard.id));
       if (list) {
-        const newCard = list.cards.find(c => c.id === selectedCard.id);
+        const newCard = list.cards.find((c: { id: string; }) => c.id === selectedCard.id);
         if (newCard && JSON.stringify(newCard) !== JSON.stringify(selectedCard)) {
           setSelectedCard(newCard);
         }
@@ -128,13 +130,13 @@ export default function ProjectPage() {
     if (!currentBoard) return;
 
     for (const list of currentBoard.lists) {
-      const card = list.cards.find(card => card.id === active.id);
+      const card = list.cards.find((card: { id: UniqueIdentifier; }) => card.id === active.id);
       if (card) {
         setActiveCard(card);
         dispatch(setDraggedCard({
           card,
           sourceListId: list.id,
-          sourceIndex: list.cards.findIndex(c => c.id === card.id)
+          sourceIndex: list.cards.findIndex((c: { id: any; }) => c.id === card.id)
         }));
         break;
       }
@@ -162,20 +164,20 @@ export default function ProjectPage() {
     const overListId = ((over.data.current as any)?.listId as string | undefined) || overId; // if dropping on list container
 
     // Fallbacks if data is missing
-    const activeList = currentBoard.lists.find(list => list.id === activeListId) || currentBoard.lists.find(list => list.cards.some(c => c.id === activeId));
-    const overList = currentBoard.lists.find(list => list.id === overListId) || currentBoard.lists.find(list => list.cards.some(c => c.id === overId));
+    const activeList = currentBoard.lists.find((list: { id: string | undefined; }) => list.id === activeListId) || currentBoard.lists.find((list: { cards: any[]; }) => list.cards.some((c: { id: string; }) => c.id === activeId));
+    const overList = currentBoard.lists.find((list: { id: string; }) => list.id === overListId) || currentBoard.lists.find((list: { cards: any[]; }) => list.cards.some((c: { id: string; }) => c.id === overId));
 
     if (!activeList || !overList) return;
 
     const activeIndexFromData = (active.data.current as any)?.index as number | undefined;
     const overIndexFromData = (over.data.current as any)?.index as number | undefined;
 
-    const activeIndex = activeIndexFromData ?? activeList.cards.findIndex(c => c.id === activeId);
+    const activeIndex = activeIndexFromData ?? activeList.cards.findIndex((c: { id: string; }) => c.id === activeId);
     let newIndex: number;
 
-    if (overList.cards.some(c => c.id === overId)) {
+    if (overList.cards.some((c: { id: string; }) => c.id === overId)) {
       // Dropped over another card
-      const rawOverIndex = overIndexFromData ?? overList.cards.findIndex(c => c.id === overId);
+      const rawOverIndex = overIndexFromData ?? overList.cards.findIndex((c: { id: string; }) => c.id === overId);
       if (activeList.id === overList.id && activeIndex === rawOverIndex) {
         return; // no change
       }
@@ -224,7 +226,7 @@ export default function ProjectPage() {
 
   const handleUpdateCard = (cardId: string, updates: Partial<Card>) => {
     if (!currentBoard) return;
-    const list = currentBoard.lists.find(l => l.cards.some(c => c.id === cardId));
+    const list = currentBoard.lists.find((l: { cards: any[]; }) => l.cards.some((c: { id: string; }) => c.id === cardId));
     if (list) {
       // Optimistic update
       dispatch(updateCard({ listId: list.id, cardId, updates }));
@@ -256,7 +258,7 @@ export default function ProjectPage() {
   const handleDeleteCard = (cardId: string) => {
     if (!currentBoard) return;
 
-    const list = currentBoard.lists.find(l => l.cards.some(c => c.id === cardId));
+    const list = currentBoard.lists.find((l: { cards: any[]; }) => l.cards.some((c: { id: string; }) => c.id === cardId));
     if (list) {
       dispatch(deleteTask({
         projectId,
@@ -285,48 +287,50 @@ export default function ProjectPage() {
 
   const handleRenameList = (listId: string) => {
     if (!currentBoard) return;
-    
-    const list = currentBoard.lists.find(l => l.id === listId);
+    const list = currentBoard.lists.find((l: { id: string }) => l.id === listId);
     if (!list) return;
-    
+
     const newTitle = prompt('Enter new list name:', list.title);
     if (newTitle && newTitle.trim() && newTitle !== list.title) {
-      // Optimistically update the UI
-      const updatedLists = currentBoard.lists.map(l => 
-        l.id === listId 
-          ? { ...l, title: newTitle.trim() }
-          : l
+      const updatedLists = currentBoard.lists.map((l: List) =>
+        l.id === listId ? { ...l, title: newTitle.trim() } : l
       );
       dispatch(setCurrentBoard({
         ...currentBoard,
-        lists: updatedLists
+        lists: updatedLists,
       }));
-
-      // Dispatch the update action to the backend.
-      dispatch(updateTaskGroup({ projectId, groupId: listId, data: { name: newTitle.trim() } }));
+      dispatch(
+        updateTaskGroup({
+          projectId,
+          groupId: listId,
+          data: { name: newTitle.trim() },
+        })
+      );
     }
   };
 
-  const handleChangeCategoryColor = (listId: string, category: string, color: ColorType) => {
+  const handleChangeCategoryColor = (
+    listId: string,
+    category: string,
+    color: ColorType
+  ) => {
     if (!currentBoard) return;
-    
-    // Optimistically update the UI
-    const updatedLists = currentBoard.lists.map(list => 
-      list.id === listId 
-        ? { ...list, titleColor: color }
-        : list
+    const updatedLists = currentBoard.lists.map((list: List) =>
+      list.id === listId ? { ...list, titleColor: color } : list
     );
-    dispatch(setCurrentBoard({
-      ...currentBoard,
-      lists: updatedLists
-    }));
-    
-    // Dispatch the update to the backend.
-    dispatch(updateTaskGroup({ 
-      projectId, 
-      groupId: listId, 
-      data: { color: color } 
-    }));
+    dispatch(
+      setCurrentBoard({
+        ...currentBoard,
+        lists: updatedLists,
+      })
+    );
+    dispatch(
+      updateTaskGroup({
+        projectId,
+        groupId: listId,
+        data: { color: color },
+      })
+    );
   };
 
   const handleCardClick = (card: Card) => {
@@ -406,7 +410,7 @@ export default function ProjectPage() {
             <div className="h-full">
               {/* Desktop view */}
               <div className="hidden md:flex md:space-x-3 lg:space-x-4 md:overflow-x-auto md:pb-4 md:h-full">
-                {currentBoard.lists.map((list) => (
+                {currentBoard.lists.map((list: List) => (
                   <div key={list.id} className="flex-shrink-0">
                     <SortableList
                       list={list}
@@ -425,7 +429,7 @@ export default function ProjectPage() {
 
               {/* Mobile view - Vertical stack */}
               <div className="md:hidden space-y-4 h-full overflow-y-auto pb-4">
-                {currentBoard.lists.map((list) => (
+                {currentBoard.lists.map((list: List) => (
                   <SortableList
                     key={list.id}
                     list={list}
