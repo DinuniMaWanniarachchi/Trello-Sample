@@ -43,6 +43,7 @@ import { CardDetailsDrawer } from '@/components/board/CardDetailsDrawer';
 import { SortableCard } from '@/components/board/SortableCards';
 import { useProjects } from '@/contexts/ProjectContext';
 import { useAuth } from '@/contexts/AuthContext';
+import type { BoardState } from '@/lib/features/boardSlice';
 
 // Types for board storage
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -59,7 +60,7 @@ export default function ProjectPage() {
   const router = useRouter();
   const projectId = params.id as string;
   
-  const { currentBoard, loading, error } = useAppSelector((state) => state.kanban);
+  const { currentBoard, loading, error } = useAppSelector<BoardState>((state) => state.kanban);
   const { user, isAuthenticated, isLoading: authLoading } = useAuth();
   const { projects, getProject, isLoading: projectsLoading } = useProjects();
   
