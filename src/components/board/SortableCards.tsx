@@ -19,6 +19,7 @@ export const SortableCard: React.FC<SortableCardProps> = ({
   card,
   onClick,
   listId,
+  index,
   isDragOverlay = false}) => {
   const {
     attributes,
@@ -30,6 +31,7 @@ export const SortableCard: React.FC<SortableCardProps> = ({
   } = useSortable({
     id: card.id,
     disabled: isDragOverlay,
+    data: { type: 'card', card, listId, index }
   });
 
   const style = {
@@ -48,7 +50,6 @@ export const SortableCard: React.FC<SortableCardProps> = ({
         card={card}
         listId={listId}
         isDragging={isDragging}
-        onDragStart={(e) => {}}
         onClick={onClick}
       />
     </div>

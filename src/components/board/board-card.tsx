@@ -31,7 +31,6 @@ interface BoardCardProps {
   card: Card;
   listId: string; // Added listId for Redux updates
   isDragging?: boolean;
-  onDragStart: (e: React.DragEvent) => void;
   onClick: () => void;
 }
 
@@ -39,7 +38,6 @@ export const BoardCard: React.FC<BoardCardProps> = ({
   card, 
   listId,
   isDragging = false, 
-  onDragStart, 
   onClick
 }) => {
   const dispatch = useAppDispatch();
@@ -119,9 +117,7 @@ export const BoardCard: React.FC<BoardCardProps> = ({
         disabledDate={(current) => current && current < dayjs().startOf('day')}
         placeholder="Select date"
         style={{ width: '100%' }}
-        autoFocus
-        open={true}
-        getPopupContainer={(triggerNode) => triggerNode.parentElement || document.body}
+        // Let Popover control the mounting; avoid forcing DatePicker to be always open
       />
       <div className="mt-3 flex justify-end">
         <Button 
@@ -141,8 +137,6 @@ export const BoardCard: React.FC<BoardCardProps> = ({
                   bg-card border-border hover:bg-accent ${
                     isDragging ? 'opacity-50' : ''
                   }`}
-      draggable
-      onDragStart={onDragStart}
       onClick={handleCardClick}
     >
       <CardContent className="px-3 py-2">

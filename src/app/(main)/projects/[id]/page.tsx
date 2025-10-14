@@ -158,16 +158,41 @@ export default function ProjectPage() {
 
     if (activeId === overId) return;
 
-    const activeList = currentBoard.lists.find(list => list.cards.some(c => c.id === activeId));
-    const overList = currentBoard.lists.find(list => list.id === overId || list.cards.some(c => c.id === overId));
+    const activeListId = (active.data.current as any)?.listId as string | undefined;
+    const overListId = ((over.data.current as any)?.listId as string | undefined) || overId; // if dropping on list container
+
+    // Fallbacks if data is missing
+    const activeList = currentBoard.lists.find(list => list.id === activeListId) || currentBoard.lists.find(list => list.cards.some(c => c.id === activeId));
+    const overList = currentBoard.lists.find(list => list.id === overListId) || currentBoard.lists.find(list => list.cards.some(c => c.id === overId));
 
     if (!activeList || !overList) return;
 
-    const activeIndex = activeList.cards.findIndex(c => c.id === activeId);
-    const overCardIndex = overList.cards.findIndex(c => c.id === overId);
-    const newIndex = overCardIndex >= 0 ? overCardIndex : overList.cards.length;
+    const activeIndexFromData = (active.data.current as any)?.index as number | undefined;
+    const overIndexFromData = (over.data.current as any)?.index as number | undefined;
 
-    // Dispatch optimistic update to UI
+    const activeIndex = activeIndexFromData ?? activeList.cards.findIndex(c => c.id === activeId);
+    let newIndex: number;
+
+    if (overList.cards.some(c => c.id === overId)) {
+      // Dropped over another card
+      const rawOverIndex = overIndexFromData ?? overList.cards.findIndex(c => c.id === overId);
+      if (activeList.id === overList.id && activeIndex === rawOverIndex) {
+        return; // no change
+      }
+      // If moving down within the same list, adjust by -1 since the item is removed first
+      if (activeList.id === overList.id && activeIndex < rawOverIndex) {
+        newIndex = rawOverIndex - 1;
+      } else {
+        newIndex = rawOverIndex;
+      }
+    } else {
+      // Dropped over the list container area
+      newIndex = overList.cards.length;
+    }
+
+    if (newIndex < 0) newIndex = 0;
+
+    // Optimistic UI update
     if (activeList.id === overList.id) {
       if (activeIndex !== newIndex) {
         dispatch(reorderCards({ listId: activeList.id, sourceIndex: activeIndex, destinationIndex: newIndex }));
@@ -176,7 +201,7 @@ export default function ProjectPage() {
       dispatch(moveCard({ sourceListId: activeList.id, destinationListId: overList.id, sourceIndex: activeIndex, destinationIndex: newIndex }));
     }
 
-    // Dispatch API call to persist change
+    // Persist change
     dispatch(moveTask({
       projectId,
       taskId: activeId,
@@ -417,13 +442,11 @@ export default function ProjectPage() {
             
             <DragOverlay>
               {activeCard ? (
-                <SortableCard
-                  card={activeCard}
-                  listId=""
-                  index={0}
-                  onClick={() => {}}
-                  isDragOverlay
-                />
+                <div className="bg-card border border-border rounded-md p-3 shadow-lg opacity-95 rotate-3">
+                  <h4 className="text-card-foreground font-medium text-sm">
+                    {activeCard.title}
+                  </h4>
+                </div>
               ) : null}
             </DragOverlay>
           </DndContext>
