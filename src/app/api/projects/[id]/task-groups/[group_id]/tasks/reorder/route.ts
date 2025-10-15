@@ -5,11 +5,40 @@ import pool from '@/lib/db';
 // PUT /api/projects/[id]/task-groups/[group_id]/tasks/reorder - Reorder tasks (for drag and drop)
 export async function PUT(
   request: NextRequest,
-  { params }: { params: Promise<{ id: string; group_id: string }> }
+  { params }: { params: { id: string; group_id: string } }
 ) {
   try {
-    const { id: projectId, group_id: sourceGroupId } = await params;
-    const { taskId, destinationGroupId, newPosition } = await request.json();
+    const { id: projectId, group_id: sourceGroupId } = params;
+    const body = await request.json();
+    const { taskId, destinationGroupId, taskOrders } = body as {
+      taskId?: string;
+      destinationGroupId?: string;
+      newPosition?: number | string;
+      taskOrders?: Array<{ id: string; position: number }>;
+    };
+    const newPosition = typeof body.newPosition === 'string' ? parseInt(body.newPosition, 10) : body.newPosition;
+
+    console.log('[reorder] params', { projectId, sourceGroupId });
+    console.log('[reorder] body', body);
+
+    // Bulk reorder within the same group
+    if (Array.isArray(taskOrders)) {
+      await pool.query('BEGIN');
+      try {
+        for (const order of taskOrders) {
+          await pool.query(
+            `UPDATE tasks SET position = $1, updated_at = now() WHERE id = $2 AND task_group_id = $3`,
+            [order.position, order.id, sourceGroupId]
+          );
+        }
+        await pool.query('COMMIT');
+        return NextResponse.json({ success: true, message: 'Tasks reordered successfully' });
+      } catch (e) {
+        await pool.query('ROLLBACK');
+        console.error('Bulk reorder failed', e);
+        return NextResponse.json({ success: false, error: 'Bulk reorder failed' }, { status: 500 });
+      }
+    }
 
     if (!taskId || !destinationGroupId || newPosition === undefined) {
       return NextResponse.json(
@@ -53,6 +82,12 @@ export async function PUT(
         `, [taskId]);
 
         const currentPosition = currentPositionResult.rows[0].position;
+
+        // No-op
+        if (currentPosition === newPosition) {
+          await pool.query('COMMIT');
+          return NextResponse.json({ success: true, message: 'No change' });
+        }
 
         if (currentPosition < newPosition) {
           // Moving down

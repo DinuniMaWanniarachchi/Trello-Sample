@@ -47,6 +47,14 @@ export const createTask = createAsyncThunk(
     }
 );
 
+export const reorderTasks = createAsyncThunk(
+  'board/reorderTasks',
+  async ({ projectId, groupId, taskOrders }: { projectId: string; groupId: string; taskOrders: Array<{ id: string; position: number }> }) => {
+    await tasksApi.reorderTasks(projectId, groupId, taskOrders);
+    return { groupId, taskOrders };
+  }
+);
+
 export const updateTask = createAsyncThunk(
   'board/updateTask',
   async ({ projectId, groupId, taskId, data }: { projectId: string; groupId: string; taskId: string; data: UpdateTaskData }) => {

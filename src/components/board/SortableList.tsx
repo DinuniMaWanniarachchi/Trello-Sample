@@ -9,8 +9,8 @@ import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuIte
 import { DndContext, closestCenter, DragEndEvent, PointerSensor, useSensor, useSensors } from '@dnd-kit/core';
 import { SortableContext, verticalListSortingStrategy } from '@dnd-kit/sortable';
 import { restrictToVerticalAxis, restrictToWindowEdges } from '@dnd-kit/modifiers';
-import { useAppDispatch } from '@/lib/hooks';
-import { reorderCards } from '@/lib/features/boardSlice';
+import { useAppDispatch, useAppSelector } from '@/lib/hooks';
+import { reorderCards, moveTask } from '@/lib/features/boardSlice';
 
 interface SortableListProps {
   list: List;
@@ -60,6 +60,7 @@ export const SortableList: React.FC<SortableListProps> = ({
   onChangeCategoryColor
 }) => {
   const dispatch = useAppDispatch();
+  const projectId = useAppSelector((state) => state.kanban.currentBoard?.id) as string;
 
   const sensors = useSensors(
     useSensor(PointerSensor, {
@@ -75,8 +76,21 @@ export const SortableList: React.FC<SortableListProps> = ({
     const destinationIndex = list.cards.findIndex((c) => c.id === String(over.id));
     if (sourceIndex === -1 || destinationIndex === -1) return;
 
+    // Optimistic UI update
     dispatch(reorderCards({ listId: list.id, sourceIndex, destinationIndex }));
-    // TODO: Optionally call backend reorder API here
+
+    // Persist to backend as a single move within the same group (1-based position)
+    if (projectId) {
+      dispatch(
+        moveTask({
+          projectId,
+          taskId: String(active.id),
+          sourceGroupId: list.id,
+          destinationGroupId: list.id,
+          newPosition: destinationIndex + 1,
+        })
+      );
+    }
   };
 
   return (
