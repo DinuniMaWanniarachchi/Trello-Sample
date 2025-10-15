@@ -2,32 +2,15 @@
 
 import { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
-import { 
-  DndContext, 
-  DragEndEvent,
-  DragStartEvent,
-  DragOverlay,
-  closestCorners,
-  KeyboardSensor,
-  PointerSensor,
-  useSensor,
-  useSensors,
-  UniqueIdentifier,
-} from '@dnd-kit/core';
-import { sortableKeyboardCoordinates } from '@dnd-kit/sortable';
 import { Card, List, ColorType } from '@/types/kanban';
 import { useAppSelector, useAppDispatch } from '@/lib/hooks';
 import { 
   setCurrentBoard, 
   deleteList, 
-  moveCard,
-  reorderCards,
-  setDraggedCard,
   createTaskGroup,
   createTask,
   updateTask,
   deleteTask,
-  moveTask,
   fetchTaskStatuses,
   updateTaskGroup,
   updateCard,
@@ -40,7 +23,7 @@ import { SharedHeader } from '@/components/common/SharedHeader';
 import { SortableList } from '@/components/board/SortableList';
 import { AddList } from '@/components/board/add-list';
 import { CardDetailsDrawer } from '@/components/board/CardDetailsDrawer';
-import { SortableCard } from '@/components/board/SortableCards';
+
 import { useProjects } from '@/contexts/ProjectContext';
 import { useAuth } from '@/contexts/AuthContext';
 import type { BoardState } from '@/lib/features/boardSlice';
@@ -66,7 +49,6 @@ export default function ProjectPage() {
   
   const [selectedCard, setSelectedCard] = useState<Card | null>(null);
   const [isCardDrawerOpen, setIsCardDrawerOpen] = useState(false);
-  const [activeCard, setActiveCard] = useState<Card | null>(null);
   const [isInitialized, setIsInitialized] = useState(false);
 
   // Authentication check
@@ -94,8 +76,6 @@ export default function ProjectPage() {
     }
   }, [currentBoard, selectedCard]);
 
-
-
   // Initialize board based on project ID
   useEffect(() => {
     if (projectId && !isInitialized && isAuthenticated) {
@@ -119,100 +99,6 @@ export default function ProjectPage() {
       // For now, we are not saving the whole board state to prevent conflicts.
     }
   }, [currentBoard, isInitialized, projectId]);
-
-  // Configure sensors for better drag experience
-  const sensors = useSensors(
-    useSensor(PointerSensor, { activationConstraint: { distance: 8 } }),
-    useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates })
-  );
-
-  const handleDragStart = (event: DragStartEvent) => {
-    const { active } = event;
-    if (!currentBoard) return;
-
-    for (const list of currentBoard.lists) {
-      const card = list.cards.find((card: { id: UniqueIdentifier; }) => card.id === active.id);
-      if (card) {
-        setActiveCard(card);
-        dispatch(setDraggedCard({
-          card,
-          sourceListId: list.id,
-          sourceIndex: list.cards.findIndex((c: { id: any; }) => c.id === card.id)
-        }));
-        break;
-      }
-    }
-  };
-
-  const handleDragOver = () => {
-    // This is intentionally left blank. 
-    // State updates are now handled in onDragEnd to ensure consistency and allow for API calls.
-  };
-
-  const handleDragEnd = (event: DragEndEvent) => {
-    const { active, over } = event;
-    setActiveCard(null);
-    dispatch(setDraggedCard(null));
-
-    if (!over || !currentBoard) return;
-
-    const activeId = active.id as string;
-    const overId = over.id as string;
-
-    if (activeId === overId) return;
-
-    const activeListId = (active.data.current as any)?.listId as string | undefined;
-    const overListId = ((over.data.current as any)?.listId as string | undefined) || overId; // if dropping on list container
-
-    // Fallbacks if data is missing
-    const activeList = currentBoard.lists.find((list: { id: string | undefined; }) => list.id === activeListId) || currentBoard.lists.find((list: { cards: any[]; }) => list.cards.some((c: { id: string; }) => c.id === activeId));
-    const overList = currentBoard.lists.find((list: { id: string; }) => list.id === overListId) || currentBoard.lists.find((list: { cards: any[]; }) => list.cards.some((c: { id: string; }) => c.id === overId));
-
-    if (!activeList || !overList) return;
-
-    const activeIndexFromData = (active.data.current as any)?.index as number | undefined;
-    const overIndexFromData = (over.data.current as any)?.index as number | undefined;
-
-    const activeIndex = activeIndexFromData ?? activeList.cards.findIndex((c: { id: string; }) => c.id === activeId);
-    let newIndex: number;
-
-    if (overList.cards.some((c: { id: string; }) => c.id === overId)) {
-      // Dropped over another card
-      const rawOverIndex = overIndexFromData ?? overList.cards.findIndex((c: { id: string; }) => c.id === overId);
-      if (activeList.id === overList.id && activeIndex === rawOverIndex) {
-        return; // no change
-      }
-      // If moving down within the same list, adjust by -1 since the item is removed first
-      if (activeList.id === overList.id && activeIndex < rawOverIndex) {
-        newIndex = rawOverIndex - 1;
-      } else {
-        newIndex = rawOverIndex;
-      }
-    } else {
-      // Dropped over the list container area
-      newIndex = overList.cards.length;
-    }
-
-    if (newIndex < 0) newIndex = 0;
-
-    // Optimistic UI update
-    if (activeList.id === overList.id) {
-      if (activeIndex !== newIndex) {
-        dispatch(reorderCards({ listId: activeList.id, sourceIndex: activeIndex, destinationIndex: newIndex }));
-      }
-    } else {
-      dispatch(moveCard({ sourceListId: activeList.id, destinationListId: overList.id, sourceIndex: activeIndex, destinationIndex: newIndex }));
-    }
-
-    // Persist change
-    dispatch(moveTask({
-      projectId,
-      taskId: activeId,
-      sourceGroupId: activeList.id,
-      destinationGroupId: overList.id,
-      newPosition: newIndex
-    }));
-  };
 
   const handleAddCard = (listId: string, title: string, description?: string) => {
     dispatch(createTask({
@@ -400,39 +286,13 @@ export default function ProjectPage() {
       {/* Main board content with responsive layout */}
       <div className="flex-1 overflow-hidden">
         <div className="h-full p-2 sm:p-4 lg:p-6">
-          <DndContext
-            sensors={sensors}
-            collisionDetection={closestCorners}
-            onDragStart={handleDragStart}
-            onDragOver={handleDragOver}
-            onDragEnd={handleDragEnd}
-          >
-            {/* Mobile: Stack vertically, Desktop: Horizontal scroll */}
-            <div className="h-full">
-              {/* Desktop view */}
-              <div className="hidden md:flex md:space-x-3 lg:space-x-4 md:overflow-x-auto md:pb-4 md:h-full">
-                {currentBoard.lists.map((list: List) => (
-                  <div key={list.id} className="flex-shrink-0">
-                    <SortableList
-                      list={list}
-                      onCardClick={handleCardClick}
-                      onAddCard={handleAddCard}
-                      onDeleteList={handleDeleteList}
-                      onRenameList={handleRenameList}
-                      onChangeCategoryColor={handleChangeCategoryColor}
-                    />
-                  </div>
-                ))}
-                <div className="flex-shrink-0">
-                  <AddList onAddList={handleAddList} />
-                </div>
-              </div>
-
-              {/* Mobile view - Vertical stack */}
-              <div className="md:hidden space-y-4 h-full overflow-y-auto pb-4">
-                {currentBoard.lists.map((list: List) => (
+          {/* Mobile: Stack vertically, Desktop: Horizontal scroll */}
+          <div className="h-full">
+            {/* Desktop view */}
+            <div className="hidden md:flex md:space-x-3 lg:space-x-4 md:overflow-x-auto md:pb-4 md:h-full">
+              {currentBoard.lists.map((list: List) => (
+                <div key={list.id} className="flex-shrink-0">
                   <SortableList
-                    key={list.id}
                     list={list}
                     onCardClick={handleCardClick}
                     onAddCard={handleAddCard}
@@ -440,21 +300,29 @@ export default function ProjectPage() {
                     onRenameList={handleRenameList}
                     onChangeCategoryColor={handleChangeCategoryColor}
                   />
-                ))}
+                </div>
+              ))}
+              <div className="flex-shrink-0">
                 <AddList onAddList={handleAddList} />
               </div>
             </div>
-            
-            <DragOverlay>
-              {activeCard ? (
-                <div className="bg-card border border-border rounded-md p-3 shadow-lg opacity-95 rotate-3">
-                  <h4 className="text-card-foreground font-medium text-sm">
-                    {activeCard.title}
-                  </h4>
-                </div>
-              ) : null}
-            </DragOverlay>
-          </DndContext>
+
+            {/* Mobile view - Vertical stack */}
+            <div className="md:hidden space-y-4 h-full overflow-y-auto pb-4">
+              {currentBoard.lists.map((list: List) => (
+                <SortableList
+                  key={list.id}
+                  list={list}
+                  onCardClick={handleCardClick}
+                  onAddCard={handleAddCard}
+                  onDeleteList={handleDeleteList}
+                  onRenameList={handleRenameList}
+                  onChangeCategoryColor={handleChangeCategoryColor}
+                />
+              ))}
+              <AddList onAddList={handleAddList} />
+            </div>
+          </div>
         </div>
       </div>
 

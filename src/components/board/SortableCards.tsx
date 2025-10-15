@@ -1,10 +1,10 @@
 "use client";
 
 import React from 'react';
-import { useSortable } from '@dnd-kit/sortable';
-import { CSS } from '@dnd-kit/utilities';
 import { Card } from '@/types/kanban';
 import { BoardCard } from '@/components/board/board-card';
+import { useSortable } from '@dnd-kit/sortable';
+import { CSS } from '@dnd-kit/utilities';
 
 interface SortableCardProps {
   card: Card;
@@ -27,25 +27,18 @@ export const SortableCard: React.FC<SortableCardProps> = ({
     setNodeRef,
     transform,
     transition,
-    isDragging,
-  } = useSortable({
-    id: card.id,
-    disabled: isDragOverlay,
-    data: { type: 'card', card, listId, index }
-  });
+    isDragging
+  } = useSortable({ id: card.id });
 
-  const style = {
+  const style: React.CSSProperties = {
     transform: CSS.Transform.toString(transform),
     transition,
+    opacity: isDragging ? 0.5 : undefined,
+    cursor: 'grab'
   };
 
   return (
-    <div
-      ref={setNodeRef}
-      style={style}
-      {...attributes}
-      {...listeners}
-    >
+    <div ref={setNodeRef} style={style} {...attributes} {...listeners}>
       <BoardCard
         card={card}
         listId={listId}

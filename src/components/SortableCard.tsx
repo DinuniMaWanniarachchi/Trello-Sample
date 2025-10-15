@@ -1,7 +1,5 @@
 "use client";
 
-import { useSortable } from '@dnd-kit/sortable';
-import { CSS } from '@dnd-kit/utilities';
 import { Card, cardColors } from '@/types/kanban';
 import { Calendar, MessageSquare, Paperclip, User } from 'lucide-react';
 
@@ -20,33 +18,12 @@ export const SortableCard: React.FC<SortableCardProps> = ({
   onClick,
   isDragOverlay = false
 }) => {
-  const {
-    attributes,
-    listeners,
-    setNodeRef,
-    transform,
-    transition,
-    isDragging,
-  } = useSortable({
-    id: card.id,
-    data: {
-      type: 'card',
-      card,
-      listId,
-      index,
-    },
-    disabled: isDragOverlay, // Disable sorting for drag overlay
-  });
-
-  const style = {
-    transform: CSS.Transform.toString(transform),
-    transition,
-  };
+  const isDragging = false;
 
   // Render drag overlay version
   if (isDragOverlay) {
     return (
-      <div className={`p-3 rounded-md border shadow-lg cursor-grab rotate-3 ${cardColors[card.color || 'white']}`}>
+      <div className={`p-3 rounded-md border shadow-lg ${cardColors[card.color || 'white']}`}>
         <h4 className="text-sm font-medium mb-2">{card.title}</h4>
         {card.description && (
           <p className="text-xs text-muted-foreground mb-3 line-clamp-2">
@@ -92,12 +69,8 @@ export const SortableCard: React.FC<SortableCardProps> = ({
   // Render normal sortable card
   return (
     <div
-      ref={setNodeRef}
-      style={style}
-      {...attributes}
-      {...listeners}
       onClick={onClick}
-      className={`p-3 rounded-md border cursor-grab active:cursor-grabbing transition-all ${
+      className={`p-3 rounded-md border transition-all ${
         cardColors[card.color || 'white']
       } ${
         isDragging ? 'opacity-50 shadow-lg' : 'hover:shadow-md'

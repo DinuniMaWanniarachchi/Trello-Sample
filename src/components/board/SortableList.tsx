@@ -1,13 +1,16 @@
 "use client";
 
-import { useDroppable } from '@dnd-kit/core';
-import { SortableContext, verticalListSortingStrategy } from '@dnd-kit/sortable';
 import { Button } from '@/components/ui/button';
 import { Plus, MoreHorizontal, Trash2, Edit } from 'lucide-react';
 import { List, Card, listHeaderColors, ColorType } from '@/types/kanban';
 import { SortableCard } from './SortableCards';
 import { AddCard } from './add-card';
 import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem } from '@/components/common/DropDownMenu';
+import { DndContext, closestCenter, DragEndEvent, PointerSensor, useSensor, useSensors } from '@dnd-kit/core';
+import { SortableContext, verticalListSortingStrategy } from '@dnd-kit/sortable';
+import { restrictToVerticalAxis, restrictToWindowEdges } from '@dnd-kit/modifiers';
+import { useAppDispatch } from '@/lib/hooks';
+import { reorderCards } from '@/lib/features/boardSlice';
 
 interface SortableListProps {
   list: List;
@@ -56,15 +59,25 @@ export const SortableList: React.FC<SortableListProps> = ({
   onRenameList,
   onChangeCategoryColor
 }) => {
-  const { setNodeRef, isOver } = useDroppable({
-    id: list.id,
-    data: {
-      type: 'list',
-      listId: list.id,
-    },
-  });
+  const dispatch = useAppDispatch();
 
-  const cardIds = list.cards.map(card => card.id);
+  const sensors = useSensors(
+    useSensor(PointerSensor, {
+      activationConstraint: { distance: 5 }
+    })
+  );
+
+  const handleDragEnd = (event: DragEndEvent) => {
+    const { active, over } = event;
+    if (!over || active.id === over.id) return;
+
+    const sourceIndex = list.cards.findIndex((c) => c.id === String(active.id));
+    const destinationIndex = list.cards.findIndex((c) => c.id === String(over.id));
+    if (sourceIndex === -1 || destinationIndex === -1) return;
+
+    dispatch(reorderCards({ listId: list.id, sourceIndex, destinationIndex }));
+    // TODO: Optionally call backend reorder API here
+  };
 
   return (
     <div className="flex-shrink-0 w-68 h-[500px] bg-card rounded-md border border-border overflow-hidden flex flex-col">
@@ -142,30 +155,33 @@ export const SortableList: React.FC<SortableListProps> = ({
 
       {/* Scrollable Cards Container */}
       <div className="flex-1 min-h-0 overflow-y-auto">
-        <div 
-          ref={setNodeRef}
-          className={`p-3 space-y-2 transition-colors ${
-            isOver ? 'bg-muted/50' : ''
-          }`}
-          style={{
-            minHeight: '100%'
-          }}
+        <DndContext
+          sensors={sensors}
+          collisionDetection={closestCenter}
+          onDragEnd={handleDragEnd}
+          modifiers={[restrictToVerticalAxis, restrictToWindowEdges]}
         >
-          <SortableContext items={cardIds} strategy={verticalListSortingStrategy}>
-            {list.cards.map((card, index) => (
-              <SortableCard
-                key={card.id}
-                card={card}
-                listId={list.id}
-                index={index}
-                onClick={() => onCardClick(card)}
-              />
-            ))}
+          <SortableContext items={list.cards.map((c) => c.id)} strategy={verticalListSortingStrategy}>
+            <div
+              className={`p-3 space-y-2 transition-colors`}
+              style={{
+                minHeight: '100%'
+              }}
+            >
+              {list.cards.map((card, index) => (
+                <SortableCard
+                  key={card.id}
+                  card={card}
+                  listId={list.id}
+                  index={index}
+                  onClick={() => onCardClick(card)}
+                />
+              ))}
+              {/* Add Card */}
+              <AddCard listId={list.id} onAddCard={onAddCard} />
+            </div>
           </SortableContext>
-
-          {/* Add Card */}
-          <AddCard listId={list.id} onAddCard={onAddCard} />
-        </div>
+        </DndContext>
       </div>
 
       <style jsx>{`

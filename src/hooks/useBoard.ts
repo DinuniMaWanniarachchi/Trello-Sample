@@ -2,7 +2,6 @@
 "use client";
 
 import { useState } from 'react';
-import { arrayMove } from '@dnd-kit/sortable';
 import { Board, Card, List, ColorType } from '@/types/kanban';
 
 // Helper function to get initial board with translation keys
@@ -43,6 +42,17 @@ const getInitialBoard = (): Board => ({
 
 export const useBoard = () => {
   const [board, setBoard] = useState<Board>(getInitialBoard());
+
+  // Local arrayMove replacement to avoid dnd-kit dependency
+  const arrayMove = <T,>(arr: T[], from: number, to: number): T[] => {
+    const copy = arr.slice();
+    const startIndex = from < 0 ? copy.length + from : from;
+    if (startIndex >= 0 && startIndex < copy.length) {
+      const [item] = copy.splice(from, 1);
+      copy.splice(to, 0, item);
+    }
+    return copy;
+  };
 
   const addCard = (listId: string, title: string) => {
     const newCard: Card = {

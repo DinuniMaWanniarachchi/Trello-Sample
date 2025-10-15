@@ -1,24 +1,6 @@
 // components/KanbanBoard.tsx
 import React, { useState } from 'react';
 import { useTranslation } from 'next-i18next';
-import {
-  DndContext,
-  DragEndEvent,
-  DragOverEvent,
-  DragOverlay,
-  DragStartEvent,
-  PointerSensor,
-  useSensor,
-  useSensors,
-  closestCorners,
-} from '@dnd-kit/core';
-import {
-  SortableContext,
-  useSortable,
-  verticalListSortingStrategy,
-  arrayMove,
-} from '@dnd-kit/sortable';
-import { CSS } from '@dnd-kit/utilities';
 import { Plus, MoreVertical, Edit2, Trash2 } from 'lucide-react';
 
 interface Card {
@@ -47,26 +29,11 @@ const SortableCard: React.FC<{
   deleteCard: (columnId: string, cardId: string) => void;
   t: (key: string) => string;
 }> = ({ card, columnId, editingCard, setEditingCard, updateCard, deleteCard, t }) => {
-  const {
-    attributes,
-    listeners,
-    setNodeRef,
-    transform,
-    transition,
-    isDragging,
-  } = useSortable({ id: card.id });
-
-  const style = {
-    transform: CSS.Transform.toString(transform),
-    transition,
-    opacity: isDragging ? 0.5 : 1,
-  };
+  const isDragging = false;
 
   if (editingCard?.columnId === columnId && editingCard?.cardId === card.id) {
     return (
       <div
-        ref={setNodeRef}
-        style={style}
         className="bg-white dark:bg-gray-700 p-3 rounded-md mb-3 shadow-sm border"
       >
         <div className="space-y-2">
@@ -114,10 +81,6 @@ const SortableCard: React.FC<{
 
   return (
     <div
-      ref={setNodeRef}
-      style={style}
-      {...attributes}
-      {...listeners}
       className="bg-white dark:bg-gray-700 p-3 rounded-md mb-3 shadow-sm border hover:shadow-md transition-all group cursor-grab active:cursor-grabbing"
     >
       <div className="flex items-start justify-between">
@@ -182,23 +145,9 @@ const DroppableColumn: React.FC<{
   setNewCardDescription,
   t,
 }) => {
-  const {
-    setNodeRef,
-    isOver,
-  } = useSortable({
-    id: column.id,
-    data: {
-      type: 'column',
-      column,
-    },
-  });
-
   return (
     <div
-      ref={setNodeRef}
-      className={`bg-gray-100 dark:bg-gray-800 rounded-md p-4 min-w-[300px] flex-shrink-0 ${
-        isOver ? 'bg-blue-50 dark:bg-blue-900/20' : ''
-      } transition-colors`}
+      className={`bg-gray-100 dark:bg-gray-800 rounded-md p-4 min-w-[300px] flex-shrink-0 transition-colors`}
     >
       <div className="flex items-center justify-between mb-4">
         {editingColumn === column.id ? (
@@ -250,20 +199,18 @@ const DroppableColumn: React.FC<{
             <p className="text-sm mt-1">{t('kanban.addFirstCard')}</p>
           </div>
         ) : (
-          <SortableContext items={column.cards.map(card => card.id)} strategy={verticalListSortingStrategy}>
-            {column.cards.map((card) => (
-              <SortableCard
-                key={card.id}
-                card={card}
-                columnId={column.id}
-                editingCard={editingCard}
-                setEditingCard={setEditingCard}
-                updateCard={updateCard}
-                deleteCard={deleteCard}
-                t={t}
-              />
-            ))}
-          </SortableContext>
+          column.cards.map((card) => (
+            <SortableCard
+              key={card.id}
+              card={card}
+              columnId={column.id}
+              editingCard={editingCard}
+              setEditingCard={setEditingCard}
+              updateCard={updateCard}
+              deleteCard={deleteCard}
+              t={t}
+            />
+          ))
         )}
       </div>
 
@@ -341,15 +288,6 @@ const KanbanBoard: React.FC<KanbanBoardProps> = ({ initialData = [] }) => {
   const [editingCard, setEditingCard] = useState<{ columnId: string; cardId: string } | null>(null);
   const [newCardTitle, setNewCardTitle] = useState('');
   const [newCardDescription, setNewCardDescription] = useState('');
-  const [activeId, setActiveId] = useState<string | null>(null);
-
-  const sensors = useSensors(
-    useSensor(PointerSensor, {
-      activationConstraint: {
-        distance: 8,
-      },
-    })
-  );
 
   const findColumn = (id: string) => {
     return columns.find(column => 
@@ -365,124 +303,6 @@ const KanbanBoard: React.FC<KanbanBoardProps> = ({ initialData = [] }) => {
       }
     }
     return null;
-  };
-
-  const handleDragStart = (event: DragStartEvent) => {
-    setActiveId(event.active.id as string);
-  };
-
-  const handleDragOver = (event: DragOverEvent) => {
-    const { active, over } = event;
-    if (!over) return;
-
-    const activeId = active.id;
-    const overId = over.id;
-
-    if (activeId === overId) return;
-
-    const isActiveCard = active.data.current?.type !== 'column';
-    const isOverCard = over.data.current?.type !== 'column';
-
-    if (!isActiveCard) return;
-
-    // Dropping a card over another card
-    if (isActiveCard && isOverCard) {
-      const activeCardInfo = findCard(activeId as string);
-      const overCardInfo = findCard(overId as string);
-
-      if (!activeCardInfo || !overCardInfo) return;
-
-      const activeColumn = activeCardInfo.column;
-      const overColumn = overCardInfo.column;
-
-      if (activeColumn.id !== overColumn.id) {
-        setColumns(prevColumns => {
-          const newColumns = [...prevColumns];
-          const activeColumnIndex = newColumns.findIndex(col => col.id === activeColumn.id);
-          const overColumnIndex = newColumns.findIndex(col => col.id === overColumn.id);
-
-          // Remove card from active column
-          const [movedCard] = newColumns[activeColumnIndex].cards.splice(
-            activeColumn.cards.findIndex(card => card.id === activeId),
-            1
-          );
-
-          // Add card to over column
-          const overCardIndex = overColumn.cards.findIndex(card => card.id === overId);
-          newColumns[overColumnIndex].cards.splice(overCardIndex, 0, movedCard);
-
-          return newColumns;
-        });
-      }
-    }
-
-    // Dropping a card over a column
-    if (isActiveCard && !isOverCard) {
-      const activeCardInfo = findCard(activeId as string);
-      const overColumn = findColumn(overId as string);
-
-      if (!activeCardInfo || !overColumn) return;
-
-      if (activeCardInfo.column.id !== overColumn.id) {
-        setColumns(prevColumns => {
-          const newColumns = [...prevColumns];
-          const activeColumnIndex = newColumns.findIndex(col => col.id === activeCardInfo.column.id);
-          const overColumnIndex = newColumns.findIndex(col => col.id === overColumn.id);
-
-          // Remove card from active column
-          const [movedCard] = newColumns[activeColumnIndex].cards.splice(
-            activeCardInfo.column.cards.findIndex(card => card.id === activeId),
-            1
-          );
-
-          // Add card to end of over column
-          newColumns[overColumnIndex].cards.push(movedCard);
-
-          return newColumns;
-        });
-      }
-    }
-  };
-
-  const handleDragEnd = (event: DragEndEvent) => {
-    const { active, over } = event;
-    
-    if (!over) {
-      setActiveId(null);
-      return;
-    }
-
-    const activeId = active.id;
-    const overId = over.id;
-
-    if (activeId === overId) {
-      setActiveId(null);
-      return;
-    }
-
-    const isActiveCard = active.data.current?.type !== 'column';
-
-    if (isActiveCard) {
-      const activeCardInfo = findCard(activeId as string);
-      const overCardInfo = findCard(overId as string);
-
-      if (activeCardInfo && overCardInfo && activeCardInfo.column.id === overCardInfo.column.id) {
-        // Reordering within the same column
-        setColumns(prevColumns => {
-          const newColumns = [...prevColumns];
-          const columnIndex = newColumns.findIndex(col => col.id === activeCardInfo.column.id);
-          
-          const oldIndex = newColumns[columnIndex].cards.findIndex(card => card.id === activeId);
-          const newIndex = newColumns[columnIndex].cards.findIndex(card => card.id === overId);
-
-          newColumns[columnIndex].cards = arrayMove(newColumns[columnIndex].cards, oldIndex, newIndex);
-
-          return newColumns;
-        });
-      }
-    }
-
-    setActiveId(null);
   };
 
   const addColumn = () => {
@@ -557,9 +377,6 @@ const KanbanBoard: React.FC<KanbanBoardProps> = ({ initialData = [] }) => {
     }
   };
 
-  // Get the active card for drag overlay
-  const activeCard = activeId ? findCard(activeId)?.card : null;
-
   return (
     <div className="p-6">
       <div className="flex items-center justify-between mb-6">
@@ -579,85 +396,59 @@ const KanbanBoard: React.FC<KanbanBoardProps> = ({ initialData = [] }) => {
         {t('kanban.dragDropHint')}
       </p>
 
-      <DndContext
-        sensors={sensors}
-        collisionDetection={closestCorners}
-        onDragStart={handleDragStart}
-        onDragOver={handleDragOver}
-        onDragEnd={handleDragEnd}
-      >
-        <div className="flex gap-6 overflow-x-auto pb-6">
-          <SortableContext items={columns.map(col => col.id)} strategy={verticalListSortingStrategy}>
-            {columns.map((column) => (
-              <DroppableColumn
-                key={column.id}
-                column={column}
-                editingColumn={editingColumn}
-                setEditingColumn={setEditingColumn}
-                updateColumnTitle={updateColumnTitle}
-                deleteColumn={deleteColumn}
-                editingCard={editingCard}
-                setEditingCard={setEditingCard}
-                updateCard={updateCard}
-                deleteCard={deleteCard}
-                addCard={addCard}
-                newCardTitle={newCardTitle}
-                setNewCardTitle={setNewCardTitle}
-                newCardDescription={newCardDescription}
-                setNewCardDescription={setNewCardDescription}
-                t={t}
-              />
-            ))}
-          </SortableContext>
+      <div className="flex gap-6 overflow-x-auto pb-6">
+        {columns.map((column) => (
+          <DroppableColumn
+            key={column.id}
+            column={column}
+            editingColumn={editingColumn}
+            setEditingColumn={setEditingColumn}
+            updateColumnTitle={updateColumnTitle}
+            deleteColumn={deleteColumn}
+            editingCard={editingCard}
+            setEditingCard={setEditingCard}
+            updateCard={updateCard}
+            deleteCard={deleteCard}
+            addCard={addCard}
+            newCardTitle={newCardTitle}
+            setNewCardTitle={setNewCardTitle}
+            newCardDescription={newCardDescription}
+            setNewCardDescription={setNewCardDescription}
+            t={t}
+          />
+        ))}
 
-          {/* Add Column Section */}
-          {showAddColumn && (
-            <div className="bg-gray-100 dark:bg-gray-800 rounded-lg p-4 min-w-[300px] flex-shrink-0">
-              <input
-                type="text"
-                value={newColumnTitle}
-                onChange={(e) => setNewColumnTitle(e.target.value)}
-                placeholder={t('kanban.columnTitle')}
-                className="w-full p-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-500 mb-3"
-                autoFocus
-              />
-              <div className="flex gap-2">
-                <button
-                  onClick={addColumn}
-                  className="px-3 py-1 bg-blue-600 text-white rounded text-sm hover:bg-blue-700"
-                >
-                  {t('kanban.save')}
-                </button>
-                <button
-                  onClick={() => {
-                    setShowAddColumn(false);
-                    setNewColumnTitle('');
-                  }}
-                  className="px-3 py-1 bg-gray-300 text-gray-700 rounded text-sm hover:bg-gray-400"
-                >
-                  {t('kanban.cancel')}
-                </button>
-              </div>
+        {/* Add Column Section */}
+        {showAddColumn && (
+          <div className="bg-gray-100 dark:bg-gray-800 rounded-lg p-4 min-w-[300px] flex-shrink-0">
+            <input
+              type="text"
+              value={newColumnTitle}
+              onChange={(e) => setNewColumnTitle(e.target.value)}
+              placeholder={t('kanban.columnTitle')}
+              className="w-full p-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-500 mb-3"
+              autoFocus
+            />
+            <div className="flex gap-2">
+              <button
+                onClick={addColumn}
+                className="px-3 py-1 bg-blue-600 text-white rounded text-sm hover:bg-blue-700"
+              >
+                {t('kanban.save')}
+              </button>
+              <button
+                onClick={() => {
+                  setShowAddColumn(false);
+                  setNewColumnTitle('');
+                }}
+                className="px-3 py-1 bg-gray-300 text-gray-700 rounded text-sm hover:bg-gray-400"
+              >
+                {t('kanban.cancel')}
+              </button>
             </div>
-          )}
-        </div>
-
-        {/* Drag Overlay */}
-        <DragOverlay>
-          {activeCard && (
-            <div className="bg-white dark:bg-gray-700 p-3 rounded-md shadow-lg border rotate-3 cursor-grabbing">
-              <h4 className="font-medium text-gray-900 dark:text-white mb-1">
-                {activeCard.title}
-              </h4>
-              {activeCard.description && (
-                <p className="text-sm text-gray-600 dark:text-gray-300">
-                  {activeCard.description}
-                </p>
-              )}
-            </div>
-          )}
-        </DragOverlay>
-      </DndContext>
+          </div>
+        )}
+      </div>
     </div>
   );
 };
