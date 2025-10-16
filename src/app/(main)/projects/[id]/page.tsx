@@ -27,6 +27,10 @@ import { CardDetailsDrawer } from '@/components/board/CardDetailsDrawer';
 import { useProjects } from '@/contexts/ProjectContext';
 import { useAuth } from '@/contexts/AuthContext';
 import type { BoardState } from '@/lib/features/boardSlice';
+import { moveCard, reorderCards, moveTask } from '@/lib/features/boardSlice';
+
+import { DndContext, DragEndEvent, PointerSensor, useSensor, useSensors, closestCenter } from '@dnd-kit/core';
+import { restrictToWindowEdges } from '@dnd-kit/modifiers';
 
 // Types for board storage
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -50,6 +54,58 @@ export default function ProjectPage() {
   const [selectedCard, setSelectedCard] = useState<Card | null>(null);
   const [isCardDrawerOpen, setIsCardDrawerOpen] = useState(false);
   const [isInitialized, setIsInitialized] = useState(false);
+
+  const sensors = useSensors(
+    useSensor(PointerSensor, { activationConstraint: { distance: 5 } })
+  );
+
+  const findListIdByCardId = (cardId: string): string | null => {
+    if (!currentBoard) return null;
+    const list = currentBoard.lists.find((l) => l.cards.some((c) => c.id === cardId));
+    return list ? list.id : null;
+  };
+
+  const getListIdFromOver = (overId: string): string | null => {
+    // Support droppable container IDs like 'container:<listId>' used by SortableList
+    if (overId.startsWith('container:')) return overId.split(':')[1] || null;
+    return findListIdByCardId(overId);
+  };
+
+  const handleDragEnd = (event: DragEndEvent) => {
+    const { active, over } = event;
+    if (!over) return;
+    const activeId = String(active.id);
+    const overId = String(over.id);
+    if (activeId === overId) return;
+
+    const sourceListId = findListIdByCardId(activeId);
+    const destinationListId = getListIdFromOver(overId);
+    if (!currentBoard || !sourceListId || !destinationListId) return;
+
+    const sourceList = currentBoard.lists.find((l) => l.id === sourceListId)!;
+    const destList = currentBoard.lists.find((l) => l.id === destinationListId)!;
+    const sourceIndex = sourceList.cards.findIndex((c) => c.id === activeId);
+    let destinationIndex = destList.cards.findIndex((c) => c.id === overId);
+    if (destinationIndex === -1 || overId.startsWith('container:')) {
+      destinationIndex = destList.cards.length; // append if dropped on empty area
+    }
+    if (sourceIndex === -1) return;
+
+    if (sourceListId === destinationListId) {
+      const adjustedIndex = destinationIndex > sourceIndex ? destinationIndex - 1 : destinationIndex;
+      dispatch(reorderCards({ listId: sourceListId, sourceIndex, destinationIndex: adjustedIndex }));
+      if (projectId) {
+        const newPosition = adjustedIndex + 1;
+        dispatch(moveTask({ projectId, taskId: activeId, sourceGroupId: sourceListId, destinationGroupId: destinationListId, newPosition }));
+      }
+    } else {
+      dispatch(moveCard({ sourceListId, destinationListId, sourceIndex, destinationIndex }));
+      if (projectId) {
+        const newPosition = destinationIndex + 1;
+        dispatch(moveTask({ projectId, taskId: activeId, sourceGroupId: sourceListId, destinationGroupId: destinationListId, newPosition }));
+      }
+    }
+  };
 
   // Authentication check
   useEffect(() => {
@@ -289,10 +345,42 @@ export default function ProjectPage() {
           {/* Mobile: Stack vertically, Desktop: Horizontal scroll */}
           <div className="h-full">
             {/* Desktop view */}
-            <div className="hidden md:flex md:space-x-3 lg:space-x-4 md:overflow-x-auto md:pb-4 md:h-full">
-              {currentBoard.lists.map((list: List) => (
-                <div key={list.id} className="flex-shrink-0">
+            <DndContext
+              sensors={sensors}
+              collisionDetection={closestCenter}
+              modifiers={[restrictToWindowEdges]}
+              onDragEnd={handleDragEnd}
+            >
+              <div className="hidden md:flex md:space-x-3 lg:space-x-4 md:overflow-x-auto md:pb-4 md:h-full">
+                {currentBoard.lists.map((list: List) => (
+                  <div key={list.id} className="flex-shrink-0">
+                    <SortableList
+                      list={list}
+                      onCardClick={handleCardClick}
+                      onAddCard={handleAddCard}
+                      onDeleteList={handleDeleteList}
+                      onRenameList={handleRenameList}
+                      onChangeCategoryColor={handleChangeCategoryColor}
+                    />
+                  </div>
+                ))}
+                <div className="flex-shrink-0">
+                  <AddList onAddList={handleAddList} />
+                </div>
+              </div>
+            </DndContext>
+
+            {/* Mobile view - Vertical stack */}
+            <DndContext
+              sensors={sensors}
+              collisionDetection={closestCenter}
+              modifiers={[restrictToWindowEdges]}
+              onDragEnd={handleDragEnd}
+            >
+              <div className="md:hidden space-y-4 h-full overflow-y-auto pb-4">
+                {currentBoard.lists.map((list: List) => (
                   <SortableList
+                    key={list.id}
                     list={list}
                     onCardClick={handleCardClick}
                     onAddCard={handleAddCard}
@@ -300,28 +388,10 @@ export default function ProjectPage() {
                     onRenameList={handleRenameList}
                     onChangeCategoryColor={handleChangeCategoryColor}
                   />
-                </div>
-              ))}
-              <div className="flex-shrink-0">
+                ))}
                 <AddList onAddList={handleAddList} />
               </div>
-            </div>
-
-            {/* Mobile view - Vertical stack */}
-            <div className="md:hidden space-y-4 h-full overflow-y-auto pb-4">
-              {currentBoard.lists.map((list: List) => (
-                <SortableList
-                  key={list.id}
-                  list={list}
-                  onCardClick={handleCardClick}
-                  onAddCard={handleAddCard}
-                  onDeleteList={handleDeleteList}
-                  onRenameList={handleRenameList}
-                  onChangeCategoryColor={handleChangeCategoryColor}
-                />
-              ))}
-              <AddList onAddList={handleAddList} />
-            </div>
+            </DndContext>
           </div>
         </div>
       </div>
