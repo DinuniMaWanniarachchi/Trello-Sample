@@ -1,13 +1,14 @@
 "use client";
 
 import { Button } from '@/components/ui/button';
-import { Plus, MoreHorizontal, Trash2, Edit } from 'lucide-react';
+import { Plus, MoreHorizontal, Trash2, Edit, GripVertical } from 'lucide-react';
 import { List, Card, listHeaderColors, ColorType } from '@/types/kanban';
 import { SortableCard } from './SortableCards';
 import { AddCard } from './add-card';
 import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem } from '@/components/common/DropDownMenu';
 import { SortableContext, verticalListSortingStrategy } from '@dnd-kit/sortable';
 import { useDroppable } from '@dnd-kit/core';
+import type { DraggableAttributes } from '@dnd-kit/core';
 
 interface SortableListProps {
   list: List;
@@ -16,6 +17,8 @@ interface SortableListProps {
   onDeleteList: (listId: string) => void;
   onRenameList: (listId: string) => void;
   onChangeCategoryColor: (listId: string, category: string, color: ColorType) => void;
+  dragHandleProps?: { attributes?: DraggableAttributes; listeners?: React.HTMLAttributes<HTMLButtonElement> };
+  isListDragging?: boolean;
 }
 
 // Define category options with their colors matching your ColorType
@@ -54,12 +57,14 @@ export const SortableList: React.FC<SortableListProps> = ({
   onAddCard,
   onDeleteList,
   onRenameList,
-  onChangeCategoryColor
+  onChangeCategoryColor,
+  dragHandleProps,
+  isListDragging
 }) => {
   const { setNodeRef } = useDroppable({ id: `container:${list.id}` });
 
   return (
-    <div className="flex-shrink-0 w-68 h-[500px] bg-card rounded-md border border-border overflow-hidden flex flex-col">
+    <div className={`flex-shrink-0 w-68 h-[500px] bg-card rounded-md border border-border overflow-hidden flex flex-col ${isListDragging ? 'opacity-75' : ''}`}>
       {/* List Header - Fixed */}
       <div className={`flex items-center justify-between px-3 py-2 rounded-md flex-shrink-0 ${listHeaderColors[list.titleColor || 'gray']}`}>
         <div className="flex items-center justify-between w-full text-black/80">
@@ -67,6 +72,15 @@ export const SortableList: React.FC<SortableListProps> = ({
             {list.title} ({list.cards.length})
           </span>
           <div className="flex items-center space-x-2">
+            {/* Drag handle for list reordering */}
+            <button
+              className="h-6 w-6 flex items-center justify-center text-black/60 hover:text-black/100 cursor-grab"
+              aria-label="Drag list"
+              {...(dragHandleProps?.attributes as React.HTMLAttributes<HTMLButtonElement>)}
+              {...(dragHandleProps?.listeners as React.HTMLAttributes<HTMLButtonElement>)}
+            >
+              <GripVertical className="h-4 w-4" />
+            </button>
             <Button variant="ghost" size="sm" className="h-6 w-6 p-0 text-black/100 hover:text-white hover:bg-white/20">
               <Plus className="h-4 w-4" />
             </Button>

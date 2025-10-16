@@ -21,16 +21,18 @@ import {
 import { UpdateTaskData } from '@/lib/api/tasksApi';
 import { SharedHeader } from '@/components/common/SharedHeader';
 import { SortableList } from '@/components/board/SortableList';
+import { SortableBoardList } from '@/components/board/SortableBoardList';
 import { AddList } from '@/components/board/add-list';
 import { CardDetailsDrawer } from '@/components/board/CardDetailsDrawer';
 
 import { useProjects } from '@/contexts/ProjectContext';
 import { useAuth } from '@/contexts/AuthContext';
 import type { BoardState } from '@/lib/features/boardSlice';
-import { moveCard, reorderCards, moveTask } from '@/lib/features/boardSlice';
+import { moveCard, reorderCards, moveTask, reorderTaskGroups } from '@/lib/features/boardSlice';
 
 import { DndContext, DragEndEvent, PointerSensor, useSensor, useSensors, closestCenter } from '@dnd-kit/core';
 import { restrictToWindowEdges } from '@dnd-kit/modifiers';
+import { SortableContext } from '@dnd-kit/sortable';
 
 // Types for board storage
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -77,6 +79,29 @@ export default function ProjectPage() {
     const activeId = String(active.id);
     const overId = String(over.id);
     if (activeId === overId) return;
+
+    const activeType = active.data?.current?.type as 'card' | 'list' | undefined;
+    const overType = over.data?.current?.type as 'card' | 'list' | undefined;
+
+    // Handle LIST reordering (drag handle on header)
+    if (activeType === 'list') {
+      if (!currentBoard) return;
+      const ids = currentBoard.lists.map(l => l.id);
+      const from = ids.indexOf(activeId);
+      const to = ids.indexOf(overId);
+      if (from === -1 || to === -1 || from === to) return;
+
+      const newLists = [...currentBoard.lists];
+      const [moved] = newLists.splice(from, 1);
+      newLists.splice(to, 0, moved);
+      dispatch(setCurrentBoard({ ...currentBoard, lists: newLists }));
+
+      if (projectId) {
+        const taskGroups = newLists.map((l, index) => ({ id: l.id, position: index + 1 }));
+        dispatch(reorderTaskGroups({ projectId, taskGroups }));
+      }
+      return;
+    }
 
     const sourceListId = findListIdByCardId(activeId);
     const destinationListId = getListIdFromOver(overId);
@@ -352,9 +377,10 @@ export default function ProjectPage() {
               onDragEnd={handleDragEnd}
             >
               <div className="hidden md:flex md:space-x-3 lg:space-x-4 md:overflow-x-auto md:pb-4 md:h-full">
-                {currentBoard.lists.map((list: List) => (
-                  <div key={list.id} className="flex-shrink-0">
-                    <SortableList
+                <SortableContext items={currentBoard.lists.map(l => l.id)}>
+                  {currentBoard.lists.map((list: List) => (
+                    <SortableBoardList
+                      key={list.id}
                       list={list}
                       onCardClick={handleCardClick}
                       onAddCard={handleAddCard}
@@ -362,8 +388,8 @@ export default function ProjectPage() {
                       onRenameList={handleRenameList}
                       onChangeCategoryColor={handleChangeCategoryColor}
                     />
-                  </div>
-                ))}
+                  ))}
+                </SortableContext>
                 <div className="flex-shrink-0">
                   <AddList onAddList={handleAddList} />
                 </div>
@@ -378,17 +404,19 @@ export default function ProjectPage() {
               onDragEnd={handleDragEnd}
             >
               <div className="md:hidden space-y-4 h-full overflow-y-auto pb-4">
-                {currentBoard.lists.map((list: List) => (
-                  <SortableList
-                    key={list.id}
-                    list={list}
-                    onCardClick={handleCardClick}
-                    onAddCard={handleAddCard}
-                    onDeleteList={handleDeleteList}
-                    onRenameList={handleRenameList}
-                    onChangeCategoryColor={handleChangeCategoryColor}
-                  />
-                ))}
+                <SortableContext items={currentBoard.lists.map(l => l.id)}>
+                  {currentBoard.lists.map((list: List) => (
+                    <SortableBoardList
+                      key={list.id}
+                      list={list}
+                      onCardClick={handleCardClick}
+                      onAddCard={handleAddCard}
+                      onDeleteList={handleDeleteList}
+                      onRenameList={handleRenameList}
+                      onChangeCategoryColor={handleChangeCategoryColor}
+                    />
+                  ))}
+                </SortableContext>
                 <AddList onAddList={handleAddList} />
               </div>
             </DndContext>
