@@ -414,15 +414,28 @@ const boardSlice = createSlice({
         state.loading = false;
         state.error = action.error.message || 'Failed to fetch task groups';
       })
+      // ✅ FIXED: createTaskGroup.fulfilled
       .addCase(createTaskGroup.fulfilled, (state, action: PayloadAction<TaskGroup>) => {
+        // Ensure taskGroups array exists
+        if (!Array.isArray(state.taskGroups)) {
+          state.taskGroups = [];
+        }
         state.taskGroups.push(action.payload);
+        
+        // Only add to currentBoard if it exists
         if (state.currentBoard) {
+          // Ensure lists array exists
+          if (!Array.isArray(state.currentBoard.lists)) {
+            state.currentBoard.lists = [];
+          }
+          
           const newList: List = {
             id: action.payload.id,
             title: action.payload.name,
-            titleColor: (action.payload.color as ColorType) || 'gray',
+            titleColor: mapDbColorToColorType(action.payload.color),
             cards: []
           };
+          
           state.currentBoard.lists.push(newList);
         }
       })
@@ -527,7 +540,7 @@ const boardSlice = createSlice({
         state.taskGroups = state.taskGroups.filter((tg) => tg.id !== action.payload);
       })
       .addCase(reorderTaskGroups.fulfilled, (state, action) => {
-        state.taskGroups = action.payload;
+        state.taskGroups = Array.isArray(action.payload) ? action.payload : [];
       })
       // Task Statuses
       .addCase(fetchTaskStatuses.fulfilled, (state, action) => {
