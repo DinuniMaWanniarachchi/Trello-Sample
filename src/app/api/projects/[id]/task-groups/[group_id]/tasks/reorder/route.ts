@@ -5,10 +5,10 @@ import pool from '@/lib/db';
 // PUT /api/projects/[id]/task-groups/[group_id]/tasks/reorder - Reorder tasks (for drag and drop)
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { id: string; group_id: string } }
+  context: { params: Promise<{ id: string; group_id: string }> }
 ) {
   try {
-    const { id: projectId, group_id: sourceGroupId } = params;
+    const { id: projectId, group_id: sourceGroupId } = await context.params;
     const body = await request.json();
     const { taskId, destinationGroupId, taskOrders } = body as {
       taskId?: string;
