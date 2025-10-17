@@ -30,7 +30,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import type { BoardState } from '@/lib/features/boardSlice';
 import { moveCard, reorderCards, moveTask, reorderTaskGroups } from '@/lib/features/boardSlice';
 
-import { DndContext, DragEndEvent, PointerSensor, useSensor, useSensors, closestCenter } from '@dnd-kit/core';
+import { DndContext, DragEndEvent, PointerSensor, useSensor, useSensors, closestCorners } from '@dnd-kit/core';
 import { restrictToWindowEdges } from '@dnd-kit/modifiers';
 import { SortableContext } from '@dnd-kit/sortable';
 
@@ -70,6 +70,9 @@ export default function ProjectPage() {
   const getListIdFromOver = (overId: string): string | null => {
     // Support droppable container IDs like 'container:<listId>' used by SortableList
     if (overId.startsWith('container:')) return overId.split(':')[1] || null;
+    // If hovering a list itself, overId can be the list id
+    if (currentBoard?.lists.some((l) => l.id === overId)) return overId;
+    // Otherwise resolve by card id
     return findListIdByCardId(overId);
   };
 
@@ -110,10 +113,18 @@ export default function ProjectPage() {
     const sourceList = currentBoard.lists.find((l) => l.id === sourceListId)!;
     const destList = currentBoard.lists.find((l) => l.id === destinationListId)!;
     const sourceIndex = sourceList.cards.findIndex((c) => c.id === activeId);
-    let destinationIndex = destList.cards.findIndex((c) => c.id === overId);
+    // Prefer the sortable index from the over target when it is a card
+    const overIndexFromData = (over.data?.current?.type === 'card'
+      ? (over.data.current as { index?: number }).index
+      : undefined) as number | undefined;
+    let destinationIndex =
+      typeof overIndexFromData === 'number'
+        ? overIndexFromData
+        : destList.cards.findIndex((c) => c.id === overId);
     if (destinationIndex === -1 || overId.startsWith('container:')) {
       destinationIndex = destList.cards.length; // append if dropped on empty area
     }
+
     if (sourceIndex === -1) return;
 
     if (sourceListId === destinationListId) {
@@ -369,14 +380,13 @@ export default function ProjectPage() {
         <div className="h-full p-2 sm:p-4 lg:p-6">
           {/* Mobile: Stack vertically, Desktop: Horizontal scroll */}
           <div className="h-full">
-            {/* Desktop view */}
             <DndContext
               sensors={sensors}
-              collisionDetection={closestCenter}
+              collisionDetection={closestCorners}
               modifiers={[restrictToWindowEdges]}
               onDragEnd={handleDragEnd}
             >
-              <div className="hidden md:flex md:space-x-3 lg:space-x-4 md:overflow-x-auto md:pb-4 md:h-full">
+              <div className="flex flex-col md:flex-row md:space-x-3 lg:space-x-4 space-y-4 md:space-y-0 overflow-y-auto md:overflow-x-auto md:pb-4 md:h-full">
                 <SortableContext items={currentBoard.lists.map(l => l.id)}>
                   {currentBoard.lists.map((list: List) => (
                     <SortableBoardList
@@ -393,31 +403,6 @@ export default function ProjectPage() {
                 <div className="flex-shrink-0">
                   <AddList onAddList={handleAddList} />
                 </div>
-              </div>
-            </DndContext>
-
-            {/* Mobile view - Vertical stack */}
-            <DndContext
-              sensors={sensors}
-              collisionDetection={closestCenter}
-              modifiers={[restrictToWindowEdges]}
-              onDragEnd={handleDragEnd}
-            >
-              <div className="md:hidden space-y-4 h-full overflow-y-auto pb-4">
-                <SortableContext items={currentBoard.lists.map(l => l.id)}>
-                  {currentBoard.lists.map((list: List) => (
-                    <SortableBoardList
-                      key={list.id}
-                      list={list}
-                      onCardClick={handleCardClick}
-                      onAddCard={handleAddCard}
-                      onDeleteList={handleDeleteList}
-                      onRenameList={handleRenameList}
-                      onChangeCategoryColor={handleChangeCategoryColor}
-                    />
-                  ))}
-                </SortableContext>
-                <AddList onAddList={handleAddList} />
               </div>
             </DndContext>
           </div>
