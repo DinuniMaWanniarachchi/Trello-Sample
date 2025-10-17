@@ -75,17 +75,20 @@ export const CardDetailsDrawer: React.FC<CardDetailsDrawerProps> = ({
   const [] = useState<ColorType>('blue');
   const [isEditingTitle, setIsEditingTitle] = useState(false);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+  const [isDirty, setIsDirty] = useState(false);
 
   useEffect(() => {
     if (card && isOpen) {
       setEditedTitle(card.title || '');
       setEditedDescription(card.description || '');
       setEditedDueDate(card.dueDate ? new Date(card.dueDate).toISOString().split('T')[0] : '');
+
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       setEditedStatus((card as any).status || 'todo');
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       setEditedPriority((card as any).priority || 'none');
       setIsEditingTitle(false);
+      setIsDirty(false);
       
       // Set labels from card if available
       if (card.labels && card.labels.length > 0) {
@@ -98,6 +101,39 @@ export const CardDetailsDrawer: React.FC<CardDetailsDrawerProps> = ({
       loadLabels();
     }
   }, [card, isOpen]);
+
+  useEffect(() => {
+    if (!card) return;
+    const baselineTitle = card.title || '';
+    const baselineDesc = card.description || '';
+    const baselineDue = card.dueDate ? new Date(card.dueDate).toISOString().split('T')[0] : '';
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const baselinePriority = (card as any).priority || 'none';
+    const baselineLabels = card.labels || [];
+    const dirty =
+      editedTitle !== baselineTitle ||
+      editedDescription !== baselineDesc ||
+      (editedDueDate || '') !== baselineDue ||
+      editedPriority !== baselinePriority ||
+      JSON.stringify(selectedLabels) !== JSON.stringify(baselineLabels);
+    setIsDirty(dirty);
+  }, [editedTitle, editedDescription, editedDueDate, editedPriority, selectedLabels, card]);
+
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      const key = e.key.toLowerCase();
+      if ((e.ctrlKey || e.metaKey) && key === 's') {
+        e.preventDefault();
+        if (isDirty) handleSave();
+      }
+      if (key === 'escape') {
+        e.preventDefault();
+        onClose();
+      }
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [isDirty]);
 
   const loadLabels = async () => {
     if (!card || !card.task_group_id) return;
@@ -179,14 +215,11 @@ export const CardDetailsDrawer: React.FC<CardDetailsDrawerProps> = ({
     onUpdate(card.id, { priority: priority } as any);
   };
 
-
   const handleDeleteCard = () => {
     onDelete(card.id);
     setShowDeleteDialog(false);
     onClose();
   };
-
-
 
   return (
     <>
@@ -245,14 +278,7 @@ export const CardDetailsDrawer: React.FC<CardDetailsDrawerProps> = ({
                       }
                     }}
                   />
-                  <div className="flex space-x-2">
-                    <Button size="sm" onClick={handleSave} className="bg-blue-600 hover:bg-blue-700 text-white">
-                      Save
-                    </Button>
-                    <Button variant="ghost" size="sm" onClick={() => setIsEditingTitle(false)} className="text-muted-foreground hover:text-foreground hover:bg-accent">
-                      Cancel
-                    </Button>
-                  </div>
+                  <div className="text-xs text-muted-foreground">Press Enter to save. Press Esc to cancel.</div>
                 </div>
               ) : (
                 <div 
@@ -409,11 +435,11 @@ export const CardDetailsDrawer: React.FC<CardDetailsDrawerProps> = ({
           </div>
 
           {/* Footer */}
-          <div className="flex justify-end space-x-3 pt-2 border-t border-border">
+          <div className="sticky bottom-0 left-0 right-0 flex items-center justify-between gap-3 px-4 py-3 border-t border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/75">
             <Button variant="ghost" onClick={onClose} className="text-muted-foreground hover:text-foreground hover:bg-accent">
-              Close
+              Cancel
             </Button>
-            <Button onClick={handleSave} className="bg-blue-600 hover:bg-blue-700 text-white">
+            <Button onClick={handleSave} disabled={!isDirty} className="bg-blue-600 hover:bg-blue-700 text-white disabled:opacity-50">
               Save Changes
             </Button>
           </div>
