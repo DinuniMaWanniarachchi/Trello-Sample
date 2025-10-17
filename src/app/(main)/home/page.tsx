@@ -22,6 +22,8 @@ export default function HomePage() {
   const [boardTitle, setBoardTitle] = useState('');
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const [isDarkMode, setIsDarkMode] = useState(false);
+  const [boardTitleError, setBoardTitleError] = useState('');
+  const MAX_TITLE = 60;
   
   const { user, isAuthenticated, isLoading: authLoading, checkAuth } = useAuth();
   const { projects, isLoading: projectsLoading, error, createProject, clearError } = useProjects();
@@ -96,6 +98,40 @@ export default function HomePage() {
   const onCloseDrawer = () => {
     setIsDrawerOpen(false);
   };
+
+  // Validate title as the user types
+  const onTitleChange = (value: string) => {
+    setBoardTitle(value);
+    if (!value.trim()) {
+      setBoardTitleError('Board name is required');
+    } else if (value.trim().length < 3) {
+      setBoardTitleError('Use at least 3 characters');
+    } else if (value.length > MAX_TITLE) {
+      setBoardTitleError(`Max ${MAX_TITLE} characters`);
+    } else {
+      setBoardTitleError('');
+    }
+  };
+
+  // Keyboard shortcuts inside modal: Enter to create, Esc to close
+  useEffect(() => {
+    if (!isDrawerOpen) return;
+    const handler = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        e.preventDefault();
+        onCloseDrawer();
+      }
+      if (e.key === 'Enter') {
+        if (!boardTitleError && boardTitle.trim()) {
+          e.preventDefault();
+          handleCreateBoard();
+          onCloseDrawer();
+        }
+      }
+    };
+    window.addEventListener('keydown', handler);
+    return () => window.removeEventListener('keydown', handler);
+  }, [isDrawerOpen, boardTitle, boardTitleError]);
 
   // Show loading state while checking authentication
   if (authLoading) {
@@ -186,7 +222,7 @@ export default function HomePage() {
                 <div className="flex justify-center">
                   <Input 
                     value={boardTitle}
-                    onChange={(e) => setBoardTitle(e.target.value)}
+                    onChange={(e) => onTitleChange(e.target.value)}
                     placeholder="What are you working on?"
                     className="max-w-md"
                     onKeyPress={(e) => {
@@ -226,7 +262,7 @@ export default function HomePage() {
             <div className="flex space-x-4">
               <Input 
                 value={boardTitle}
-                onChange={(e) => setBoardTitle(e.target.value)}
+                onChange={(e) => onTitleChange(e.target.value)}
                 placeholder="Enter project name..."
                 className="flex-1"
                 onKeyPress={(e) => {
@@ -346,38 +382,41 @@ export default function HomePage() {
                 </label>
                 <Input 
                   value={boardTitle}
-                  onChange={(e) => setBoardTitle(e.target.value)}
+                  onChange={(e) => onTitleChange(e.target.value)}
                   placeholder="Enter board name"
-                  className="w-full"
-                  onKeyPress={(e) => {
-                    if (e.key === 'Enter' && boardTitle.trim()) {
-                      handleCreateBoard();
-                      onCloseDrawer();
-                    }
-                  }}
+                  className={`w-full ${boardTitleError ? 'border-red-500 focus-visible:ring-red-500' : ''}`}
+                  autoFocus
                 />
+                <div className="mt-1 flex items-center justify-between text-xs">
+                  <span className={` ${boardTitleError ? 'text-red-500' : 'text-gray-500 dark:text-gray-400'}`}>
+                    {boardTitleError || 'Tip: Use a short, descriptive name'}
+                  </span>
+                  <span className="text-gray-500 dark:text-gray-400">{boardTitle.length}/{MAX_TITLE}</span>
+                </div>
               </div>
               
-              <div className="flex space-x-3 pt-4">
-                <Button 
-                  onClick={async () => {
-                    if (boardTitle.trim()) {
-                      await handleCreateBoard();
-                      onCloseDrawer();
-                    }
-                  }}
-                  disabled={!boardTitle.trim() || projectsLoading}
-                  className="flex-1 bg-blue-600 hover:bg-blue-700 text-white"
-                >
-                  {projectsLoading ? 'Creating...' : 'Create Board'}
-                </Button>
-                <Button 
-                  variant="outline"
-                  onClick={onCloseDrawer}
-                  className="flex-1 border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700"
-                >
-                  Cancel
-                </Button>
+              <div className="sticky bottom-0 left-0 right-0 pt-4">
+                <div className="flex space-x-3 border-t border-gray-200 dark:border-gray-700 pt-4">
+                  <Button 
+                    variant="outline"
+                    onClick={onCloseDrawer}
+                    className="flex-1 border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700"
+                  >
+                    Cancel
+                  </Button>
+                  <Button 
+                    onClick={async () => {
+                      if (boardTitle.trim() && !boardTitleError) {
+                        await handleCreateBoard();
+                        onCloseDrawer();
+                      }
+                    }}
+                    disabled={!boardTitle.trim() || !!boardTitleError || projectsLoading}
+                    className="flex-1 bg-blue-600 hover:bg-blue-700 text-white disabled:opacity-50"
+                  >
+                    {projectsLoading ? 'Creating...' : 'Create Board'}
+                  </Button>
+                </div>
               </div>
             </div>
           </div>
