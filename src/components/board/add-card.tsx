@@ -41,26 +41,37 @@ export const AddCard: React.FC<AddCardProps> = ({ listId, onAddCard }) => {
 
   if (isAdding) {
     return (
-      <div className="space-y-3 p-3 bg-card border border-border rounded-lg">
-        <Input
-          value={cardTitle}
-          onChange={(e) => setCardTitle(e.target.value)}
-          placeholder="Enter a title for this card..."
-          className="text-sm bg-background border-border text-foreground placeholder-muted-foreground"
-          onKeyPress={handleKeyPress}
-          autoFocus
-        />
-        
-        <Textarea
-          value={cardDescription}
-          onChange={(e) => setCardDescription(e.target.value)}
-          placeholder="Add a description (optional)..."
-          className="text-sm bg-background border-border text-foreground placeholder-muted-foreground resize-none"
-          rows={3}
-          onKeyPress={handleKeyPress}
-        />
-        
-        <div className="flex space-x-2">
+      <div className="p-4 bg-card border border-border rounded-lg shadow-sm space-y-4">
+        <div className="space-y-2">
+          <label className="text-xs font-medium text-muted-foreground">Title</label>
+          <Input
+            value={cardTitle}
+            onChange={(e) => setCardTitle(e.target.value)}
+            placeholder="Enter a title for this card..."
+            className="bg-background border-border text-foreground placeholder-muted-foreground"
+            onKeyPress={handleKeyPress}
+            autoFocus
+            aria-label="Card title"
+          />
+        </div>
+
+        <div className="h-px bg-border" />
+
+        <div className="space-y-2">
+          <label className="text-xs font-medium text-muted-foreground">Description</label>
+          <Textarea
+            value={cardDescription}
+            onChange={(e) => setCardDescription(e.target.value)}
+            placeholder="Add a description (optional)..."
+            className="bg-background border-border text-foreground placeholder-muted-foreground resize-none"
+            rows={4}
+            onKeyPress={handleKeyPress}
+            aria-label="Card description"
+          />
+          <div className="text-[11px] text-muted-foreground">Press Enter to add. Shift+Enter for new line.</div>
+        </div>
+
+        <div className="flex items-center justify-start gap-2">
           <Button 
             size="sm"
             onClick={handleAddCard}
@@ -74,6 +85,7 @@ export const AddCard: React.FC<AddCardProps> = ({ listId, onAddCard }) => {
             size="sm"
             onClick={handleCancel}
             className="text-muted-foreground hover:text-foreground"
+            aria-label="Cancel"
           >
             <X className="h-4 w-4" />
           </Button>

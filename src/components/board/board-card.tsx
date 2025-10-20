@@ -233,10 +233,12 @@ export const BoardCard: React.FC<BoardCardProps> = ({
             content={datePickerContent}
             title={null}
             trigger="click"
-            open={isDatePickerVisible}
+            // Let Popover control visibility to avoid style registration during unmount
             onOpenChange={handlePopoverVisibleChange}
             placement="bottomLeft"
             overlayClassName="date-picker-popover"
+            destroyOnHidden
+            getPopupContainer={() => document.body}
           >
             <div 
               className="task-due-date cursor-pointer hover:bg-accent rounded-md px-1 py-0.5 transition-colors flex items-center"
