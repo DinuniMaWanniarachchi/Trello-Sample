@@ -48,7 +48,7 @@ export const AddList: React.FC<AddListProps> = ({ onAddList }) => {
 
   if (isAdding) {
     return (
-      <div className="flex-shrink-0 w-80 bg-accent rounded-md p-4 border border-gray-300 dark:border-border">
+      <div className="flex-shrink-0 w-80 bg-accent rounded-md p-4 border border-border">
         <Input
           value={listTitle}
           onChange={(e) => setListTitle(e.target.value)}
@@ -74,7 +74,7 @@ export const AddList: React.FC<AddListProps> = ({ onAddList }) => {
             <button
               type="button"
               onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-              className="w-full flex items-center justify-between gap-3 p-3 rounded-md border border-gray-300 dark:border-border bg-card hover:bg-accent/30 transition-all"
+              className="w-full flex items-center justify-between gap-3 p-3 rounded-md border border-border bg-card hover:bg-accent/30 transition-all"
             >
               <div className="flex items-center gap-3">
                 <div className={`w-4 h-4 rounded-full ${selectedOption?.bg}`} />
@@ -88,7 +88,7 @@ export const AddList: React.FC<AddListProps> = ({ onAddList }) => {
             
             {/* Dropdown Menu */}
             {isDropdownOpen && (
-              <div className="absolute top-full left-0 right-0 mt-1 bg-card border border-gray-300 dark:border-border rounded-md shadow-lg z-10">
+              <div className="absolute top-full left-0 right-0 mt-1 bg-card border border-border rounded-md shadow-lg z-10">
                 {listColorOptions.map((option) => (
                   <button
                     key={option.value}

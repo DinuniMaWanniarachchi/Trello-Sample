@@ -190,13 +190,13 @@ export default function HomePage() {
         {!projectsLoading && projects.length === 0 && (
           <div className="text-center mb-8">
             <div 
-              className="rounded-md p-8 mb-6 shadow-sm border border-gray-200 dark:border-gray-700" 
+              className="rounded-md p-8 mb-6 shadow-sm border border-border" 
               style={{ backgroundColor: isDarkMode ? 'rgb(30, 30, 30)' : 'white' }}
             >
               <div className="mb-6">
                 <div className="w-48 h-32 mx-auto rounded-md relative overflow-hidden bg-gradient-to-br from-purple-500 to-purple-700">
                   <div className="absolute inset-4 space-y-2">
-                    <div className="rounded-md p-2 shadow-sm border bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-600">
+                    <div className="rounded-md p-2 shadow-sm border bg-white dark:bg-gray-800 border-border">
                       <div className="h-2 rounded-md mb-1 bg-gray-200 dark:bg-gray-600"></div>
                       <div className="h-2 rounded-md w-2/3 bg-gray-200 dark:bg-gray-600"></div>
                     </div>
@@ -301,7 +301,7 @@ export default function HomePage() {
               {projects.map((project) => (
                 <Card 
                   key={project.id} 
-                  className="cursor-pointer transition-all duration-200 hover:shadow-lg border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800 group"
+                  className="cursor-pointer transition-all duration-200 hover:shadow-lg border-border hover:bg-gray-50 dark:hover:bg-gray-800 group"
                   style={{
                     backgroundColor: isDarkMode ? 'rgb(30,30,30)' : 'white'
                   }}
@@ -396,11 +396,11 @@ export default function HomePage() {
               </div>
               
               <div className="sticky bottom-0 left-0 right-0 pt-4">
-                <div className="flex space-x-3 border-t border-gray-200 dark:border-gray-700 pt-4">
+                <div className="flex space-x-3 border-t border-border pt-4">
                   <Button 
                     variant="outline"
                     onClick={onCloseDrawer}
-                    className="flex-1 border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700"
+                    className="flex-1 border-border text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700"
                   >
                     Cancel
                   </Button>
