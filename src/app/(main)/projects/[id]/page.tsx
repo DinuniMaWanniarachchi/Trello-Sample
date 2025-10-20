@@ -30,7 +30,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import type { BoardState } from '@/lib/features/boardSlice';
 import { moveCard, reorderCards, moveTask, reorderTaskGroups } from '@/lib/features/boardSlice';
 
-import { DndContext, DragEndEvent, PointerSensor, useSensor, useSensors, closestCorners } from '@dnd-kit/core';
+import { DndContext, DragEndEvent, PointerSensor, useSensor, useSensors, closestCenter } from '@dnd-kit/core';
 import { restrictToWindowEdges } from '@dnd-kit/modifiers';
 import { SortableContext } from '@dnd-kit/sortable';
 
@@ -382,7 +382,7 @@ export default function ProjectPage() {
           <div className="h-full">
             <DndContext
               sensors={sensors}
-              collisionDetection={closestCorners}
+              collisionDetection={closestCenter}
               modifiers={[restrictToWindowEdges]}
               onDragEnd={handleDragEnd}
             >

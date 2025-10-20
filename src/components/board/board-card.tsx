@@ -134,7 +134,7 @@ export const BoardCard: React.FC<BoardCardProps> = ({
   return (
     <UICard 
       className={`cursor-grab hover:shadow-lg transition-all duration-200
-                  bg-card border-border hover:bg-accent ${
+                  bg-card border-gray-300 dark:border-border hover:bg-accent ${
                     isDragging ? 'opacity-50' : ''
                   }`}
       onClick={handleCardClick}
@@ -260,7 +260,7 @@ export const BoardCard: React.FC<BoardCardProps> = ({
             onClick={handleAddAssignee}
             className="w-5 h-5 rounded-md border border-dashed flex items-center justify-center
             transition-colors duration-200
-            border-border hover:border-muted-foreground hover:bg-accent text-muted-foreground"
+            border-gray-300 dark:border-border hover:border-muted-foreground hover:bg-accent text-muted-foreground"
             title={card.assignee ? "Change assignee" : "Add assignee"}
           >
             <span role="img" aria-label="plus" className="anticon anticon-plus text-xs">

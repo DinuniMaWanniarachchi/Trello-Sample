@@ -64,7 +64,7 @@ export const SortableList: React.FC<SortableListProps> = ({
   const { setNodeRef } = useDroppable({ id: `container:${list.id}` });
 
   return (
-    <div className={`flex-shrink-0 w-68 h-[500px] bg-card rounded-md border border-border overflow-hidden flex flex-col ${isListDragging ? 'opacity-75' : ''}`}>
+    <div className={`flex-shrink-0 w-68 h-[500px] bg-card rounded-md border border-gray-300 dark:border-border shadow-sm overflow-hidden flex flex-col ${isListDragging ? 'opacity-75' : ''}`}>
       {/* List Header - Fixed */}
       <div className={`flex items-center justify-between px-3 py-2 rounded-md flex-shrink-0 ${listHeaderColors[list.titleColor || 'gray']}`}>
         <div className="flex items-center justify-between w-full text-black/80">

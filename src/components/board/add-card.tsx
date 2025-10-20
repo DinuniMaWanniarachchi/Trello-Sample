@@ -41,7 +41,7 @@ export const AddCard: React.FC<AddCardProps> = ({ listId, onAddCard }) => {
 
   if (isAdding) {
     return (
-      <div className="space-y-3 p-3 bg-card border border-border rounded-lg">
+      <div className="space-y-3 p-3 bg-card border border-gray-300 dark:border-border rounded-lg">
         <Input
           value={cardTitle}
           onChange={(e) => setCardTitle(e.target.value)}
@@ -86,7 +86,7 @@ export const AddCard: React.FC<AddCardProps> = ({ listId, onAddCard }) => {
     <Button 
       variant="ghost"
       size="sm"
-      className="w-full justify-center text-muted-foreground hover:text-foreground hover:bg-accent border-2 border-dashed border-border hover:border-muted-foreground py-6"
+      className="w-full justify-center text-muted-foreground hover:text-foreground hover:bg-accent border-2 border-dashed border-gray-300 dark:border-border hover:border-muted-foreground py-6"
       onClick={() => setIsAdding(true)}
     >
       <Plus className="h-4 w-4 mr-2" />
