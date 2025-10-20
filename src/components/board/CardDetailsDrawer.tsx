@@ -300,11 +300,11 @@ export const CardDetailsDrawer: React.FC<CardDetailsDrawerProps> = ({
               {/* Display Selected Labels */}
               {selectedLabels.length > 0 && (
                 <div className="flex flex-wrap gap-2">
-                  {selectedLabels.map((labelType) => {
+                  {selectedLabels.map((labelType, idx) => {
                     // eslint-disable-next-line @typescript-eslint/no-explicit-any
                     const labelDef = PREDEFINED_LABELS.find((l: { type: any; }) => l.type === labelType);
                     return (
-                      <div key={labelType} className="flex items-center gap-1 px-3 py-1 rounded-md text-sm font-medium text-white" style={{ backgroundColor: labelDef?.color }}>
+                      <div key={`${labelType}-${idx}`} className="flex items-center gap-1 px-3 py-1 rounded-md text-sm font-medium text-white" style={{ backgroundColor: labelDef?.color }}>
                         <span>{labelDef?.name}</span>
                         <button
                           className="ml-1 hover:opacity-70"
