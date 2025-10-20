@@ -255,7 +255,7 @@ export default function HomePage() {
 
         {/* Quick Create Section */}
         {!projectsLoading && projects.length > 0 && (
-          <div className="mb-8 p-6 bg-gradient-to-r from-blue-50 to-purple-50 dark:from-blue-900/20 dark:to-purple-900/20 rounded-lg border border-blue-200 dark:border-blue-800">
+          <div className="mb-8 p-6 bg-gradient-to-r from-background to-background dark:from-background/80 dark:to-background/80 rounded-lg border border-border">
             <h3 className="text-lg font-semibold mb-3 text-gray-900 dark:text-white">
               Create New Project
             </h3>

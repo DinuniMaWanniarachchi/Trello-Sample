@@ -112,7 +112,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children, showSidebar }) => {
     <div className="min-h-screen">
       {/* Fixed Header */}
       <header className={`fixed top-0 left-0 right-0 h-16 border-b z-40 backdrop-blur-sm flex items-center justify-between px-4 lg:px-6 ${
-        isDarkMode ? 'bg-gray-900/95 border-gray-700' : 'bg-white/95 border-gray-200'
+        isDarkMode ? 'bg-black border-gray-700' : 'bg-white/95 border-gray-200'
       }`}>
         
         {/* Left Section - Logo & Navigation */}
@@ -235,7 +235,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children, showSidebar }) => {
           {/* Conditional Left Sidebar */}
           {shouldShowSidebar && (
             <aside className={`w-64 min-h-[calc(100vh-4rem)] border-r ${
-              isDarkMode ? 'bg-gray-900 border-gray-700' : 'bg-white border-gray-200'
+              isDarkMode ? 'bg-black border-gray-800' : 'bg-white border-gray-200'
             }`}>
               <div className="p-4">
                 <nav className="space-y-2">
@@ -347,7 +347,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children, showSidebar }) => {
 
           {/* Main Content - Full Width */}
           <main className={`flex-1 min-h-[calc(100vh-4rem)] ${
-            isDarkMode ? 'bg-gray-900' : 'bg-gray-50'
+            isDarkMode ? 'bg-black' : 'bg-gray-50'
           }`}>
             {/* Render children directly without additional sidebar */}
             {children}
