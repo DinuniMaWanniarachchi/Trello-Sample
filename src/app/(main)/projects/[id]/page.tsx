@@ -60,7 +60,7 @@ export default function ProjectPage() {
   const isDraggingRef = useRef(false);
 
   const sensors = useSensors(
-    useSensor(PointerSensor, { activationConstraint: { distance: 5 } })
+    useSensor(PointerSensor, { activationConstraint: { distance: 2 } })
   );
 
   const findListIdByCardId = (cardId: string): string | null => {

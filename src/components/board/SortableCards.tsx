@@ -34,7 +34,8 @@ export const SortableCard: React.FC<SortableCardProps> = ({
     transform: CSS.Transform.toString(transform),
     transition,
     opacity: isDragging ? 0.5 : undefined,
-    cursor: 'grab'
+    cursor: 'grab',
+    touchAction: 'none'
   };
 
   return (
