@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Plus, MoreHorizontal, Trash2, Edit, GripVertical } from 'lucide-react';
 import { List, Card, listHeaderColors, ColorType } from '@/types/kanban';
@@ -62,6 +63,7 @@ export const SortableList: React.FC<SortableListProps> = ({
   isListDragging
 }) => {
   const { setNodeRef } = useDroppable({ id: `container:${list.id}` });
+  const [addOpen, setAddOpen] = useState(false);
 
   return (
     <div className={`flex-shrink-0 w-68 h-[500px] bg-card rounded-md border border-border shadow-sm overflow-hidden flex flex-col ${isListDragging ? 'opacity-75' : ''}`}>
@@ -81,7 +83,12 @@ export const SortableList: React.FC<SortableListProps> = ({
             >
               <GripVertical className="h-4 w-4" />
             </button>
-            <Button variant="ghost" size="sm" className="h-6 w-6 p-0 text-black/100 hover:text-white hover:bg-white/20">
+            <Button 
+              variant="ghost" 
+              size="sm" 
+              className="h-6 w-6 p-0 text-black/100 hover:text-white hover:bg-white/20"
+              onClick={() => setAddOpen(true)}
+            >
               <Plus className="h-4 w-4" />
             </Button>
             <DropdownMenu>
@@ -160,7 +167,7 @@ export const SortableList: React.FC<SortableListProps> = ({
               />
             ))}
             {/* Add Card */}
-            <AddCard listId={list.id} onAddCard={onAddCard} />
+            <AddCard listId={list.id} onAddCard={onAddCard} open={addOpen} onOpenChange={setAddOpen} />
           </div>
         </SortableContext>
       </div>

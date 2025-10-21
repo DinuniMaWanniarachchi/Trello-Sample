@@ -9,12 +9,20 @@ import { Plus, X } from 'lucide-react';
 interface AddCardProps {
   listId: string;
   onAddCard: (listId: string, title: string, description?: string) => void;
+  open?: boolean;
+  onOpenChange?: (open: boolean) => void;
 }
 
-export const AddCard: React.FC<AddCardProps> = ({ listId, onAddCard }) => {
-  const [isAdding, setIsAdding] = useState(false);
+export const AddCard: React.FC<AddCardProps> = ({ listId, onAddCard, open, onOpenChange }) => {
+  const [internalOpen, setInternalOpen] = useState(false);
   const [cardTitle, setCardTitle] = useState('');
   const [cardDescription, setCardDescription] = useState('');
+
+  const isAdding = open !== undefined ? open : internalOpen;
+  const setIsAdding = (v: boolean) => {
+    if (onOpenChange) onOpenChange(v);
+    else setInternalOpen(v);
+  };
 
   const handleAddCard = () => {
     if (!cardTitle.trim()) return;

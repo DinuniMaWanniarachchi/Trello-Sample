@@ -169,25 +169,35 @@ const DroppableColumn: React.FC<{
           </h3>
         )}
         
-        <div className="relative group">
-          <button className="p-1 hover:bg-gray-200 dark:hover:bg-gray-700 rounded">
-            <MoreVertical size={16} />
+        <div className="flex items-center gap-1">
+          <button
+            onClick={() => setEditingCard({ columnId: column.id, cardId: 'new' })}
+            className="p-1 hover:bg-gray-200 dark:hover:bg-gray-700 rounded"
+            aria-label="Add card"
+            title={t('kanban.addCard')}
+          >
+            <Plus size={16} />
           </button>
-          <div className="absolute right-0 top-8 bg-white dark:bg-gray-700 shadow-lg rounded-md py-2 min-w-[120px] opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-10">
-            <button
-              onClick={() => setEditingColumn(column.id)}
-              className="flex items-center gap-2 px-3 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 w-full text-left text-sm"
-            >
-              <Edit2 size={14} />
-              {t('common.edit')}
+          <div className="relative group">
+            <button className="p-1 hover:bg-gray-200 dark:hover:bg-gray-700 rounded">
+              <MoreVertical size={16} />
             </button>
-            <button
-              onClick={() => deleteColumn(column.id)}
-              className="flex items-center gap-2 px-3 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 w-full text-left text-sm text-red-600"
-            >
-              <Trash2 size={14} />
-              {t('common.delete')}
-            </button>
+            <div className="absolute right-0 top-8 bg-white dark:bg-gray-700 shadow-lg rounded-md py-2 min-w-[120px] opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-10">
+              <button
+                onClick={() => setEditingColumn(column.id)}
+                className="flex items-center gap-2 px-3 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 w-full text-left text-sm"
+              >
+                <Edit2 size={14} />
+                {t('common.edit')}
+              </button>
+              <button
+                onClick={() => deleteColumn(column.id)}
+                className="flex items-center gap-2 px-3 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 w-full text-left text-sm text-red-600"
+              >
+                <Trash2 size={14} />
+                {t('common.delete')}
+              </button>
+            </div>
           </div>
         </div>
       </div>
