@@ -48,6 +48,10 @@ export default function LoginPage() {
       newErrors.password = 'Please input your Password!';
     }
     
+    if (!formData.remember) {
+      (newErrors as any).remember = 'Please mark Remember me to continue';
+    }
+    
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
@@ -87,14 +91,9 @@ export default function LoginPage() {
         // Small delay to ensure cookie is set
         await new Promise(resolve => setTimeout(resolve, 150));
         
-        // Navigate based on user preferences
-        if (data.user.defaultBoardId && returnUrl === '/home') {
-          console.log('Navigating to default board:', data.user.defaultBoardId);
-          router.push(`/projects/${data.user.defaultBoardId}`);
-        } else {
-          console.log('Navigating to:', returnUrl);
-          router.push(returnUrl);
-        }
+        // Always navigate to home when Remember me is required/checked
+        console.log('Navigating to: /home');
+        router.push('/home');
         
       } else {
         setLoginError(data.message || 'Login failed');
@@ -196,6 +195,9 @@ export default function LoginPage() {
               </a>
             </div>
           </div>
+          { (errors as any).remember && (
+            <p className="text-sm text-red-500">{(errors as any).remember}</p>
+          )}
 
           <Button 
             type="submit" 
