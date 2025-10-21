@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { Card, List, ColorType } from '@/types/kanban';
 import { useAppSelector, useAppDispatch } from '@/lib/hooks';
@@ -35,7 +35,6 @@ import { restrictToWindowEdges } from '@dnd-kit/modifiers';
 import { SortableContext } from '@dnd-kit/sortable';
 
 // Types for board storage
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
 interface StoredBoard {
   id: string;
   title: string;
@@ -56,6 +55,9 @@ export default function ProjectPage() {
   const [selectedCard, setSelectedCard] = useState<Card | null>(null);
   const [isCardDrawerOpen, setIsCardDrawerOpen] = useState(false);
   const [isInitialized, setIsInitialized] = useState(false);
+  
+  // 🔥 FIX: Prevent multiple simultaneous drags
+  const isDraggingRef = useRef(false);
 
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 5 } })
@@ -68,31 +70,47 @@ export default function ProjectPage() {
   };
 
   const getListIdFromOver = (overId: string): string | null => {
-    // Support droppable container IDs like 'container:<listId>' used by SortableList
     if (overId.startsWith('container:')) return overId.split(':')[1] || null;
-    // If hovering a list itself, overId can be the list id
     if (currentBoard?.lists.some((l) => l.id === overId)) return overId;
-    // Otherwise resolve by card id
     return findListIdByCardId(overId);
   };
 
   const handleDragEnd = (event: DragEndEvent) => {
+    // 🔥 FIX: Prevent multiple calls
+    if (isDraggingRef.current) {
+      console.log('⚠️ Drag already in progress, ignoring...');
+      return;
+    }
+    
+    isDraggingRef.current = true;
+
     const { active, over } = event;
-    if (!over) return;
+    
+    if (!over || !currentBoard) {
+      isDraggingRef.current = false;
+      return;
+    }
+    
     const activeId = String(active.id);
     const overId = String(over.id);
-    if (activeId === overId) return;
+    
+    if (activeId === overId) {
+      isDraggingRef.current = false;
+      return;
+    }
 
     const activeType = active.data?.current?.type as 'card' | 'list' | undefined;
-    const overType = over.data?.current?.type as 'card' | 'list' | undefined;
 
-    // Handle LIST reordering (drag handle on header)
+    // Handle LIST reordering
     if (activeType === 'list') {
-      if (!currentBoard) return;
       const ids = currentBoard.lists.map(l => l.id);
       const from = ids.indexOf(activeId);
       const to = ids.indexOf(overId);
-      if (from === -1 || to === -1 || from === to) return;
+      
+      if (from === -1 || to === -1 || from === to) {
+        isDraggingRef.current = false;
+        return;
+      }
 
       const newLists = [...currentBoard.lists];
       const [moved] = newLists.splice(from, 1);
@@ -103,42 +121,139 @@ export default function ProjectPage() {
         const taskGroups = newLists.map((l, index) => ({ id: l.id, position: index + 1 }));
         dispatch(reorderTaskGroups({ projectId, taskGroups }));
       }
+      
+      setTimeout(() => {
+        isDraggingRef.current = false;
+      }, 300);
       return;
     }
 
+    // Handle CARD reordering/moving
     const sourceListId = findListIdByCardId(activeId);
-    const destinationListId = getListIdFromOver(overId);
-    if (!currentBoard || !sourceListId || !destinationListId) return;
-
-    const sourceList = currentBoard.lists.find((l) => l.id === sourceListId)!;
-    const destList = currentBoard.lists.find((l) => l.id === destinationListId)!;
-    const sourceIndex = sourceList.cards.findIndex((c) => c.id === activeId);
-    // Prefer the sortable index from the over target when it is a card
-    const overIndexFromData = (over.data?.current?.type === 'card'
-      ? (over.data.current as { index?: number }).index
-      : undefined) as number | undefined;
-    let destinationIndex =
-      typeof overIndexFromData === 'number'
-        ? overIndexFromData
-        : destList.cards.findIndex((c) => c.id === overId);
-    if (destinationIndex === -1 || overId.startsWith('container:')) {
-      destinationIndex = destList.cards.length; // append if dropped on empty area
+    let destinationListId = getListIdFromOver(overId);
+    
+    if (!sourceListId) {
+      isDraggingRef.current = false;
+      return;
+    }
+    
+    if (overId.startsWith('container:')) {
+      destinationListId = overId.split(':')[1] || null;
+    }
+    
+    if (!destinationListId) {
+      isDraggingRef.current = false;
+      return;
     }
 
-    if (sourceIndex === -1) return;
+    const sourceList = currentBoard.lists.find((l) => l.id === sourceListId);
+    const destList = currentBoard.lists.find((l) => l.id === destinationListId);
+    
+    if (!sourceList || !destList) {
+      isDraggingRef.current = false;
+      return;
+    }
 
+    const sourceIndex = sourceList.cards.findIndex((c) => c.id === activeId);
+    
+    if (sourceIndex === -1) {
+      isDraggingRef.current = false;
+      return;
+    }
+
+    // Calculate destination index
+    let destinationIndex: number;
+    
+    if (over.data?.current?.type === 'card') {
+      const overIndex = over.data.current.index as number | undefined;
+      destinationIndex = typeof overIndex === 'number' ? overIndex : destList.cards.findIndex((c) => c.id === overId);
+    } else if (overId.startsWith('container:')) {
+      destinationIndex = destList.cards.length;
+    } else {
+      destinationIndex = destList.cards.findIndex((c) => c.id === overId);
+      if (destinationIndex === -1) {
+        destinationIndex = destList.cards.length;
+      }
+    }
+
+    // SAME LIST - reorder cards
     if (sourceListId === destinationListId) {
       const adjustedIndex = destinationIndex > sourceIndex ? destinationIndex - 1 : destinationIndex;
-      dispatch(reorderCards({ listId: sourceListId, sourceIndex, destinationIndex: adjustedIndex }));
+      
+      if (sourceIndex === adjustedIndex) {
+        isDraggingRef.current = false;
+        return;
+      }
+      
+      console.log('🔄 Same list reorder:', { 
+        cardId: activeId,
+        from: sourceIndex, 
+        to: adjustedIndex 
+      });
+      
+      // Update UI immediately
+      dispatch(reorderCards({ 
+        listId: sourceListId, 
+        sourceIndex, 
+        destinationIndex: adjustedIndex 
+      }));
+      
+      // Make API call
       if (projectId) {
         const newPosition = adjustedIndex + 1;
-        dispatch(moveTask({ projectId, taskId: activeId, sourceGroupId: sourceListId, destinationGroupId: destinationListId, newPosition }));
+        console.log('📡 Making API call:', { activeId, newPosition });
+        
+        dispatch(moveTask({ 
+          projectId, 
+          taskId: activeId, 
+          sourceGroupId: sourceListId, 
+          destinationGroupId: destinationListId, 
+          newPosition 
+        })).finally(() => {
+          setTimeout(() => {
+            isDraggingRef.current = false;
+          }, 300);
+        });
+      } else {
+        setTimeout(() => {
+          isDraggingRef.current = false;
+        }, 300);
       }
     } else {
-      dispatch(moveCard({ sourceListId, destinationListId, sourceIndex, destinationIndex }));
+      // DIFFERENT LIST - move card
+      console.log('↔️ Cross list move:', { 
+        cardId: activeId,
+        from: sourceListId, 
+        to: destinationListId,
+        index: destinationIndex
+      });
+      
+      dispatch(moveCard({ 
+        sourceListId, 
+        destinationListId, 
+        sourceIndex, 
+        destinationIndex 
+      }));
+      
       if (projectId) {
         const newPosition = destinationIndex + 1;
-        dispatch(moveTask({ projectId, taskId: activeId, sourceGroupId: sourceListId, destinationGroupId: destinationListId, newPosition }));
+        console.log('📡 Making API call:', { activeId, newPosition });
+        
+        dispatch(moveTask({ 
+          projectId, 
+          taskId: activeId, 
+          sourceGroupId: sourceListId, 
+          destinationGroupId: destinationListId, 
+          newPosition 
+        })).finally(() => {
+          setTimeout(() => {
+            isDraggingRef.current = false;
+          }, 300);
+        });
+      } else {
+        setTimeout(() => {
+          isDraggingRef.current = false;
+        }, 300);
       }
     }
   };
@@ -181,14 +296,12 @@ export default function ProjectPage() {
         router.push('/home');
       }
     }
-   
   }, [dispatch, projectId, projects, getProject, isInitialized, isAuthenticated, router, projectsLoading]);
 
   // Save board state whenever it changes
   useEffect(() => {
     if (currentBoard && isInitialized) {
       // This is where you might save UI state, like open drawers, etc.
-      // For now, we are not saving the whole board state to prevent conflicts.
     }
   }, [currentBoard, isInitialized, projectId]);
 
@@ -207,7 +320,6 @@ export default function ProjectPage() {
     if (!currentBoard) return;
     const list = currentBoard.lists.find((l: { cards: any[]; }) => l.cards.some((c: { id: string; }) => c.id === cardId));
     if (list) {
-      // Optimistic update
       dispatch(updateCard({ listId: list.id, cardId, updates }));
 
       const backendUpdates: UpdateTaskData = {
@@ -258,9 +370,7 @@ export default function ProjectPage() {
 
   const handleDeleteList = (listId: string) => {
     console.log('Attempting to delete list:', listId);
-    // Optimistically update the UI
     dispatch(deleteList(listId));
-    // Then, trigger the backend deletion
     dispatch(deleteTaskGroup({ projectId, groupId: listId }));
   };
 
@@ -415,7 +525,9 @@ export default function ProjectPage() {
         isOpen={isCardDrawerOpen}
         onClose={handleCloseDrawer}
         onUpdate={handleUpdateCard}
-        onDelete={handleDeleteCard} projectId={projectId}      />
+        onDelete={handleDeleteCard} 
+        projectId={projectId}
+      />
     </div>
   );
 }

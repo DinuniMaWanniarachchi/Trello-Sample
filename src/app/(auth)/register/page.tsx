@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card } from '@/components/ui/card';
 import { Lock, User, Eye, EyeOff, Mail } from 'lucide-react';
+import { useAuth } from '@/contexts/AuthContext';
 
 interface RegisterFormData {
   name: string; // Changed from fullName to match API
@@ -26,6 +27,8 @@ interface RegisterFormErrors {
 
 export default function RegisterPage() {
   const router = useRouter();
+  const { login } = useAuth();
+
   const [formData, setFormData] = useState<RegisterFormData>({
     name: '', // Simplified to match API
     email: '',
@@ -99,12 +102,9 @@ export default function RegisterPage() {
       if (data.success) {
         console.log('Registration successful:', data.user);
         
-        // Automatically log the user in by storing the token
-        document.cookie = `token=${data.token}; path=/`;
-        localStorage.setItem('user', JSON.stringify(data.user));
-        
-        // Redirect to boards page after successful registration
-        router.push('/login');
+        // Log the user in using AuthContext and navigate into the app
+        login(data.token, data.user, true);
+        router.push('/home');
       } else {
         setRegisterError(data.message || 'Registration failed');
       }
@@ -261,7 +261,7 @@ export default function RegisterPage() {
           {/* Submit Button */}
           <Button 
             type="submit" 
-            className="w-full" 
+            className="w-full bg-blue-600 text-white hover:bg-blue-500 disabled:opacity-60 disabled:bg-blue-600/70" 
             disabled={isLoading}
           >
             {isLoading ? 'Creating Account...' : 'Create Account'}

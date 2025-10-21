@@ -87,22 +87,20 @@ export async function middleware(request: NextRequest) {
   if (isAuthPath) {
     if (token) {
       const isTokenValid = await isValidToken(token);
-      
-      if (isTokenValid) {
-        console.log('🔒 Already authenticated, redirecting from', pathname, 'to /home');
-        return NextResponse.redirect(new URL('/home', request.url));
-      } else {
+      if (!isTokenValid) {
         // Token exists but is invalid - clear it and allow access to auth pages
         console.log('🔒 Invalid token on auth page, clearing it');
         const response = NextResponse.next();
-        response.cookies.set('token', '', { 
-          path: '/', 
+        response.cookies.set('token', '', {
+          path: '/',
           expires: new Date(0),
-          sameSite: 'lax' 
+          sameSite: 'lax',
         });
         return response;
       }
     }
+    // Always allow access to /login and /register; client will handle post-login redirects
+    return NextResponse.next();
   }
   
   return NextResponse.next();

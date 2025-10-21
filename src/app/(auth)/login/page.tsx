@@ -18,7 +18,7 @@ interface LoginFormData {
 export default function LoginPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const { login, isAuthenticated, checkAuth } = useAuth();
+  const { login, isAuthenticated, checkAuth, isLoading: authLoading } = useAuth();
   
   const returnUrl = searchParams.get('returnUrl') || '/home';
   
@@ -30,16 +30,10 @@ export default function LoginPage() {
   
   const [errors, setErrors] = useState<Partial<LoginFormData>>({});
   const [showPassword, setShowPassword] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [loginError, setLoginError] = useState<string>('');
 
-  // Redirect if already authenticated
-  useEffect(() => {
-    if (isAuthenticated && checkAuth()) {
-      console.log('Already authenticated, redirecting to:', returnUrl);
-      router.push(returnUrl);
-    }
-  }, [isAuthenticated, checkAuth, returnUrl, router]);
+  // Note: Do not auto-redirect from the login page even if authenticated.
 
   const validateForm = (): boolean => {
     const newErrors: Partial<LoginFormData> = {};
@@ -64,7 +58,7 @@ export default function LoginPage() {
     
     if (!validateForm()) return;
     
-    setIsLoading(true);
+    setIsSubmitting(true);
     
     try {
       console.log('🔑 Attempting login for:', formData.email);
@@ -109,7 +103,7 @@ export default function LoginPage() {
       console.error('❌ Login error:', error);
       setLoginError('Login failed. Please try again.');
     } finally {
-      setIsLoading(false);
+      setIsSubmitting(false);
     }
   };
 
@@ -152,7 +146,7 @@ export default function LoginPage() {
                 value={formData.email}
                 onChange={(e) => handleInputChange('email', e.target.value)}
                 className={`pl-10 ${errors.email ? 'border-red-500' : ''}`}
-                disabled={isLoading}
+                disabled={isSubmitting}
               />
             </div>
             {errors.email && (
@@ -169,13 +163,13 @@ export default function LoginPage() {
                 value={formData.password}
                 onChange={(e) => handleInputChange('password', e.target.value)}
                 className={`pl-10 pr-10 ${errors.password ? 'border-red-500' : ''}`}
-                disabled={isLoading}
+                disabled={isSubmitting}
               />
               <button
                 type="button"
                 onClick={() => setShowPassword(!showPassword)}
                 className="absolute right-3 top-3 h-4 w-4 text-gray-400 hover:text-gray-600"
-                disabled={isLoading}
+                disabled={isSubmitting}
               >
                 {showPassword ? <EyeOff /> : <Eye />}
               </button>
@@ -192,7 +186,7 @@ export default function LoginPage() {
                 checked={formData.remember}
                 onChange={(e) => handleInputChange('remember', e.target.checked)}
                 className="h-4 w-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
-                disabled={isLoading}
+                disabled={isSubmitting}
               />
               <span className="text-sm text-gray-600">Remember me</span>
             </label>
@@ -205,10 +199,10 @@ export default function LoginPage() {
 
           <Button 
             type="submit" 
-            className="w-full" 
-            disabled={isLoading}
+            className="w-full bg-blue-600 text-white hover:bg-blue-500 disabled:opacity-60 disabled:bg-blue-600/70"
+            disabled={isSubmitting}
           >
-            {isLoading ? 'Signing in...' : 'Sign In'}
+            {isSubmitting ? 'Signing in...' : 'Sign In'}
           </Button>
 
           <div className="text-center">
