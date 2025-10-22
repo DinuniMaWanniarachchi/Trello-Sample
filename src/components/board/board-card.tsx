@@ -1,6 +1,7 @@
 "use client";
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
+
 import { Card as UICard, CardContent } from '@/components/ui/card';
 import { Card, badgeColors, PriorityType } from '@/types/kanban';
 import { formatDueDate, getDueDateColor } from '@/utils/dateUtils';
@@ -41,15 +42,28 @@ export const BoardCard: React.FC<BoardCardProps> = ({
   onClick
 }) => {
   const dispatch = useAppDispatch();
+  const mountedRef = useRef(true);
   const [isDatePickerVisible, setIsDatePickerVisible] = useState(false);
   const [selectedDate, setSelectedDate] = useState<Dayjs | null>(
-    card.dueDate ? dayjs(card.dueDate) : null
+    card?.dueDate ? dayjs(card.dueDate) : null
   );
+
+  // Guard: if props.card is temporarily undefined during drag overlays, skip render
+  if (!card) {
+    return null;
+  }
 
   // Update selectedDate when card.dueDate changes
   useEffect(() => {
-    setSelectedDate(card.dueDate ? dayjs(card.dueDate) : null);
-  }, [card.dueDate]);
+    mountedRef.current = true;
+    return () => {
+      mountedRef.current = false;
+    };
+  }, []);
+
+  useEffect(() => {
+    setSelectedDate(card?.dueDate ? dayjs(card.dueDate) : null);
+  }, [card?.dueDate]);
 
   const handleDateClick = (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -59,15 +73,14 @@ export const BoardCard: React.FC<BoardCardProps> = ({
   const handleDateChange: DatePickerProps['onChange'] = (date) => {
     if (date) {
       const formattedDate = date.format('YYYY-MM-DD');
-      // Use Redux to update the card
       dispatch(updateCard({ 
         listId, 
         cardId: card.id, 
         updates: { dueDate: formattedDate } 
       }));
-      setSelectedDate(date);
+      if (mountedRef.current) setSelectedDate(date);
     }
-    setIsDatePickerVisible(false);
+    if (mountedRef.current) setIsDatePickerVisible(false);
   };
 
   const handleRemoveDate = (e: React.MouseEvent) => {
@@ -78,7 +91,7 @@ export const BoardCard: React.FC<BoardCardProps> = ({
       cardId: card.id, 
       updates: { dueDate: undefined } 
     }));
-    setSelectedDate(null);
+    if (mountedRef.current) setSelectedDate(null);
   };
 
   const handleCardClick = () => {
@@ -88,7 +101,7 @@ export const BoardCard: React.FC<BoardCardProps> = ({
   };
 
   const handlePopoverVisibleChange = (visible: boolean) => {
-    setIsDatePickerVisible(visible);
+    if (mountedRef.current) setIsDatePickerVisible(visible);
   };
 
   const handleAddAssignee = (e: React.MouseEvent) => {
@@ -237,7 +250,6 @@ export const BoardCard: React.FC<BoardCardProps> = ({
             onOpenChange={handlePopoverVisibleChange}
             placement="bottomLeft"
             overlayClassName="date-picker-popover"
-            destroyOnHidden
             getPopupContainer={() => document.body}
           >
             <div 

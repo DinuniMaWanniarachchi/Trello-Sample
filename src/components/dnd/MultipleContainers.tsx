@@ -19,14 +19,27 @@ import {
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 
-// Basic preset: multiple containers with sortable items and cross-container movement
-// Usage: () => <MultipleContainers />
-
 type ItemId = string;
 
-function SortableItem({ id }: { id: ItemId }) {
+type ContainersMap = Record<string, ItemId[]>;
+
+interface MultipleContainersProps {
+  containers?: ContainersMap;
+  onMoveItem?: (itemId: string, fromListId: string, toListId: string, fromIndex: number, toIndex: number) => void;
+  onReorderLists?: (fromId: string, toId: string) => void;
+  renderItem?: (id: ItemId, listId: string) => React.ReactNode;
+  renderListHeader?: (listId: string, count: number, dragHandle?: ReturnType<typeof useSortable> & { attributes: any; listeners: any }) => React.ReactNode;
+  renderListFooter?: (listId: string) => React.ReactNode;
+  getHeaderClassName?: (listId: string) => string | undefined;
+  renderOverlayItem?: (id: ItemId, listId: string) => React.ReactNode;
+  containerStyle?: React.CSSProperties;
+  itemCount?: number;
+  scrollable?: boolean;
+}
+
+function SortableItem({ id, listId, children }: { id: ItemId; listId: string; children?: React.ReactNode }) {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } =
-    useSortable({ id });
+    useSortable({ id, data: { type: "card", listId } });
 
   const style: React.CSSProperties = {
     transform: CSS.Transform.toString(transform),
@@ -43,46 +56,87 @@ function SortableItem({ id }: { id: ItemId }) {
       {...listeners}
       className="rounded-md border border-border bg-card p-2 text-sm"
     >
-      {id}
+      {children ?? id}
     </div>
   );
 }
 
-function Container({
+function renderDefaultHeader() {
+  return <span>List</span>;
+}
+
+function SortableListContainer({
   id,
   items,
   children,
+  headerRenderer,
+  scrollable,
+  containerStyle,
+  headerClassName,
 }: {
   id: string;
   items: ItemId[];
   children?: React.ReactNode;
+  headerRenderer?: (listId: string, count: number, dragHandle: { attributes: any; listeners: any }) => React.ReactNode;
+  scrollable?: boolean;
+  containerStyle?: React.CSSProperties;
+  headerClassName?: string;
 }) {
+  const { setNodeRef, transform, transition, attributes, listeners } = useSortable({ id, data: { type: "list" } });
+  const style: React.CSSProperties = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+  };
   return (
-    <div className="flex-shrink-0 w-68 h-[500px] rounded-md border border-border bg-card overflow-hidden flex flex-col">
-      <div className="px-3 py-2 text-sm font-medium bg-muted/50 border-b border-border">
-        {id} ({items.length})
-      </div>
-      <div className="flex-1 overflow-y-auto p-3 space-y-2">
-        <SortableContext items={items} strategy={verticalListSortingStrategy}>
-          {children}
-        </SortableContext>
+    <div ref={setNodeRef} style={style} className="flex-shrink-0">
+      <div className="flex-shrink-0 w-68 h-[500px] rounded-md border border-border bg-card overflow-hidden flex flex-col" style={containerStyle}>
+        <div className={`px-3 py-2 text-sm font-medium border-b border-border flex items-center justify-between ${headerClassName ?? 'bg-muted/50'}`}>
+          <div className="flex-1 min-w-0">{headerRenderer ? headerRenderer(id, items.length, { attributes, listeners }) : (<span>{id} ({items.length})</span>)}</div>
+          {!headerRenderer ? (
+            <button aria-label="Drag list" className="h-6 w-6 cursor-grab" {...(attributes as any)} {...(listeners as any)} />
+          ) : null}
+        </div>
+        <div className={`flex-1 ${scrollable ? "overflow-y-auto" : ""} p-3 space-y-2`}>
+          <SortableContext items={items} strategy={verticalListSortingStrategy}>
+            {children}
+          </SortableContext>
+        </div>
       </div>
     </div>
   );
 }
 
-export default function MultipleContainers() {
+export default function MultipleContainers({
+  containers: containersProp,
+  onMoveItem,
+  onReorderLists,
+  renderItem,
+  renderListHeader,
+  renderListFooter,
+  getHeaderClassName,
+  renderOverlayItem,
+  containerStyle,
+  itemCount = 15,
+  scrollable = true,
+}: MultipleContainersProps) {
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 5 } })
   );
 
   const [activeId, setActiveId] = React.useState<ItemId | null>(null);
-  const [containers, setContainers] = React.useState<Record<string, ItemId[]>>({
-    ColumnA: ["A1", "A2", "A3", "A4"],
-    ColumnB: ["B1", "B2", "B3"],
-  });
+  const [activeType, setActiveType] = React.useState<"list" | "card" | undefined>(undefined);
+  const [activeListId, setActiveListId] = React.useState<string | undefined>(undefined);
+  const [containers, setContainers] = React.useState<ContainersMap>(
+    containersProp ?? {
+      ColumnA: Array.from({ length: Math.max(4, Math.ceil(itemCount / 2)) }, (_, i) => `A${i + 1}`),
+      ColumnB: Array.from({ length: Math.ceil(itemCount / 2) }, (_, i) => `B${i + 1}`),
+    }
+  );
 
-  const allItems = React.useMemo(() => Object.values(containers).flat(), [containers]);
+  // Keep internal state in sync if a controlled containers prop is passed
+  React.useEffect(() => {
+    if (containersProp) setContainers(containersProp);
+  }, [containersProp]);
 
   const findContainerOf = (id: ItemId): string | null => {
     for (const key of Object.keys(containers)) {
@@ -92,14 +146,19 @@ export default function MultipleContainers() {
   };
 
   const handleDragStart = (event: DragStartEvent) => {
-    const { active } = event;
-    setActiveId(String(active.id));
+    setActiveId(String(event.active.id));
+    const t = event.active.data?.current?.type as "list" | "card" | undefined;
+    setActiveType(t);
+    const lId = (event.active.data?.current as any)?.listId as string | undefined;
+    setActiveListId(lId ?? (t === 'card' ? findContainerOf(String(event.active.id)) ?? undefined : undefined));
   };
 
   const handleDragEnd = (event: DragEndEvent) => {
     const { active, over } = event;
     if (!over) {
       setActiveId(null);
+      setActiveType(undefined);
+      setActiveListId(undefined);
       return;
     }
 
@@ -110,42 +169,74 @@ export default function MultipleContainers() {
       return;
     }
 
-    const source = findContainerOf(activeId);
-    const dest = findContainerOf(overId);
+    const activeType = active.data?.current?.type as "list" | undefined;
 
+    // Reorder lists (containers)
+    if (activeType === "list") {
+      const listIds = Object.keys(containers);
+      const from = listIds.indexOf(activeId);
+      const to = listIds.indexOf(overId);
+      if (from !== -1 && to !== -1 && from !== to) {
+        const newOrder = arrayMove(listIds, from, to);
+        const reordered: ContainersMap = {};
+        for (const id of newOrder) reordered[id] = containers[id];
+        if (!containersProp) setContainers(reordered);
+        onReorderLists?.(activeId, overId);
+      }
+      setActiveId(null);
+      return;
+    }
+
+    // Move/reorder items
+    const listIdsLocal = Object.keys(containers);
+    const source = findContainerOf(activeId);
+    let dest = findContainerOf(overId);
+    // If hovered over a list container (not a specific item), allow dropping at end
+    const overIsList = listIdsLocal.includes(overId);
+    if (!dest && overIsList) {
+      dest = overId;
+    }
     if (!source || !dest) {
       setActiveId(null);
       return;
     }
 
     if (source === dest) {
-      // Reorder within same container
-      const idxFrom = containers[source].indexOf(activeId);
-      const idxTo = containers[dest].indexOf(overId);
-      if (idxFrom === -1 || idxTo === -1) {
+      const fromIndex = containers[source].indexOf(activeId);
+      const toIndex = overIsList ? containers[dest].length : containers[dest].indexOf(overId);
+      if (fromIndex === -1 || toIndex === -1) {
         setActiveId(null);
         return;
-        }
-      setContainers((prev) => ({
-        ...prev,
-        [source]: arrayMove(prev[source], idxFrom, idxTo),
-      }));
+      }
+      if (!containersProp) {
+        setContainers((prev) => ({
+          ...prev,
+          [source]: arrayMove(prev[source], fromIndex, toIndex),
+        }));
+      }
+      onMoveItem?.(activeId, source, dest, fromIndex, toIndex);
     } else {
-      // Move across containers
       const fromIndex = containers[source].indexOf(activeId);
-      const toIndex = containers[dest].indexOf(overId);
-      setContainers((prev) => {
-        const sourceItems = [...prev[source]];
-        const destItems = [...prev[dest]];
-        const [moved] = sourceItems.splice(fromIndex, 1);
-        const insertAt = toIndex === -1 ? destItems.length : toIndex;
-        destItems.splice(insertAt, 0, moved);
-        return { ...prev, [source]: sourceItems, [dest]: destItems };
-      });
+      const toIndex = overIsList ? -1 : containers[dest].indexOf(overId);
+      if (!containersProp) {
+        setContainers((prev) => {
+          const sourceItems = [...prev[source]];
+          const destItems = [...prev[dest]];
+          const [moved] = sourceItems.splice(fromIndex, 1);
+          const insertAt = toIndex === -1 ? destItems.length : toIndex;
+          destItems.splice(insertAt, 0, moved);
+          return { ...prev, [source]: sourceItems, [dest]: destItems };
+        });
+      }
+      onMoveItem?.(activeId, source, dest, fromIndex, toIndex === -1 ? containers[dest].length : toIndex);
     }
 
     setActiveId(null);
+    setActiveType(undefined);
+    setActiveListId(undefined);
   };
+
+  const listIds = Object.keys(containers);
 
   return (
     <DndContext
@@ -154,21 +245,43 @@ export default function MultipleContainers() {
       onDragStart={handleDragStart}
       onDragEnd={handleDragEnd}
     >
-      <div className="flex gap-3 md:gap-4 overflow-x-auto">
-        {Object.entries(containers).map(([id, items]) => (
-          <Container key={id} id={id} items={items}>
-            {items.map((itemId) => (
-              <SortableItem key={itemId} id={itemId} />
-            ))}
-          </Container>
-        ))}
-      </div>
+      <SortableContext items={listIds}>
+        <div className="flex gap-3 md:gap-4 overflow-x-auto">
+          {listIds.map((id) => {
+            const items = containers[id];
+            return (
+              <SortableListContainer
+                key={id}
+                id={id}
+                items={items}
+                headerRenderer={renderListHeader ? (listId, count, dragHandle) => renderListHeader(listId, count, dragHandle as any) : undefined}
+                scrollable={scrollable}
+                containerStyle={containerStyle}
+                headerClassName={getHeaderClassName ? getHeaderClassName(id) : undefined}
+              >
+                {items.map((itemId) => (
+                  <div key={itemId}>
+                    <SortableItem id={itemId} listId={id}>
+                      {renderItem ? renderItem(itemId, id) : undefined}
+                    </SortableItem>
+                  </div>
+                ))}
+                {renderListFooter ? (
+                  <div>
+                    {renderListFooter(id)}
+                  </div>
+                ) : null}
+              </SortableListContainer>
+            );
+          })}
+        </div>
+      </SortableContext>
       <DragOverlay>
-        {activeId ? (
-          <div className="rounded-md border border-border bg-card p-2 text-sm opacity-90">
-            {activeId}
-          </div>
-        ) : null}
+        {activeId && activeType === 'card' && activeListId
+          ? (renderOverlayItem
+              ? renderOverlayItem(activeId, activeListId)
+              : (renderItem ? renderItem(activeId, activeListId) : null))
+          : null}
       </DragOverlay>
     </DndContext>
   );

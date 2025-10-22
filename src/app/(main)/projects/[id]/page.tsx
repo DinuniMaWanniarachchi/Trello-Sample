@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef } from 'react';
 import { useParams, useRouter } from 'next/navigation';
-import { Card, List, ColorType } from '@/types/kanban';
+import { Card, List, ColorType, listHeaderColors } from '@/types/kanban';
 import { useAppSelector, useAppDispatch } from '@/lib/hooks';
 import { 
   setCurrentBoard, 
@@ -20,19 +20,21 @@ import {
 
 import { UpdateTaskData } from '@/lib/api/tasksApi';
 import { SharedHeader } from '@/components/common/SharedHeader';
-import { SortableList } from '@/components/board/SortableList';
-import { SortableBoardList } from '@/components/board/SortableBoardList';
+import MultipleContainers from '@/components/dnd/MultipleContainers';
 import { AddList } from '@/components/board/add-list';
 import { CardDetailsDrawer } from '@/components/board/CardDetailsDrawer';
+import { BoardCard } from '@/components/board/board-card';
+import { AddCard } from '@/components/board/add-card';
+import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem } from '@/components/common/DropDownMenu';
+import { Button } from '@/components/ui/button';
+import { Plus, MoreHorizontal, Trash2, Edit, GripVertical } from 'lucide-react';
 
 import { useProjects } from '@/contexts/ProjectContext';
 import { useAuth } from '@/contexts/AuthContext';
 import type { BoardState } from '@/lib/features/boardSlice';
 import { moveCard, reorderCards, moveTask, reorderTaskGroups } from '@/lib/features/boardSlice';
 
-import { DndContext, DragEndEvent, PointerSensor, useSensor, useSensors, closestCenter } from '@dnd-kit/core';
-import { restrictToWindowEdges } from '@dnd-kit/modifiers';
-import { SortableContext } from '@dnd-kit/sortable';
+// DnD handled by MultipleContainers component
 
 // Types for board storage
 interface StoredBoard {
@@ -55,13 +57,12 @@ export default function ProjectPage() {
   const [selectedCard, setSelectedCard] = useState<Card | null>(null);
   const [isCardDrawerOpen, setIsCardDrawerOpen] = useState(false);
   const [isInitialized, setIsInitialized] = useState(false);
+  const [addOpenByList, setAddOpenByList] = useState<Record<string, boolean>>({});
   
   // 🔥 FIX: Prevent multiple simultaneous drags
   const isDraggingRef = useRef(false);
 
-  const sensors = useSensors(
-    useSensor(PointerSensor, { activationConstraint: { distance: 2 } })
-  );
+  // DnD sensors are internal to MultipleContainers
 
   const findListIdByCardId = (cardId: string): string | null => {
     if (!currentBoard) return null;
@@ -75,186 +76,74 @@ export default function ProjectPage() {
     return findListIdByCardId(overId);
   };
 
-  const handleDragEnd = (event: DragEndEvent) => {
-    // 🔥 FIX: Prevent multiple calls
-    if (isDraggingRef.current) {
-      console.log('⚠️ Drag already in progress, ignoring...');
-      return;
-    }
-    
-    isDraggingRef.current = true;
-
-    const { active, over } = event;
-    
-    if (!over || !currentBoard) {
-      isDraggingRef.current = false;
-      return;
-    }
-    
-    const activeId = String(active.id);
-    const overId = String(over.id);
-    
-    if (activeId === overId) {
-      isDraggingRef.current = false;
-      return;
-    }
-
-    const activeType = active.data?.current?.type as 'card' | 'list' | undefined;
-
-    // Handle LIST reordering
-    if (activeType === 'list') {
-      const ids = currentBoard.lists.map(l => l.id);
-      const from = ids.indexOf(activeId);
-      const to = ids.indexOf(overId);
-      
-      if (from === -1 || to === -1 || from === to) {
-        isDraggingRef.current = false;
-        return;
-      }
-
-      const newLists = [...currentBoard.lists];
-      const [moved] = newLists.splice(from, 1);
-      newLists.splice(to, 0, moved);
-      dispatch(setCurrentBoard({ ...currentBoard, lists: newLists }));
-
-      if (projectId) {
-        const taskGroups = newLists.map((l, index) => ({ id: l.id, position: index + 1 }));
-        dispatch(reorderTaskGroups({ projectId, taskGroups }));
-      }
-      
-      setTimeout(() => {
-        isDraggingRef.current = false;
-      }, 300);
-      return;
-    }
-
-    // Handle CARD reordering/moving
-    const sourceListId = findListIdByCardId(activeId);
-    let destinationListId = getListIdFromOver(overId);
-    
-    if (!sourceListId) {
-      isDraggingRef.current = false;
-      return;
-    }
-    
-    if (overId.startsWith('container:')) {
-      destinationListId = overId.split(':')[1] || null;
-    }
-    
-    if (!destinationListId) {
-      isDraggingRef.current = false;
-      return;
-    }
-
-    const sourceList = currentBoard.lists.find((l) => l.id === sourceListId);
-    const destList = currentBoard.lists.find((l) => l.id === destinationListId);
-    
-    if (!sourceList || !destList) {
-      isDraggingRef.current = false;
-      return;
-    }
-
-    const sourceIndex = sourceList.cards.findIndex((c) => c.id === activeId);
-    
-    if (sourceIndex === -1) {
-      isDraggingRef.current = false;
-      return;
-    }
-
-    // Calculate destination index
-    let destinationIndex: number;
-    
-    if (over.data?.current?.type === 'card') {
-      const overIndex = over.data.current.index as number | undefined;
-      destinationIndex = typeof overIndex === 'number' ? overIndex : destList.cards.findIndex((c) => c.id === overId);
-    } else if (overId.startsWith('container:')) {
-      destinationIndex = destList.cards.length;
-    } else {
-      destinationIndex = destList.cards.findIndex((c) => c.id === overId);
-      if (destinationIndex === -1) {
-        destinationIndex = destList.cards.length;
-      }
-    }
+  const onMoveItem = (
+    itemId: string,
+    sourceListId: string,
+    destinationListId: string,
+    sourceIndex: number,
+    destinationIndex: number
+  ) => {
+    if (!currentBoard) return;
 
     // SAME LIST - reorder cards
     if (sourceListId === destinationListId) {
-      const adjustedIndex = destinationIndex > sourceIndex ? destinationIndex - 1 : destinationIndex;
-      
-      if (sourceIndex === adjustedIndex) {
-        isDraggingRef.current = false;
-        return;
-      }
-      
-      console.log('🔄 Same list reorder:', { 
-        cardId: activeId,
-        from: sourceIndex, 
-        to: adjustedIndex 
-      });
-      
-      // Update UI immediately
-      dispatch(reorderCards({ 
-        listId: sourceListId, 
-        sourceIndex, 
-        destinationIndex: adjustedIndex 
+      if (sourceIndex === destinationIndex) return;
+      dispatch(reorderCards({
+        listId: sourceListId,
+        sourceIndex,
+        destinationIndex,
       }));
-      
-      // Make API call
-      if (projectId) {
-        const newPosition = adjustedIndex + 1;
-        console.log('📡 Making API call:', { activeId, newPosition });
-        
-        dispatch(moveTask({ 
-          projectId, 
-          taskId: activeId, 
-          sourceGroupId: sourceListId, 
-          destinationGroupId: destinationListId, 
-          newPosition 
-        })).finally(() => {
-          setTimeout(() => {
-            isDraggingRef.current = false;
-          }, 300);
-        });
-      } else {
-        setTimeout(() => {
-          isDraggingRef.current = false;
-        }, 300);
-      }
-    } else {
-      // DIFFERENT LIST - move card
-      console.log('↔️ Cross list move:', { 
-        cardId: activeId,
-        from: sourceListId, 
-        to: destinationListId,
-        index: destinationIndex
-      });
-      
-      dispatch(moveCard({ 
-        sourceListId, 
-        destinationListId, 
-        sourceIndex, 
-        destinationIndex 
-      }));
-      
       if (projectId) {
         const newPosition = destinationIndex + 1;
-        console.log('📡 Making API call:', { activeId, newPosition });
-        
-        dispatch(moveTask({ 
-          projectId, 
-          taskId: activeId, 
-          sourceGroupId: sourceListId, 
-          destinationGroupId: destinationListId, 
-          newPosition 
-        })).finally(() => {
-          setTimeout(() => {
-            isDraggingRef.current = false;
-          }, 300);
-        });
-      } else {
-        setTimeout(() => {
-          isDraggingRef.current = false;
-        }, 300);
+        dispatch(
+          moveTask({
+            projectId,
+            taskId: itemId,
+            sourceGroupId: sourceListId,
+            destinationGroupId: destinationListId,
+            newPosition,
+          })
+        );
       }
+      return;
+    }
+
+    // DIFFERENT LIST - move card
+    dispatch(
+      moveCard({
+        sourceListId,
+        destinationListId,
+        sourceIndex,
+        destinationIndex,
+      })
+    );
+    if (projectId) {
+      const newPosition = destinationIndex + 1;
+      dispatch(
+        moveTask({
+          projectId,
+          taskId: itemId,
+          sourceGroupId: sourceListId,
+          destinationGroupId: destinationListId,
+          newPosition,
+        })
+      );
+    }
+  };
+
+  const onReorderLists = (fromId: string, toId: string) => {
+    if (!currentBoard) return;
+    const ids = currentBoard.lists.map((l) => l.id);
+    const from = ids.indexOf(fromId);
+    const to = ids.indexOf(toId);
+    if (from === -1 || to === -1 || from === to) return;
+    const newLists = [...currentBoard.lists];
+    const [moved] = newLists.splice(from, 1);
+    newLists.splice(to, 0, moved);
+    dispatch(setCurrentBoard({ ...currentBoard, lists: newLists }));
+    if (projectId) {
+      const taskGroups = newLists.map((l, index) => ({ id: l.id, position: index + 1 }));
+      dispatch(reorderTaskGroups({ projectId, taskGroups }));
     }
   };
 
@@ -490,31 +379,127 @@ export default function ProjectPage() {
         <div className="h-full p-2 sm:p-4 lg:p-6">
           {/* Mobile: Stack vertically, Desktop: Horizontal scroll */}
           <div className="h-full">
-            <DndContext
-              sensors={sensors}
-              collisionDetection={closestCenter}
-              modifiers={[restrictToWindowEdges]}
-              onDragEnd={handleDragEnd}
-            >
-              <div className="flex flex-col md:flex-row md:space-x-3 lg:space-x-4 space-y-4 md:space-y-0 overflow-y-auto md:overflow-x-auto md:pb-4 md:h-full">
-                <SortableContext items={currentBoard.lists.map(l => l.id)}>
-                  {currentBoard.lists.map((list: List) => (
-                    <SortableBoardList
-                      key={list.id}
-                      list={list}
-                      onCardClick={handleCardClick}
-                      onAddCard={handleAddCard}
-                      onDeleteList={handleDeleteList}
-                      onRenameList={handleRenameList}
-                      onChangeCategoryColor={handleChangeCategoryColor}
+            <div className="flex flex-row space-x-3 lg:space-x-4 overflow-x-auto pb-4 h-full">
+              <MultipleContainers
+                containers={Object.fromEntries(
+                  currentBoard.lists.map((l) => [l.id, l.cards.map((c) => c.id)])
+                )}
+                onMoveItem={onMoveItem}
+                onReorderLists={onReorderLists}
+                containerStyle={{ maxHeight: '80vh' }}
+                scrollable
+                getHeaderClassName={(listId) => {
+                  const list = currentBoard.lists.find((l) => l.id === listId);
+                  return listHeaderColors[(list?.titleColor || 'gray') as ColorType];
+                }}
+                renderItem={(cardId, listId) => {
+                  const list = currentBoard.lists.find((l) => l.id === listId);
+                  if (!list) return null;
+                  const card = list.cards.find((c) => c.id === cardId);
+                  if (!card) return null;
+                  return (
+                    <BoardCard
+                      card={card}
+                      listId={listId}
+                      onClick={() => handleCardClick(card)}
                     />
-                  ))}
-                </SortableContext>
-                <div className="flex-shrink-0">
-                  <AddList onAddList={handleAddList} />
-                </div>
+                  );
+                }}
+                renderListHeader={(listId, count, dragHandle) => {
+                  const list = currentBoard.lists.find((l) => l.id === listId)!;
+                  const categoryOptions = [
+                    { name: 'To do', value: 'todo', color: 'gray' as ColorType, bgClass: 'bg-gray-500' },
+                    { name: 'Doing', value: 'doing', color: 'blue' as ColorType, bgClass: 'bg-blue-500' },
+                    { name: 'Done', value: 'done', color: 'green' as ColorType, bgClass: 'bg-green-500' }
+                  ];
+                  return (
+                    <div className="flex items-center justify-between w-full text-black/80">
+                      <span className="text-sm font-medium truncate">
+                        {list.title} ({count})
+                      </span>
+                      <div className="flex items-center space-x-2">
+                        <Button 
+                          variant="ghost" 
+                          size="sm" 
+                          className="h-6 w-6 p-0 text-black/100 hover:text-white hover:bg-white/20"
+                          onClick={() => setAddOpenByList(prev => ({ ...prev, [listId]: true }))}
+                        >
+                          <Plus className="h-4 w-4" />
+                        </Button>
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              className="h-6 w-6 p-0 text-black/100 hover:text-white hover:bg-white/20"
+                            >
+                              <MoreHorizontal className="h-4 w-4" />
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent 
+                            align="end" 
+                            className="bg-gray-900 text-gray-100 border border-gray-700 shadow-xl rounded-md w-48 p-2"
+                          >
+                            <DropdownMenuItem
+                              onClick={() => handleRenameList(listId)}
+                              className="group flex items-center gap-3 px-3 py-2 rounded-md text-sm text-gray-100 hover:bg-gray-800 cursor-pointer"
+                            >
+                              <Edit className="h-4 w-4 text-gray-400" />
+                              <span className="font-medium">Rename</span>
+                            </DropdownMenuItem>
+                            <div className="my-1 h-px bg-border opacity-50" />
+                            <div className="px-3 py-2 text-xs font-medium text-gray-400 uppercase tracking-wide">Change Category</div>
+                            {categoryOptions.map((category) => (
+                              <DropdownMenuItem
+                                key={category.value}
+                                onClick={() => handleChangeCategoryColor(listId, category.name, category.color)}
+                                className="group flex items-center gap-3 px-3 py-2 rounded-md text-sm text-gray-100 hover:bg-gray-800 cursor-pointer"
+                              >
+                                <div className={`w-3 h-3 rounded-full ${category.bgClass} flex-shrink-0`} />
+                                <span className="font-medium">{category.name}</span>
+                              </DropdownMenuItem>
+                            ))}
+                            <div className="my-1 h-px bg-border opacity-50" />
+                            <DropdownMenuItem
+                              onClick={() => {
+                                if (confirm('⚠️ Are you sure you want to delete this list? This action cannot be undone.')) {
+                                  handleDeleteList(listId);
+                                }
+                              }}
+                              className="group flex items-center gap-3 px-3 py-2 rounded-md text-sm text-red-400 hover:bg-red-900/20 cursor-pointer"
+                            >
+                              <Trash2 className="h-4 w-4 text-red-400" />
+                              <span className="font-medium">Delete</span>
+                            </DropdownMenuItem>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
+                        <button
+                          className="h-6 w-6 flex items-center justify-center text-black/60 hover:text-black/100 cursor-grab"
+                          aria-label="Drag list"
+                          {...(dragHandle?.attributes as any)}
+                          {...(dragHandle?.listeners as any)}
+                        >
+                          <GripVertical className="h-4 w-4" />
+                        </button>
+                      </div>
+                    </div>
+                  );
+                }}
+                renderListFooter={(listId) => (
+                  <div className="pt-2">
+                    <AddCard 
+                      listId={listId} 
+                      onAddCard={handleAddCard} 
+                      open={!!addOpenByList[listId]}
+                      onOpenChange={(open) => setAddOpenByList(prev => ({ ...prev, [listId]: open }))}
+                    />
+                  </div>
+                )}
+              />
+              <div className="flex-shrink-0">
+                <AddList onAddList={handleAddList} />
               </div>
-            </DndContext>
+            </div>
           </div>
         </div>
       </div>
