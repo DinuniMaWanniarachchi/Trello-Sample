@@ -24,6 +24,7 @@ import {
 import { useSharedTheme } from '@/contexts/ThemeContext';
 import { useProjects } from '@/contexts/ProjectContext';
 import CreateProjectDrawer, { ProjectFormData } from '@/components/CreateProjectDrawer';
+import { LanguageDropdown } from '@/components/common/MainHeader';
 
 interface MainLayoutProps {
   children: React.ReactNode;
@@ -166,7 +167,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children, showSidebar }) => {
         </div>
 
         {/* Right Section - Actions & User */}
-        <div className="flex items-center space-x-2 lg:space-x-4">
+        <div className="flex items-center space-x-3 lg:space-x-6">
           {/* Create Button */}
           <Button 
             onClick={showDrawer}
@@ -176,6 +177,12 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children, showSidebar }) => {
             <Plus className="h-4 w-4 lg:mr-2" />
             <span className="hidden lg:inline">Create</span>
           </Button>
+
+          {/* Divider between primary and secondary actions */}
+          <span className="hidden sm:block h-6 w-px bg-border" />
+
+          {/* Language Selector */}
+          <LanguageDropdown />
 
           {/* Theme Toggle Button */}
           <button

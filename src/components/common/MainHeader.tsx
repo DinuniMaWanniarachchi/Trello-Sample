@@ -88,7 +88,7 @@ const boardTemplates: BoardTemplate[] = [
   }
 ];
 
-const LanguageDropdown = () => {
+export const LanguageDropdown = () => {
   const { i18n, ready } = useTranslation();
   useTheme();
   const [loading, setLoading] = useState<SupportedLanguage | null>(null);

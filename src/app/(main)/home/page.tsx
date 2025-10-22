@@ -30,24 +30,24 @@ export default function HomePage() {
 
   // CRITICAL: Only redirect after auth is fully loaded AND we verify no token exists
   useEffect(() => {
-    console.log('🏠 HomePage: Auth check', { authLoading, isAuthenticated });
+    console.log('HomePage: Auth check', { authLoading, isAuthenticated });
     
     // Wait for auth to finish loading
     if (authLoading) {
-      console.log('🏠 Still loading auth...');
+      console.log('Still loading auth...');
       return;
     }
 
     // Double-check with the checkAuth function
     const hasAuth = checkAuth();
-    console.log('🏠 Has valid auth:', hasAuth);
+    console.log('Has valid auth:', hasAuth);
     
     // Only redirect if we're absolutely sure there's no authentication
     if (!isAuthenticated && !hasAuth) {
-      console.log('🏠 No authentication, redirecting to login');
+      console.log(' No authentication, redirecting to login');
       router.push('/login');
     } else {
-      console.log('🏠 User authenticated:', user?.email);
+      console.log(' User authenticated:', user?.email);
     }
   }, [authLoading, isAuthenticated, checkAuth, user, router]);
 

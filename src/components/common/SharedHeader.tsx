@@ -287,7 +287,6 @@ export const SharedHeader: React.FC<SharedHeaderProps> = ({
             }`}>Templates</a>
           </nav> */}
           
-          <LanguageDropdown />
           {/* <Button variant="ghost" size="sm" className={`transition-colors ${
             isDarkMode 
               ? 'text-gray-300 hover:text-white hover:bg-gray-800' 
