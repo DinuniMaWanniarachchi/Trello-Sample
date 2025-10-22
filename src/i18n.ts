@@ -4,12 +4,12 @@ import { initReactI18next } from 'react-i18next';
 import LanguageDetector from 'i18next-browser-languagedetector';
 
 // Import your translations
-import enTranslation from './locales/en/translation.json';
-import enCommon from './locales/en/common.json';
-import siTranslation from './locales/si/translation.json';
-import siCommon from './locales/si/common.json';
-import frTranslation from './locales/fr/translation.json';
-import frCommon from './locales/fr/common.json';
+const enTranslation: any = require('./locales/en/translation.json');
+const enCommon: any = require('./locales/en/common.json');
+const siTranslation: any = require('./locales/si/translation.json');
+const siCommon: any = require('./locales/si/common.json');
+const frTranslation: any = require('./locales/fr/translation.json');
+const frCommon: any = require('./locales/fr/common.json');
 
 export type SupportedLanguage = 'en' | 'si' | 'fr';
 

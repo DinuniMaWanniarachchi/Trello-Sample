@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -14,6 +15,7 @@ interface AddCardProps {
 }
 
 export const AddCard: React.FC<AddCardProps> = ({ listId, onAddCard, open, onOpenChange }) => {
+  const { t } = useTranslation(['common']);
   const [internalOpen, setInternalOpen] = useState(false);
   const [cardTitle, setCardTitle] = useState('');
   const [cardDescription, setCardDescription] = useState('');
@@ -51,11 +53,11 @@ export const AddCard: React.FC<AddCardProps> = ({ listId, onAddCard, open, onOpe
     return (
       <div className="p-4 bg-card border border-border rounded-lg shadow-sm space-y-4">
         <div className="space-y-2">
-          <label className="text-xs font-medium text-muted-foreground">Title</label>
+          <label className="text-xs font-medium text-muted-foreground">{t('common:title')}</label>
           <Input
             value={cardTitle}
             onChange={(e) => setCardTitle(e.target.value)}
-            placeholder="Enter a title for this card..."
+            placeholder={t('common:title') + '...'}
             className="bg-background border-border text-foreground placeholder-muted-foreground"
             onKeyPress={handleKeyPress}
             autoFocus
@@ -66,17 +68,17 @@ export const AddCard: React.FC<AddCardProps> = ({ listId, onAddCard, open, onOpe
         <div className="h-px bg-border" />
 
         <div className="space-y-2">
-          <label className="text-xs font-medium text-muted-foreground">Description</label>
+          <label className="text-xs font-medium text-muted-foreground">{t('common:description')}</label>
           <Textarea
             value={cardDescription}
             onChange={(e) => setCardDescription(e.target.value)}
-            placeholder="Add a description (optional)..."
+            placeholder={t('common:description') + '...'}
             className="bg-background border-border text-foreground placeholder-muted-foreground resize-none"
             rows={4}
             onKeyPress={handleKeyPress}
             aria-label="Card description"
           />
-          <div className="text-[11px] text-muted-foreground">Press Enter to add. Shift+Enter for new line.</div>
+          <div className="text-[11px] text-muted-foreground">{t('common:pressEnterToAdd')}</div>
         </div>
 
         <div className="flex items-center justify-start gap-2">
@@ -86,7 +88,7 @@ export const AddCard: React.FC<AddCardProps> = ({ listId, onAddCard, open, onOpe
             disabled={!cardTitle.trim()}
             className="bg-blue-600 hover:bg-blue-700"
           >
-            Add Card
+            {t('common:addCard')}
           </Button>
           <Button 
             variant="ghost"
@@ -110,7 +112,7 @@ export const AddCard: React.FC<AddCardProps> = ({ listId, onAddCard, open, onOpe
       onClick={() => setIsAdding(true)}
     >
       <Plus className="h-4 w-4 mr-2" />
-      Add a card
+      {t('common:addACard')}
     </Button>
   );
 };

@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useEffect, useRef } from 'react';
+import { useTranslation } from 'react-i18next';
 
 import { Card as UICard, CardContent } from '@/components/ui/card';
 import { Card, badgeColors, PriorityType } from '@/types/kanban';
@@ -42,6 +43,7 @@ export const BoardCard: React.FC<BoardCardProps> = ({
   onClick
 }) => {
   const dispatch = useAppDispatch();
+  const { t } = useTranslation(['common']);
   const mountedRef = useRef(true);
   const [isDatePickerVisible, setIsDatePickerVisible] = useState(false);
   const [selectedDate, setSelectedDate] = useState<Dayjs | null>(
@@ -122,13 +124,13 @@ export const BoardCard: React.FC<BoardCardProps> = ({
     <div className="p-2">
       <div className="mb-3 text-sm font-medium text-gray-700 dark:text-gray-300 flex items-center">
         <CalendarOutlined className="mr-2" />
-        Set Due Date
+        {t('common:setDueDate')}
       </div>
       <DatePicker
         value={selectedDate}
         onChange={handleDateChange}
         disabledDate={(current) => current && current < dayjs().startOf('day')}
-        placeholder="Select date"
+        placeholder={t('common:setDueDate')}
         style={{ width: '100%' }}
         // Let Popover control the mounting; avoid forcing DatePicker to be always open
       />
@@ -138,7 +140,7 @@ export const BoardCard: React.FC<BoardCardProps> = ({
           onClick={() => setIsDatePickerVisible(false)}
           type="text"
         >
-          Cancel
+          {t('common:cancel')}
         </Button>
       </div>
     </div>
@@ -208,12 +210,12 @@ export const BoardCard: React.FC<BoardCardProps> = ({
         {card.dueDate && (
           <div className="mb-2 flex items-center justify-between">
             <span className={`text-xs ${getDueDateColor(card.dueDate)}`}>
-              📅 Due {formatDueDate(card.dueDate)}
+              📅 {formatDueDate(card.dueDate)}
             </span>
             <button
               onClick={handleRemoveDate}
               className="text-xs text-gray-400 hover:text-red-500 ml-2 transition-colors"
-              title="Remove due date"
+              title={t('common:removeDueDate')}
             >
               <CloseOutlined style={{ fontSize: '10px' }} />
             </button>
@@ -254,7 +256,7 @@ export const BoardCard: React.FC<BoardCardProps> = ({
           >
             <div 
               className="task-due-date cursor-pointer hover:bg-accent rounded-md px-1 py-0.5 transition-colors flex items-center"
-              title={card.dueDate ? "Click to change date" : "Click to set due date"}
+              title={card.dueDate ? t('common:changeDate') : t('common:noDueDate')}
               onClick={handleDateClick}
               style={{
                 fontSize: "10px",
@@ -266,7 +268,7 @@ export const BoardCard: React.FC<BoardCardProps> = ({
               }}
             >
               <CalendarOutlined style={{ fontSize: '10px', marginRight: '4px' }} />
-              {card.dueDate ? "Change date" : "No due date"}
+              {card.dueDate ? t('common:changeDate') : t('common:noDueDate')}
             </div>
           </Popover>
           
@@ -275,7 +277,7 @@ export const BoardCard: React.FC<BoardCardProps> = ({
             className="w-5 h-5 rounded-md border border-dashed flex items-center justify-center
             transition-colors duration-200
             border-border hover:border-muted-foreground hover:bg-accent text-muted-foreground"
-            title={card.assignee ? "Change assignee" : "Add assignee"}
+            title={card.assignee ? t('common:changeAssignee') : t('common:addAssignee')}
           >
             <span role="img" aria-label="plus" className="anticon anticon-plus text-xs">
               <svg viewBox="64 64 896 896" focusable="false" data-icon="plus" width="1em" height="1em" fill="currentColor" aria-hidden="true">

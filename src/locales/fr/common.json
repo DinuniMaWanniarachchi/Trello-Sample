@@ -2,5 +2,19 @@
   "save": "Sauvegarder",
   "cancel": "Annuler",
   "delete": "Supprimer",
-  "edit": "Modifier"
+  "edit": "Modifier",
+  "rename": "Renommer",
+  "changeCategory": "Changer de catégorie",
+  "addCard": "Ajouter une carte",
+  "addACard": "Ajouter une carte",
+  "title": "Titre",
+  "description": "Description",
+  "pressEnterToAdd": "Appuyez sur Entrée pour ajouter. Maj+Entrée pour une nouvelle ligne.",
+  "setDueDate": "Définir la date d'échéance",
+  "changeDate": "Modifier la date",
+  "noDueDate": "Aucune date d'échéance",
+  "removeDueDate": "Supprimer la date d'échéance",
+  "confirmDeleteList": "Êtes-vous sûr de vouloir supprimer cette liste ? Cette action est irréversible.",
+  "addAssignee": "Ajouter un assigné",
+  "changeAssignee": "Changer l'assigné"
 }

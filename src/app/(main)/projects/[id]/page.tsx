@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useParams, useRouter } from 'next/navigation';
 import { Card, List, ColorType, listHeaderColors } from '@/types/kanban';
 import { useAppSelector, useAppDispatch } from '@/lib/hooks';
@@ -45,6 +46,7 @@ interface StoredBoard {
 }
 
 export default function ProjectPage() {
+  const { t } = useTranslation(['common','translation']);
   const dispatch = useAppDispatch();
   const params = useParams();
   const router = useRouter();
@@ -408,9 +410,9 @@ export default function ProjectPage() {
                 renderListHeader={(listId, count, dragHandle) => {
                   const list = currentBoard.lists.find((l) => l.id === listId)!;
                   const categoryOptions = [
-                    { name: 'To do', value: 'todo', color: 'gray' as ColorType, bgClass: 'bg-gray-500' },
-                    { name: 'Doing', value: 'doing', color: 'blue' as ColorType, bgClass: 'bg-blue-500' },
-                    { name: 'Done', value: 'done', color: 'green' as ColorType, bgClass: 'bg-green-500' }
+                    { name: t('translation:todo'), value: 'todo', color: 'gray' as ColorType, bgClass: 'bg-gray-500' },
+                    { name: t('translation:doing'), value: 'doing', color: 'blue' as ColorType, bgClass: 'bg-blue-500' },
+                    { name: t('translation:done'), value: 'done', color: 'green' as ColorType, bgClass: 'bg-green-500' }
                   ];
                   return (
                     <div className="flex items-center justify-between w-full text-black/80">
@@ -445,10 +447,10 @@ export default function ProjectPage() {
                               className="group flex items-center gap-3 px-3 py-2 rounded-md text-sm text-gray-100 hover:bg-gray-800 cursor-pointer"
                             >
                               <Edit className="h-4 w-4 text-gray-400" />
-                              <span className="font-medium">Rename</span>
+                              <span className="font-medium">{t('common:rename', { defaultValue: 'Rename' })}</span>
                             </DropdownMenuItem>
                             <div className="my-1 h-px bg-border opacity-50" />
-                            <div className="px-3 py-2 text-xs font-medium text-gray-400 uppercase tracking-wide">Change Category</div>
+                            <div className="px-3 py-2 text-xs font-medium text-gray-400 uppercase tracking-wide">{t('common:changeCategory', { defaultValue: 'Change Category' })}</div>
                             {categoryOptions.map((category) => (
                               <DropdownMenuItem
                                 key={category.value}
@@ -462,14 +464,14 @@ export default function ProjectPage() {
                             <div className="my-1 h-px bg-border opacity-50" />
                             <DropdownMenuItem
                               onClick={() => {
-                                if (confirm('⚠️ Are you sure you want to delete this list? This action cannot be undone.')) {
+                                if (confirm('⚠️ ' + t('common:confirmDeleteList'))) {
                                   handleDeleteList(listId);
                                 }
                               }}
                               className="group flex items-center gap-3 px-3 py-2 rounded-md text-sm text-red-400 hover:bg-red-900/20 cursor-pointer"
                             >
                               <Trash2 className="h-4 w-4 text-red-400" />
-                              <span className="font-medium">Delete</span>
+                              <span className="font-medium">{t('common:delete')}</span>
                             </DropdownMenuItem>
                           </DropdownMenuContent>
                         </DropdownMenu>

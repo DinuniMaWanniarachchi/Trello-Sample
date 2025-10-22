@@ -2,5 +2,19 @@
   "save": "සුරකින්න",
   "cancel": "අවලංගු කරන්න",
   "delete": "මකන්න",
-  "edit": "සංස්කරණය"
+  "edit": "සංස්කරණය",
+  "rename": "නැවත නාමකරණය",
+  "changeCategory": "ප්‍රවර්ගය වෙනස් කරන්න",
+  "addCard": "කාඩ්පත එක් කරන්න",
+  "addACard": "කාඩ්පතක් එක් කරන්න",
+  "title": "ශීර්ෂය",
+  "description": "විස්තරය",
+  "pressEnterToAdd": "එකතු කිරීමට Enter ඔබන්න. නව පේළියකට Shift+Enter.",
+  "setDueDate": "නියමිත දිනය සකසන්න",
+  "changeDate": "දිනය වෙනස් කරන්න",
+  "noDueDate": "නියමිත දිනයක් නැත",
+  "removeDueDate": "නියමිත දිනය ඉවත් කරන්න",
+  "confirmDeleteList": "මෙම ලැයිස්තුව මැකීමට ඔබට විශ්වාසද? මෙම ක්‍රියාව ආපසු ගැනීම නොහැක.",
+  "addAssignee": "පවරන්නෙකු එක් කරන්න",
+  "changeAssignee": "පවරන්නෙකු වෙනස් කරන්න"
 }
