@@ -15,7 +15,7 @@ export async function GET(
     // Use stored procedure to fetch labels with scope validation
     const result = await pool.query(
       `SELECT * FROM get_task_labels($1::UUID, $2::UUID, $3::UUID)`,
-      [taskId, taskGroupId, projectId]
+      [projectId, taskGroupId, taskId]
     );
 
     return NextResponse.json({
@@ -56,7 +56,7 @@ export async function POST(
     // Use stored procedure (idempotent add)
     const result = await pool.query(
       `SELECT * FROM add_task_label($1::UUID, $2::UUID, $3::UUID, $4::TEXT)`,
-      [taskId, taskGroupId, projectId, labelType]
+      [projectId, taskGroupId, taskId, labelType]
     );
 
     console.log('Label added successfully:', result.rows[0]);
@@ -99,7 +99,7 @@ export async function DELETE(
     // Use stored procedure to remove label with scope validation
     const result = await pool.query(
       `SELECT * FROM remove_task_label($1::UUID, $2::UUID, $3::UUID, $4::TEXT)`,
-      [taskId, taskGroupId, projectId, labelType]
+      [projectId, taskGroupId, taskId, labelType]
     );
 
     if (result.rows.length === 0) {
