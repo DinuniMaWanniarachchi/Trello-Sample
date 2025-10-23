@@ -1,4 +1,5 @@
-/* eslint-disable react-hooks/rules-of-hooks */
+
+  /* eslint-disable react-hooks/rules-of-hooks */
 /* eslint-disable @next/next/no-html-link-for-pages */
 // components/common/MainHeader.tsx
 "use client";
