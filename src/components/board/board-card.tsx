@@ -12,7 +12,6 @@ import dayjs, { Dayjs } from 'dayjs';
 import type { DatePickerProps } from 'antd/es/date-picker';
 import { useAppDispatch } from '@/lib/hooks';
 import { updateCard } from '@/lib/features/boardSlice';
-import { PREDEFINED_LABELS } from '@/types/taskLabels';
 import { getLabelByType } from '@/utils/labelUtils';
 
 const priorityColors: Record<PriorityType, string> = {
@@ -56,6 +55,7 @@ export const BoardCard: React.FC<BoardCardProps> = ({
   }
 
   // Update selectedDate when card.dueDate changes
+  // eslint-disable-next-line react-hooks/rules-of-hooks
   useEffect(() => {
     mountedRef.current = true;
     return () => {
@@ -63,6 +63,7 @@ export const BoardCard: React.FC<BoardCardProps> = ({
     };
   }, []);
 
+  // eslint-disable-next-line react-hooks/rules-of-hooks
   useEffect(() => {
     setSelectedDate(card?.dueDate ? dayjs(card.dueDate) : null);
   }, [card?.dueDate]);

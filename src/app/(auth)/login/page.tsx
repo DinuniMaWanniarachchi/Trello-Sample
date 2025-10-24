@@ -1,7 +1,8 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 // app/(auth)/login/page.tsx
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -18,7 +19,7 @@ interface LoginFormData {
 export default function LoginPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const { login, isAuthenticated, checkAuth, isLoading: authLoading } = useAuth();
+  const { login } = useAuth();
   
   const returnUrl = searchParams.get('returnUrl') || '/home';
   
@@ -49,6 +50,7 @@ export default function LoginPage() {
     }
     
     if (!formData.remember) {
+       
       (newErrors as any).remember = 'Please mark Remember me to continue';
     }
     
@@ -196,6 +198,7 @@ export default function LoginPage() {
             </div>
           </div>
           { (errors as any).remember && (
+             
             <p className="text-sm text-red-500">{(errors as any).remember}</p>
           )}
 

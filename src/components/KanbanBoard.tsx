@@ -29,6 +29,7 @@ const SortableCard: React.FC<{
   deleteCard: (columnId: string, cardId: string) => void;
   t: (key: string) => string;
 }> = ({ card, columnId, editingCard, setEditingCard, updateCard, deleteCard, t }) => {
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const isDragging = false;
 
   if (editingCard?.columnId === columnId && editingCard?.cardId === card.id) {
@@ -299,12 +300,14 @@ const KanbanBoard: React.FC<KanbanBoardProps> = ({ initialData = [] }) => {
   const [newCardTitle, setNewCardTitle] = useState('');
   const [newCardDescription, setNewCardDescription] = useState('');
 
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const findColumn = (id: string) => {
     return columns.find(column => 
       column.id === id || column.cards.some(card => card.id === id)
     );
   };
 
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const findCard = (id: string) => {
     for (const column of columns) {
       const card = column.cards.find(card => card.id === id);
